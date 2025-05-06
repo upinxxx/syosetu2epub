@@ -1,0 +1,40 @@
+// tsconfig.json
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "target": "ES2022",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"],
+      "@utils/*": ["utils/*"],
+      "@crawler/*": ["crawler/*"],
+      "@auth/*": ["auth/*"],
+      "@user/*": ["user/*"],
+      "@novel/*": ["novel/*"],
+      "@epub/*": ["epub/*"],
+      "@download/*": ["download/*"],
+      "@email/*": ["email/*"],
+      "@order/*": ["order/*"],
+      "@queue/*": ["queue/*"],
+      "@storage/*": ["storage/*"],
+      "@common/*": ["common/*"],
+      "@config/*": ["config/*"]
+    },
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false
+  }
+}

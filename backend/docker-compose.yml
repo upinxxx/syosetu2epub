@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    container_name: syosetu2epub_postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: syosetu2epub_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: syosetu2epub_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@123.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - '5051:80'
+    depends_on:
+      - postgres
+volumes:
+  pgdata:

@@ -1,0 +1,15 @@
+// tsconfig.build.json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext", // 符合 ESM 標準
+    "moduleResolution": "nodenext",
+    "noEmit": false, // 要產出 dist
+    "outDir": "./dist", // 輸出目錄（必要）
+    "declaration": true, // 產生 .d.ts 檔案
+    "emitDecoratorMetadata": true, // NestJS 需要
+    "experimentalDecorators": true // NestJS 需要
+  },
+  "include": ["src"],
+  "exclude": ["test", "node_modules", "dist"]
+}

@@ -1,0 +1,74 @@
+#  Node.js (後端 NestJS & 前端 React 共用)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+#  前端 Vite + React
+dist/
+*.local
+*.env.local
+
+#  NestJS 編譯輸出
+build/
+dist/
+
+#  TypeScript
+*.tsbuildinfo
+
+#  dotenv 檔案
+.env
+.env.*
+
+#  prettierrc 檔案
+.prettierrc
+
+#  log 檔
+*.log
+
+#  VSCode / IDEA
+.vscode/
+.idea/
+
+#  Mac
+.DS_Store
+
+#  Coverage
+coverage/
+.nyc_output/
+
+#  Docker volume mount 資料夾（如果有）
+pgdata/
+
+#  OS / editor system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+#  前端 build
+frontend/dist/
+frontend/node_modules/
+frontend/.env
+
+#  後端 build
+backend/dist/
+backend/node_modules/
+backend/.env
+
+#  Playwright 測試 artifact
+test-results/
+playwright-report/
+
+#  Jest 測試快照
+*.snap
+
+#  CI/CD 暫存
+.github/workflows/*.tmp
+
+#  EPUB 輸出檔案（防止推上 repo）
+*.epub
+*.zip
+output/
+tmp/
+tmp_epub/
