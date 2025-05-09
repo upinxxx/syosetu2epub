@@ -30,6 +30,7 @@ dist/
 #  VSCode / IDEA
 .vscode/
 .idea/
+.cursor/
 
 #  Mac
 .DS_Store
