@@ -119,3 +119,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Toast 動畫 */
+  .animate-enter-right {
+    animation: enter-right 0.3s ease-out;
+  }
+
+  .animate-enter-left {
+    animation: enter-left 0.3s ease-out;
+  }
+
+  @keyframes enter-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes enter-left {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+}

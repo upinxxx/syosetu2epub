@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="<%- lang %>" lang="<%- lang %>">
+<head>
+    <title><%= title %></title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+<h1 class="h1"><%= tocTitle %></h1>
+<nav id="toc" epub:type="toc">
+    <ol> <%_ 
+let lastChapter = '';
+content.forEach(function(content, index){
+    if(!content.excludeFromToc && content.beforeToc){
+        if(content.chapterTitle && content.chapterTitle != lastChapter) {
+            if(lastChapter !== '') {
+%>
+                </ol>
+            </li>
+<%_
+            }
+%>
+            <li class="table-of-content">
+                <a href="#<%= index %>" id="aB<%= index %>"><h2><%= content.chapterTitle %></h2></a>
+                <ol>
+<%_
+            lastChapter = content.chapterTitle;
+        }
+%>
+        <li class="table-of-content">
+            <a href="<%= content.href %>"><%= (content.title || "Chapter "+ (1+index)) %><% if(content.author && content.author.length){ %> - <small class="toc-author"><%= content.author.join(",") %></small><% }%></a>
+        </li>
+<%_
+    }
+});
+content.forEach(function(content, index){
+    if(!content.excludeFromToc && !content.beforeToc){
+        if(content.chapterTitle && content.chapterTitle != lastChapter) {
+            if(lastChapter !== '') {
+%>
+                </ol>
+            </li>
+<%_
+            }
+%>
+            <li class="table-of-content">
+                <a href="#<%= index %>" id="aB<%= index %>"><h2><%= content.chapterTitle %></h2></a>
+                <ol>
+<%_
+            lastChapter = content.chapterTitle;
+        }
+%>
+        <li class="table-of-content">
+            <a href="<%= content.href %>"><%= (content.title || "Chapter "+ (1+index)) %><% if(content.author && content.author.length){ %> - <small class="toc-author"><%= content.author.join(",") %></small><% }%></a>
+        </li>
+<%_
+    }
+});
+if(lastChapter !== '') {
+%>
+                </ol>
+            </li>
+    </ol>
+<%_
+} else {
+%>
+    </ol>
+<%_
+}
+%>
+</nav>
+<nav epub:type="landmarks" hidden="hidden">
+    <h2>Guide</h2>
+    <ol>
+        <% if (locals.cover) { %><li><a epub:type="cover" href="cover.xhtml">Cover</a></li><% } %>
+        <% if (locals.showToC) { %><li><a epub:type="toc" href="#toc">Table of Contents</a></li><% } %>
+        <li><a epub:type="bodymatter" href="<%= locals.startOfContentHref %>">Start of Content</a></li>
+    </ol>
+</nav>
+</body>
+</html>

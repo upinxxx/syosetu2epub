@@ -1,0 +1,2064 @@
+{
+  "props": {
+    "pageProps": {
+      "__REDUX_STATE__": {
+        "tier": "regular",
+        "platform": { "type": "web", "version": null }
+      },
+      "__MAINTENANCE_BLIND_STATE__": { "activated": false },
+      "__APOLLO_STATE__": {
+        "ROOT_QUERY": {
+          "__typename": "Query",
+          "visitor": null,
+          "canShowFeatures({\"names\":[\"kakuyomu-contest-selection\",\"payment-maintenance\",\"user-mute-web\",\"app-gift-android\",\"app-gift-ios\",\"notification-complete-work-of-following-user\",\"notification-complete-work-of-following-work\",\"notification-publish-reserved-episode\",\"search_condition_read\",\"maho_popular\",\"maho_media_banner\",\"react_login\",\"guest_top_renewal\",\"guest_top_renewal_message\",\"header_kadokawa_group_logo\",\"image-optimizer\",\"support-amazon-pay\",\"3d_secure\",\"kakuyomu_next_episode_image\",\"natsugatari_contest\",\"debug-itsudemo-natsugatari\"]})": [
+            { "__ref": "FeatureFlag:kakuyomu-contest-selection" },
+            { "__ref": "FeatureFlag:payment-maintenance" },
+            { "__ref": "FeatureFlag:user-mute-web" },
+            { "__ref": "FeatureFlag:app-gift-android" },
+            { "__ref": "FeatureFlag:app-gift-ios" },
+            {
+              "__ref": "FeatureFlag:notification-complete-work-of-following-user"
+            },
+            {
+              "__ref": "FeatureFlag:notification-complete-work-of-following-work"
+            },
+            { "__ref": "FeatureFlag:notification-publish-reserved-episode" },
+            { "__ref": "FeatureFlag:search_condition_read" },
+            { "__ref": "FeatureFlag:maho_popular" },
+            { "__ref": "FeatureFlag:maho_media_banner" },
+            { "__ref": "FeatureFlag:react_login" },
+            { "__ref": "FeatureFlag:guest_top_renewal" },
+            { "__ref": "FeatureFlag:guest_top_renewal_message" },
+            { "__ref": "FeatureFlag:header_kadokawa_group_logo" },
+            { "__ref": "FeatureFlag:image-optimizer" },
+            { "__ref": "FeatureFlag:support-amazon-pay" },
+            { "__ref": "FeatureFlag:3d_secure" },
+            { "__ref": "FeatureFlag:kakuyomu_next_episode_image" },
+            { "__ref": "FeatureFlag:natsugatari_contest" },
+            { "__ref": "FeatureFlag:debug-itsudemo-natsugatari" }
+          ],
+          "work({\"id\":\"16817330661274615404\"})": {
+            "__ref": "Work:16817330661274615404"
+          },
+          "giftItems({\"itemKind\":\"SUBSCRIPTION\"})": [
+            { "__ref": "GiftItem:16816927859240802446" },
+            { "__ref": "GiftItem:16816927859240802447" },
+            { "__ref": "GiftItem:16816927859240802448" },
+            { "__ref": "GiftItem:16818093073489369044" },
+            { "__ref": "GiftItem:16818093073489369100" },
+            { "__ref": "GiftItem:16818093073489369124" },
+            { "__ref": "GiftItem:16818093073489369161" }
+          ]
+        },
+        "FeatureFlag:kakuyomu-contest-selection": {
+          "__typename": "FeatureFlag",
+          "id": "kakuyomu-contest-selection",
+          "name": "kakuyomu-contest-selection",
+          "released": true
+        },
+        "FeatureFlag:payment-maintenance": {
+          "__typename": "FeatureFlag",
+          "id": "payment-maintenance",
+          "name": "payment-maintenance",
+          "released": false
+        },
+        "FeatureFlag:user-mute-web": {
+          "__typename": "FeatureFlag",
+          "id": "user-mute-web",
+          "name": "user-mute-web",
+          "released": false
+        },
+        "FeatureFlag:app-gift-android": {
+          "__typename": "FeatureFlag",
+          "id": "app-gift-android",
+          "name": "app-gift-android",
+          "released": true
+        },
+        "FeatureFlag:app-gift-ios": {
+          "__typename": "FeatureFlag",
+          "id": "app-gift-ios",
+          "name": "app-gift-ios",
+          "released": true
+        },
+        "FeatureFlag:notification-complete-work-of-following-user": {
+          "__typename": "FeatureFlag",
+          "id": "notification-complete-work-of-following-user",
+          "name": "notification-complete-work-of-following-user",
+          "released": true
+        },
+        "FeatureFlag:notification-complete-work-of-following-work": {
+          "__typename": "FeatureFlag",
+          "id": "notification-complete-work-of-following-work",
+          "name": "notification-complete-work-of-following-work",
+          "released": true
+        },
+        "FeatureFlag:notification-publish-reserved-episode": {
+          "__typename": "FeatureFlag",
+          "id": "notification-publish-reserved-episode",
+          "name": "notification-publish-reserved-episode",
+          "released": true
+        },
+        "FeatureFlag:search_condition_read": {
+          "__typename": "FeatureFlag",
+          "id": "search_condition_read",
+          "name": "search_condition_read",
+          "released": false
+        },
+        "FeatureFlag:maho_popular": {
+          "__typename": "FeatureFlag",
+          "id": "maho_popular",
+          "name": "maho_popular",
+          "released": true
+        },
+        "FeatureFlag:maho_media_banner": {
+          "__typename": "FeatureFlag",
+          "id": "maho_media_banner",
+          "name": "maho_media_banner",
+          "released": true
+        },
+        "FeatureFlag:react_login": {
+          "__typename": "FeatureFlag",
+          "id": "react_login",
+          "name": "react_login",
+          "released": false
+        },
+        "FeatureFlag:guest_top_renewal": {
+          "__typename": "FeatureFlag",
+          "id": "guest_top_renewal",
+          "name": "guest_top_renewal",
+          "released": true
+        },
+        "FeatureFlag:guest_top_renewal_message": {
+          "__typename": "FeatureFlag",
+          "id": "guest_top_renewal_message",
+          "name": "guest_top_renewal_message",
+          "released": true
+        },
+        "FeatureFlag:header_kadokawa_group_logo": {
+          "__typename": "FeatureFlag",
+          "id": "header_kadokawa_group_logo",
+          "name": "header_kadokawa_group_logo",
+          "released": true
+        },
+        "FeatureFlag:image-optimizer": {
+          "__typename": "FeatureFlag",
+          "id": "image-optimizer",
+          "name": "image-optimizer",
+          "released": true
+        },
+        "FeatureFlag:support-amazon-pay": {
+          "__typename": "FeatureFlag",
+          "id": "support-amazon-pay",
+          "name": "support-amazon-pay",
+          "released": false
+        },
+        "FeatureFlag:3d_secure": {
+          "__typename": "FeatureFlag",
+          "id": "3d_secure",
+          "name": "3d_secure",
+          "released": true
+        },
+        "FeatureFlag:kakuyomu_next_episode_image": {
+          "__typename": "FeatureFlag",
+          "id": "kakuyomu_next_episode_image",
+          "name": "kakuyomu_next_episode_image",
+          "released": false
+        },
+        "FeatureFlag:natsugatari_contest": {
+          "__typename": "FeatureFlag",
+          "id": "natsugatari_contest",
+          "name": "natsugatari_contest",
+          "released": false
+        },
+        "FeatureFlag:debug-itsudemo-natsugatari": {
+          "__typename": "FeatureFlag",
+          "id": "debug-itsudemo-natsugatari",
+          "name": "debug-itsudemo-natsugatari",
+          "released": false
+        },
+        "UserAccount:1177354054880450035": {
+          "__typename": "UserAccount",
+          "id": "1177354054880450035",
+          "name": "kuropen",
+          "activityName": "赤月ヤモリ",
+          "isOfficialUser": false,
+          "visitorIsBlocking": false,
+          "visitorIsBlocked": false,
+          "screenName": "@kuropen",
+          "loyaltyUser": { "__ref": "LoyaltyUser:1177354054880450035" },
+          "visitorIsSponsor": false,
+          "sponsorByVisitor": null,
+          "publicationLabel": null,
+          "visitorIsFollowing": false
+        },
+        "Episode:16817330663319458292": {
+          "__typename": "Episode",
+          "id": "16817330663319458292",
+          "title": "ep1　過疎ギルドの探索者",
+          "publishedAt": "2024-08-05T03:35:28Z"
+        },
+        "UserAccount:16818093093827856767": {
+          "__typename": "UserAccount",
+          "id": "16818093093827856767",
+          "totalWorkReviews": 46,
+          "name": "mutuba6868",
+          "activityName": "マリーゴールド：あやめ",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818622175071410877": {
+          "__typename": "TextualWorkReview",
+          "id": "16818622175071410877",
+          "reviewerUser": { "__ref": "UserAccount:16818093093827856767" },
+          "title": "主人公バグ",
+          "body": "とにかく主人公が見てて飽きない",
+          "textualCreatedAt": "2025-05-14T05:38:26Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 1,
+          "visitorHasLiked": false
+        },
+        "UserAccount:16817330660806901062": {
+          "__typename": "UserAccount",
+          "id": "16817330660806901062",
+          "totalWorkReviews": 8,
+          "name": "ryuu240z",
+          "activityName": "りゅうちゃん",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818622174758748141": {
+          "__typename": "TextualWorkReview",
+          "id": "16818622174758748141",
+          "reviewerUser": { "__ref": "UserAccount:16817330660806901062" },
+          "title": "一気に読んだ!",
+          "body": "面白い。\n主人公の童貞感が良いですね。",
+          "textualCreatedAt": "2025-05-09T15:53:20Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 1,
+          "visitorHasLiked": false
+        },
+        "UserAccount:1177354054893278592": {
+          "__typename": "UserAccount",
+          "id": "1177354054893278592",
+          "totalWorkReviews": 2,
+          "name": "yukiclown0117",
+          "activityName": "@yukiclown0117",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818622173075420936": {
+          "__typename": "TextualWorkReview",
+          "id": "16818622173075420936",
+          "reviewerUser": { "__ref": "UserAccount:1177354054893278592" },
+          "title": "恋愛がサブで戦闘シーンが多く読みやすい！！",
+          "body": "この系統恋愛面で男性向けになることが多いけど既婚者ってことで抑えられているから女性でもだいぶ読みやすい！！\n",
+          "textualCreatedAt": "2025-04-14T06:08:25Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 1,
+          "visitorHasLiked": false
+        },
+        "UserAccount:16816452219883166406": {
+          "__typename": "UserAccount",
+          "id": "16816452219883166406",
+          "totalWorkReviews": 41,
+          "name": "greengreentea",
+          "activityName": "@greengreentea",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818622172290522736": {
+          "__typename": "TextualWorkReview",
+          "id": "16818622172290522736",
+          "reviewerUser": { "__ref": "UserAccount:16816452219883166406" },
+          "title": "魅力的な人妻達とダンジョンでの死闘を楽しむ作品",
+          "body": "ダンジョン探索モノ。本作の特徴はなんといっても、（一応七規という後輩女子高生やのの猫などはいるものの、）魅力的な人妻や彼氏モチの女性キャラがたくさん出てくるという事。松本さんも、霜月さんも、その他の女性キャラも、大体は年上の人妻。こういう作品は珍しいと思う。そして、ダンジョン探索モノとしては、ダンジョンで命懸けの戦いが連続するというのが特徴的かな。相馬創は、Aランクから始まる、かなり強い主人公だけど、ナイトメアと呼ばれるダンジョンの特殊な魔物達も極めて強いので、手に汗を握る死闘を堪能する事ができる。創が、地元のダンジョンを攻略してSランクになれたのは、ギリギリの闘いを経たからであり、この先も楽な展開はやってこないのだろうな、と思われる。早く、ダンジョンの先にある異世界の魔王との死闘が、読みたいな。",
+          "textualCreatedAt": "2025-04-02T05:51:29Z",
+          "isSpoiler": true,
+          "point": 3,
+          "likeCount": 1,
+          "visitorHasLiked": false
+        },
+        "UserAccount:16816927860997335245": {
+          "__typename": "UserAccount",
+          "id": "16816927860997335245",
+          "totalWorkReviews": 7,
+          "name": "tangroro",
+          "activityName": "@tangroro",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818622172137068245": {
+          "__typename": "TextualWorkReview",
+          "id": "16818622172137068245",
+          "reviewerUser": { "__ref": "UserAccount:16816927860997335245" },
+          "title": "人妻最高！人妻大好き！",
+          "body": "のの猫はメインヒロインだと思いますが、これだけ人妻ヒロインがいるなら、正直同世代ヒロインには興味がない。倫理的に難しいかもしれないが、やはり人妻たちとのラブコメの方が見たいのです\n",
+          "textualCreatedAt": "2025-03-30T18:20:56Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 2,
+          "visitorHasLiked": false
+        },
+        "UserAccount:16818093080981867543": {
+          "__typename": "UserAccount",
+          "id": "16818093080981867543",
+          "totalWorkReviews": 5,
+          "name": "junjun0629",
+          "activityName": "@junjun0629",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818622170796730915": {
+          "__typename": "TextualWorkReview",
+          "id": "16818622170796730915",
+          "reviewerUser": { "__ref": "UserAccount:16818093080981867543" },
+          "title": "面白い！続き早く読みたい！",
+          "body": "",
+          "textualCreatedAt": "2025-03-10T06:50:30Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 2,
+          "visitorHasLiked": false
+        },
+        "UserAccount:16816700427044779224": {
+          "__typename": "UserAccount",
+          "id": "16816700427044779224",
+          "totalWorkReviews": 57,
+          "name": "454519190721",
+          "activityName": "最弱帝王",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818093094874520780": {
+          "__typename": "TextualWorkReview",
+          "id": "16818093094874520780",
+          "reviewerUser": { "__ref": "UserAccount:16816700427044779224" },
+          "title": "久々に見つけた神作！！",
+          "body": "",
+          "textualCreatedAt": "2025-02-26T11:26:24Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 3,
+          "visitorHasLiked": false
+        },
+        "UserAccount:1177354054922291171": {
+          "__typename": "UserAccount",
+          "id": "1177354054922291171",
+          "totalWorkReviews": 17,
+          "name": "authentication7",
+          "activityName": "@authentication7",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818093088478635151": {
+          "__typename": "TextualWorkReview",
+          "id": "16818093088478635151",
+          "reviewerUser": { "__ref": "UserAccount:1177354054922291171" },
+          "title": "続きが待ち遠しい",
+          "body": "ズットマッテル",
+          "textualCreatedAt": "2025-02-15T13:53:58Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 3,
+          "visitorHasLiked": false
+        },
+        "UserAccount:16816700426955234159": {
+          "__typename": "UserAccount",
+          "id": "16816700426955234159",
+          "totalWorkReviews": 60,
+          "name": "cookie1868",
+          "activityName": "くきわかめ",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818093092393501597": {
+          "__typename": "TextualWorkReview",
+          "id": "16818093092393501597",
+          "reviewerUser": { "__ref": "UserAccount:16816700426955234159" },
+          "title": "おもしろい",
+          "body": "",
+          "textualCreatedAt": "2025-02-11T11:49:25Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 2,
+          "visitorHasLiked": false
+        },
+        "UserAccount:16817330659207110958": {
+          "__typename": "UserAccount",
+          "id": "16817330659207110958",
+          "totalWorkReviews": 37,
+          "name": "yoruhoshi",
+          "activityName": "@yoruhoshi",
+          "isOfficialUser": false
+        },
+        "TextualWorkReview:16818093092538373421": {
+          "__typename": "TextualWorkReview",
+          "id": "16818093092538373421",
+          "reviewerUser": { "__ref": "UserAccount:16817330659207110958" },
+          "title": "なるほど★の数が多い訳だ",
+          "body": "現代の田舎で、ダンジョンに1人で、え？配信してないの？え、それ面白いの？？って思ってましたが、めちゃめちゃ面白かったです\nダントツで面白いまであります\n様子見してる方がいらっしゃれば是非ご一読を",
+          "textualCreatedAt": "2025-02-06T18:35:00Z",
+          "isSpoiler": false,
+          "point": 3,
+          "likeCount": 12,
+          "visitorHasLiked": false
+        },
+        "WorkTopWorkReviews:16817330661274615404": {
+          "__typename": "WorkTopWorkReviews",
+          "id": "16817330661274615404",
+          "newTextualWorkReviews": [
+            { "__ref": "TextualWorkReview:16818622175071410877" },
+            { "__ref": "TextualWorkReview:16818622174758748141" },
+            { "__ref": "TextualWorkReview:16818622173075420936" },
+            { "__ref": "TextualWorkReview:16818622172290522736" },
+            { "__ref": "TextualWorkReview:16818622172137068245" },
+            { "__ref": "TextualWorkReview:16818622170796730915" },
+            { "__ref": "TextualWorkReview:16818093094874520780" },
+            { "__ref": "TextualWorkReview:16818093088478635151" },
+            { "__ref": "TextualWorkReview:16818093092393501597" },
+            { "__ref": "TextualWorkReview:16818093092538373421" }
+          ]
+        },
+        "UserAccount:16818023212808860561": {
+          "__typename": "UserAccount",
+          "id": "16818023212808860561",
+          "name": "mazomanzi",
+          "activityName": "馬路まんじゟ＠マンガ色々配信中検索！",
+          "isOfficialUser": false
+        },
+        "Work:16818093082740683707": {
+          "__typename": "Work",
+          "id": "16818093082740683707",
+          "catchphrase": "えっ、俺、殺処分ですか！？！？！？！？",
+          "baseColor": "#E33954",
+          "author": { "__ref": "UserAccount:16818023212808860561" },
+          "title": "二周目モブは死にたくない　～お腹の中から鍛え続けたらバケモノだと勘違いされる話～",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-12T03:46:54Z",
+          "lastEpisodePublishedAt": "2024-11-20T22:10:17Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 10736,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 72,
+          "totalCharacterCount": 352162,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16818093081481930680": {
+          "__typename": "UserAccount",
+          "id": "16818093081481930680",
+          "name": "Tsukimi572122",
+          "activityName": "月見里　嘉助",
+          "isOfficialUser": false
+        },
+        "Work:16818093081482228894": {
+          "__typename": "Work",
+          "id": "16818093081482228894",
+          "catchphrase": "【書籍化決定】転生したって勇者じゃなくて農家で良いじゃない？",
+          "baseColor": "#FF5E23",
+          "author": { "__ref": "UserAccount:16818093081481930680" },
+          "title": "せっかく農家に転生したので勇者は目指しません",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-21T15:01:55Z",
+          "lastEpisodePublishedAt": "2025-05-15T15:00:49Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 19810,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 193,
+          "totalCharacterCount": 720789,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16817330652315708123": {
+          "__typename": "UserAccount",
+          "id": "16817330652315708123",
+          "name": "--0_0--",
+          "activityName": "キー太郎",
+          "isOfficialUser": false
+        },
+        "Work:16818093081469820220": {
+          "__typename": "Work",
+          "id": "16818093081469820220",
+          "catchphrase": "知らぬ間に「ざまあ」してるって？　いや、ただの不可抗力だ",
+          "baseColor": "#EE2323",
+          "author": { "__ref": "UserAccount:16817330652315708123" },
+          "title": "モブの俺が悪役令嬢を拾ったんだが〜ゲーム本編とか知らないし、好き勝手やります〜",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-26T03:11:43Z",
+          "lastEpisodePublishedAt": "2025-05-14T12:12:18Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 22219,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 291,
+          "totalCharacterCount": 1353273,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054893201135": {
+          "__typename": "UserAccount",
+          "id": "1177354054893201135",
+          "name": "thres",
+          "activityName": "黒兎",
+          "isOfficialUser": false
+        },
+        "Work:16818093083619570361": {
+          "__typename": "Work",
+          "id": "16818093083619570361",
+          "catchphrase": "色々と規格外な問題児による現代\u0026異世界無双",
+          "baseColor": "#3189D3",
+          "author": { "__ref": "UserAccount:1177354054893201135" },
+          "title": "どうやらダンジョンを踏破して異世界から帰還したのは俺だけらしい",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-25T14:00:14Z",
+          "lastEpisodePublishedAt": "2024-11-24T10:43:59Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 7160,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 52,
+          "totalCharacterCount": 183699,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054922380468": {
+          "__typename": "UserAccount",
+          "id": "1177354054922380468",
+          "name": "masataka1201",
+          "activityName": "竜胆マサタカ",
+          "isOfficialUser": false
+        },
+        "Work:16818093081676799618": {
+          "__typename": "Work",
+          "id": "16818093081676799618",
+          "catchphrase": "【書籍化\u0026コミカライズ】俺の魔剣、明らかに『悪魔の剣』じゃない",
+          "baseColor": "#0033C4",
+          "author": { "__ref": "UserAccount:1177354054922380468" },
+          "title": "悪魔の剣で天使を喰らう",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-03T03:00:08Z",
+          "lastEpisodePublishedAt": "2025-05-15T09:07:13Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 8907,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 172,
+          "totalCharacterCount": 258916,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16816452218458001241": {
+          "__typename": "UserAccount",
+          "id": "16816452218458001241",
+          "name": "taki210",
+          "activityName": "taki",
+          "isOfficialUser": false
+        },
+        "Work:16818093082274494821": {
+          "__typename": "Work",
+          "id": "16818093082274494821",
+          "catchphrase": "主人公くんさぁ…仕事してくれよ…君の尻拭いしんどいよ…",
+          "baseColor": "#000000",
+          "author": { "__ref": "UserAccount:16816452218458001241" },
+          "title": "シナリオゲーの悪役魔術師に転生した件〜使えない主人公の代わりにピンチのヒロインたちを救ってたら全員ヤンデレ化したんだが〜",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-04T02:57:45Z",
+          "lastEpisodePublishedAt": "2024-09-16T03:20:37Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 7411,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 59,
+          "totalCharacterCount": 207148,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16817330667788775198": {
+          "__typename": "UserAccount",
+          "id": "16817330667788775198",
+          "name": "brioche",
+          "activityName": "砂乃一希@『くっころ』書籍化決定！",
+          "isOfficialUser": false
+        },
+        "Work:16818093081577825168": {
+          "__typename": "Work",
+          "id": "16818093081577825168",
+          "catchphrase": "みんな高潔な騎士達だったのになんで悪役の俺に懐いてくるんだよぉぉぉぉ！",
+          "baseColor": "#8F478D",
+          "author": { "__ref": "UserAccount:16817330667788775198" },
+          "title": "【書籍化決定！】異世界転生したので本物のくっころが見たい！と思って悪役を演じながら女性騎士と片っ端から戦って負かしまくってたらみんな俺に懐いて即落ち二コマだった",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-28T00:05:05Z",
+          "lastEpisodePublishedAt": "2025-05-14T22:33:39Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 12481,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 146,
+          "totalCharacterCount": 429937,
+          "kakuyomuNextWork": null
+        },
+        "Work:1177354054935113637": {
+          "__typename": "Work",
+          "id": "1177354054935113637",
+          "catchphrase": "『勇者たちを裏切って殺せ』――最凶サイコパスによる悪役無双！！",
+          "baseColor": "#FF5E23",
+          "author": { "__ref": "UserAccount:1177354054880450035" },
+          "title": "クラス召喚された俺の職業が『裏切り者』だった件。",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2023-06-30T10:15:41Z",
+          "lastEpisodePublishedAt": "2024-11-24T10:15:08Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 4101,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 134,
+          "totalCharacterCount": 848899,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16816927860093407536": {
+          "__typename": "UserAccount",
+          "id": "16816927860093407536",
+          "name": "saikyojoker",
+          "activityName": "くまちゃん",
+          "isOfficialUser": false
+        },
+        "Work:16818093081729592845": {
+          "__typename": "Work",
+          "id": "16818093081729592845",
+          "catchphrase": "転生者の勇者に嫉妬されているけど、そんなの知りません〜",
+          "baseColor": "#371F6A",
+          "author": { "__ref": "UserAccount:16816927860093407536" },
+          "title": "勇者に殺される悪徳領主に転生した俺、序盤に鍛えすぎたせいで勇者の地位を奪ってしまう〜逆恨みした勇者に狙われているけど、全然気づきません〜",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-19T15:01:23Z",
+          "lastEpisodePublishedAt": "2024-09-19T14:53:58Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 6583,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 40,
+          "totalCharacterCount": 56400,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054915616727": {
+          "__typename": "UserAccount",
+          "id": "1177354054915616727",
+          "name": "miporion",
+          "activityName": "ミポリオン",
+          "isOfficialUser": false
+        },
+        "Work:16818093080021653997": {
+          "__typename": "Work",
+          "id": "16818093080021653997",
+          "catchphrase": "規格外の神官と彼を取り巻く人々や妖達による騒がしくも穏やかな日常",
+          "baseColor": "#FF5E23",
+          "author": { "__ref": "UserAccount:1177354054915616727" },
+          "title": "【受賞・一章完結】現人神様のその日暮らし〜異世界から帰ってきたら、二十年も経っていて何もかも失ったけど、悠々自適な神様生活を送ることになりました〜",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-16T03:12:18Z",
+          "lastEpisodePublishedAt": "2025-01-12T06:12:42Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 6943,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 55,
+          "totalCharacterCount": 141650,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054891380035": {
+          "__typename": "UserAccount",
+          "id": "1177354054891380035",
+          "name": "hasu_iketarou",
+          "activityName": "蓮池タロウ",
+          "isOfficialUser": false
+        },
+        "Work:16818093080910701538": {
+          "__typename": "Work",
+          "id": "16818093080910701538",
+          "catchphrase": "ダンジョン探索で稼げないなら、人気配信者を助けて稼ぎましょう🤑",
+          "baseColor": "#FF9D00",
+          "author": { "__ref": "UserAccount:1177354054891380035" },
+          "title": "ダンジョン探索者試験に落ち底辺ダンジョン労働者になった俺、人気ダンジョン配信者を救助したら多額の謝礼金が貰えると聞いたので助けまくります〜金を要求するとこまで配信され炎上気味にバズったけど気にしません",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-16T09:11:23Z",
+          "lastEpisodePublishedAt": "2024-10-19T09:11:06Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 3216,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 47,
+          "totalCharacterCount": 161587,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054883897227": {
+          "__typename": "UserAccount",
+          "id": "1177354054883897227",
+          "name": "mugityatarou",
+          "activityName": "年中麦茶太郎",
+          "isOfficialUser": false
+        },
+        "Work:16818093082699485944": {
+          "__typename": "Work",
+          "id": "16818093082699485944",
+          "catchphrase": "原作知識で死亡ルートを回避したのでヒロインとイチャイチャする",
+          "baseColor": "#EE2323",
+          "author": { "__ref": "UserAccount:1177354054883897227" },
+          "title": "光魔法の才能がないので闇魔法を極めた　～余命いくばくもないヒロインを救ったら好感度が限界突破した。やがてハーレム状態になるけど攻略するのはその子だけ～",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-11T12:17:59Z",
+          "lastEpisodePublishedAt": "2024-10-13T02:40:58Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 3548,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "COMPLETED",
+          "publicEpisodeCount": 46,
+          "totalCharacterCount": 111658,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054893773617": {
+          "__typename": "UserAccount",
+          "id": "1177354054893773617",
+          "name": "ramunabe",
+          "activityName": "らむなべ",
+          "isOfficialUser": false
+        },
+        "Work:16817330668503046681": {
+          "__typename": "Work",
+          "id": "16817330668503046681",
+          "catchphrase": "選び取れ。自分の道を。",
+          "baseColor": "#073D80",
+          "author": { "__ref": "UserAccount:1177354054893773617" },
+          "title": "【書籍化決定】魔術漁りは選び取る",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-04-30T12:32:51Z",
+          "lastEpisodePublishedAt": "2025-05-15T12:18:52Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 32803,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 264,
+          "totalCharacterCount": 867699,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054897705046": {
+          "__typename": "UserAccount",
+          "id": "1177354054897705046",
+          "name": "shinnko",
+          "activityName": "しんこせい",
+          "isOfficialUser": false
+        },
+        "Work:16818093082209797689": {
+          "__typename": "Work",
+          "id": "16818093082209797689",
+          "catchphrase": "蹂躙せよ！",
+          "baseColor": "#FF5E23",
+          "author": { "__ref": "UserAccount:1177354054897705046" },
+          "title": "やりこんだゲーム世界にダンジョンマスターとして転生したら、攻略に来る勇者が弱すぎるんだが　～自重せずにやりこみまくったら、難攻不落のダンジョンと最強の魔物軍団が出来上がりました～ ",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-03T02:00:13Z",
+          "lastEpisodePublishedAt": "2025-02-17T09:00:50Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 5333,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 48,
+          "totalCharacterCount": 173872,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16817330661657615546": {
+          "__typename": "UserAccount",
+          "id": "16817330661657615546",
+          "name": "hirohata398",
+          "activityName": "サワーボール",
+          "isOfficialUser": false
+        },
+        "Work:16818093082287771841": {
+          "__typename": "Work",
+          "id": "16818093082287771841",
+          "catchphrase": "美少女配信者を救ってバズった最強探索者vs最強怪物（俺）",
+          "baseColor": "#EE2323",
+          "author": { "__ref": "UserAccount:16817330661657615546" },
+          "title": "ダンジョンの深淵に住む「魔物｣的な立場の俺、配信で晒されて見事にバズってしまう",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-06T06:52:32Z",
+          "lastEpisodePublishedAt": "2024-10-21T08:00:25Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 2742,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 48,
+          "totalCharacterCount": 140195,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054901812085": {
+          "__typename": "UserAccount",
+          "id": "1177354054901812085",
+          "name": "nodoguro",
+          "activityName": "カラスバ",
+          "isOfficialUser": false
+        },
+        "Work:16818093081625161476": {
+          "__typename": "Work",
+          "id": "16818093081625161476",
+          "catchphrase": "俺は寝取られ竿役おじさん",
+          "baseColor": "#000000",
+          "author": { "__ref": "UserAccount:1177354054901812085" },
+          "title": "えっちなゲームの悪役おじさん、やたらヒロインからの評価が高い",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-23T21:31:30Z",
+          "lastEpisodePublishedAt": "2024-11-24T03:00:40Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 5502,
+          "fanFictionSource": null,
+          "genre": "ROMANCE",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 42,
+          "totalCharacterCount": 81351,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054893677964": {
+          "__typename": "UserAccount",
+          "id": "1177354054893677964",
+          "name": "kamifuuuuusen",
+          "activityName": "紙風船",
+          "isOfficialUser": false
+        },
+        "Work:16818093081383617181": {
+          "__typename": "Work",
+          "id": "16818093081383617181",
+          "catchphrase": "【書籍化決定】親の顔より見た森だ！",
+          "baseColor": "#336E00",
+          "author": { "__ref": "UserAccount:1177354054893677964" },
+          "title": "【書籍化します】未開の森を開拓して、理想の暮らし始めます　～用済みだと追放された先は前世で良く知る場所だった～",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-23T09:02:25Z",
+          "lastEpisodePublishedAt": "2025-03-19T09:55:04Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 8997,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 165,
+          "totalCharacterCount": 408452,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054882516784": {
+          "__typename": "UserAccount",
+          "id": "1177354054882516784",
+          "name": "kuzushichio",
+          "activityName": "九頭七尾（くずしちお）",
+          "isOfficialUser": false
+        },
+        "Work:16818093081894522431": {
+          "__typename": "Work",
+          "id": "16818093081894522431",
+          "catchphrase": "おっさん強すぎて草",
+          "baseColor": "#371F6A",
+          "author": { "__ref": "UserAccount:1177354054882516784" },
+          "title": "昔取ったきねづかで…と言いながら無双する定食屋のおっさん、実は伝説のダンジョン攻略者",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-31T09:00:06Z",
+          "lastEpisodePublishedAt": "2025-05-09T09:00:08Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 11527,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 105,
+          "totalCharacterCount": 241207,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054886064345": {
+          "__typename": "UserAccount",
+          "id": "1177354054886064345",
+          "name": "yosihamu",
+          "activityName": "こはるんるん",
+          "isOfficialUser": false
+        },
+        "Work:16817330660648111686": {
+          "__typename": "Work",
+          "id": "16817330660648111686",
+          "catchphrase": "俺を嫌っていたヒロインたちが手の平を返し、俺が好きだと押し寄せてくる！",
+          "baseColor": "#E0005E",
+          "author": { "__ref": "UserAccount:1177354054886064345" },
+          "title": "【完結】強さがすべての魔法学園の最下位クズ貴族に転生した俺、死にたくないからゲーム知識でランキング１位を目指したら、なぜか最強ハーレムの主となっていた！",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-23T09:08:44Z",
+          "lastEpisodePublishedAt": "2024-09-09T09:02:12Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 6063,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "COMPLETED",
+          "publicEpisodeCount": 53,
+          "totalCharacterCount": 167644,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054881804885": {
+          "__typename": "UserAccount",
+          "id": "1177354054881804885",
+          "name": "aaa168",
+          "activityName": "aaa168（スリーエー）",
+          "isOfficialUser": false
+        },
+        "Work:16818093081624854077": {
+          "__typename": "Work",
+          "id": "16818093081624854077",
+          "catchphrase": "10/16第一部完！ 「あの男子店員は、頼んだらヤらせてくれるらしい」",
+          "baseColor": "#8F478D",
+          "author": { "__ref": "UserAccount:1177354054881804885" },
+          "title": "貞操逆転、女子高校前、コンビニバイト。",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-02T05:06:20Z",
+          "lastEpisodePublishedAt": "2024-10-17T01:12:01Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 6958,
+          "fanFictionSource": null,
+          "genre": "ROMANCE",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 81,
+          "totalCharacterCount": 184189,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054883995795": {
+          "__typename": "UserAccount",
+          "id": "1177354054883995795",
+          "name": "yumika_ka",
+          "activityName": "彁はるこ",
+          "isOfficialUser": false
+        },
+        "KakuyomuNextWork:16818093078722053459": {
+          "__typename": "KakuyomuNextWork",
+          "id": "16818093078722053459",
+          "annotationMessage": "29話分無料"
+        },
+        "Work:16818093078722053459": {
+          "__typename": "Work",
+          "id": "16818093078722053459",
+          "catchphrase": "天才魔女、下町で庶民のために『くだらない』魔法を売ります⁉︎",
+          "baseColor": "#A31F74",
+          "author": { "__ref": "UserAccount:1177354054883995795" },
+          "title": "ウィッチクラフト０　ゼロの魔女の魔法開発",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2025-04-10T15:30:56Z",
+          "lastEpisodePublishedAt": "2025-05-14T21:00:27Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 91,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 32,
+          "totalCharacterCount": 75696,
+          "kakuyomuNextWork": {
+            "__ref": "KakuyomuNextWork:16818093078722053459"
+          }
+        },
+        "UserAccount:16817330665733274720": {
+          "__typename": "UserAccount",
+          "id": "16817330665733274720",
+          "name": "kugakuga",
+          "activityName": "クガ",
+          "isOfficialUser": false
+        },
+        "Work:16817330669253720614": {
+          "__typename": "Work",
+          "id": "16817330669253720614",
+          "catchphrase": "【書籍二巻発売予定】目指せ、最低限の仕事で金を稼いでゆっくり暮らす生活",
+          "baseColor": "#000000",
+          "author": { "__ref": "UserAccount:16817330665733274720" },
+          "title": "転生薬師は昼まで寝たい",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2023-12-31T15:00:14Z",
+          "lastEpisodePublishedAt": "2025-05-15T15:00:06Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 26929,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 260,
+          "totalCharacterCount": 668095,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16817330666828225527": {
+          "__typename": "UserAccount",
+          "id": "16817330666828225527",
+          "name": "20232023",
+          "activityName": "出来立てホヤホヤの鯛焼き",
+          "isOfficialUser": false
+        },
+        "Work:16818093074173866568": {
+          "__typename": "Work",
+          "id": "16818093074173866568",
+          "catchphrase": "絆？ 愛？ それでパワーアップとかしろと？ 出来る気が欠片もしないぜ☆",
+          "baseColor": "#EE2323",
+          "author": { "__ref": "UserAccount:16817330666828225527" },
+          "title": "王道系ファンタジー漫画の主人公キャラに転生したら、村にもう一人転生者がいた～何やら主人公に成り代わりたいみたいなので譲ってあげたら世界が滅亡しかけてるんだが……～",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-03-23T16:02:29Z",
+          "lastEpisodePublishedAt": "2025-05-11T12:22:08Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 18267,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 104,
+          "totalCharacterCount": 276749,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16816452218253805739": {
+          "__typename": "UserAccount",
+          "id": "16816452218253805739",
+          "name": "kiriti",
+          "activityName": "@kiriti",
+          "isOfficialUser": false
+        },
+        "Work:16818093081155090667": {
+          "__typename": "Work",
+          "id": "16818093081155090667",
+          "catchphrase": "「心無き」？何言ってんだ？俺は普通だろ。",
+          "baseColor": "#0033C4",
+          "author": { "__ref": "UserAccount:16816452218253805739" },
+          "title": "迷宮学園の落第生",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-15T21:40:28Z",
+          "lastEpisodePublishedAt": "2025-05-15T15:00:16Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 6022,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 135,
+          "totalCharacterCount": 442807,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054901329999": {
+          "__typename": "UserAccount",
+          "id": "1177354054901329999",
+          "name": "Compo",
+          "activityName": "こんぽ",
+          "isOfficialUser": false
+        },
+        "Work:16818093073073624701": {
+          "__typename": "Work",
+          "id": "16818093073073624701",
+          "catchphrase": "鬱展開とかそういうのいらないんで！",
+          "baseColor": "#000000",
+          "author": { "__ref": "UserAccount:1177354054901329999" },
+          "title": "俺は普通に生きたい",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-03-25T02:00:29Z",
+          "lastEpisodePublishedAt": "2024-06-07T14:00:07Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 26011,
+          "fanFictionSource": null,
+          "genre": "FANTASY",
+          "serialStatus": "COMPLETED",
+          "publicEpisodeCount": 58,
+          "totalCharacterCount": 207849,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054889607072": {
+          "__typename": "UserAccount",
+          "id": "1177354054889607072",
+          "name": "kusiro2019",
+          "activityName": "久城征博",
+          "isOfficialUser": false
+        },
+        "Work:16818093079908687642": {
+          "__typename": "Work",
+          "id": "16818093079908687642",
+          "catchphrase": "迷宮に潜るには、免許証が必要。日本国籍16歳以上。教習所代は約百万円。",
+          "baseColor": "#FF9D00",
+          "author": { "__ref": "UserAccount:1177354054889607072" },
+          "title": "16歳からの迷宮探索には「国家資格：迷宮探索及び魔物討伐、武器等所持限定使用許可証：通称、迷宮免許」が必要です　※全面改稿版",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-06-25T06:01:37Z",
+          "lastEpisodePublishedAt": "2024-10-12T22:18:41Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 4002,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 237,
+          "totalCharacterCount": 477585,
+          "kakuyomuNextWork": null
+        },
+        "Work:16818093082040601282": {
+          "__typename": "Work",
+          "id": "16818093082040601282",
+          "catchphrase": "新しいリメイク版があります！リメイク版の応援をお願いします！",
+          "baseColor": "#EE2323",
+          "author": { "__ref": "UserAccount:16816927860093407536" },
+          "title": "【旧版】エロゲの親友キャラに転生した俺、主人公のハーレムを奪ってしまう〜親友キャラなのにヒロインたちとカラダの関係になってしまった〜",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-07-31T15:10:45Z",
+          "lastEpisodePublishedAt": "2024-12-21T00:10:11Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 5926,
+          "fanFictionSource": null,
+          "genre": "ROMANCE",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 1,
+          "totalCharacterCount": 303,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054886153005": {
+          "__typename": "UserAccount",
+          "id": "1177354054886153005",
+          "name": "chanken",
+          "activityName": "熊乃げん骨",
+          "isOfficialUser": false
+        },
+        "Work:16817330657186803576": {
+          "__typename": "Work",
+          "id": "16817330657186803576",
+          "catchphrase": "ん？配信設定を間違え…って同接１億人っ！？　【書籍・漫画化決定👑】",
+          "baseColor": "#E0005E",
+          "author": { "__ref": "UserAccount:1177354054886153005" },
+          "title": "社畜剣聖、配信者になる　〜ブラックギルド会社員、うっかり会社用回線でS級モンスターを相手に無双するところを全国配信してしまう〜",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2023-05-13T01:08:32Z",
+          "lastEpisodePublishedAt": "2025-05-11T06:30:13Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 35212,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 206,
+          "totalCharacterCount": 477274,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:1177354054885405065": {
+          "__typename": "UserAccount",
+          "id": "1177354054885405065",
+          "name": "Harakara",
+          "activityName": "ゲスト047562",
+          "isOfficialUser": false
+        },
+        "Work:16818023213017479173": {
+          "__typename": "Work",
+          "id": "16818023213017479173",
+          "catchphrase": "自暴自棄になったスレ主がダンジョンを暴れ回る配信をするだけの話",
+          "baseColor": "#FF9D00",
+          "author": { "__ref": "UserAccount:1177354054885405065" },
+          "title": "スレ主がダンジョンアタックする話",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": true,
+          "publishedAt": "2024-02-05T08:18:08Z",
+          "lastEpisodePublishedAt": "2025-05-16T08:00:34Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 19419,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 136,
+          "totalCharacterCount": 371823,
+          "kakuyomuNextWork": null
+        },
+        "UserAccount:16817139556684382930": {
+          "__typename": "UserAccount",
+          "id": "16817139556684382930",
+          "name": "KOUREIGYOUZI",
+          "activityName": "恒例行事@呪勇5/20発売",
+          "isOfficialUser": false
+        },
+        "Work:16817330665909357201": {
+          "__typename": "Work",
+          "id": "16817330665909357201",
+          "catchphrase": "書籍発売5月20日　予約開始してます！！",
+          "baseColor": "#EE2323",
+          "author": { "__ref": "UserAccount:16817139556684382930" },
+          "title": "【書籍化】封印されし呪われ勇者、美少女配信者に偶然解放されたついでに無双して大バズり",
+          "alternateTitle": null,
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2023-12-26T13:00:31Z",
+          "lastEpisodePublishedAt": "2025-05-15T12:00:29Z",
+          "alternateAuthorName": null,
+          "totalReviewPoint": 16017,
+          "fanFictionSource": null,
+          "genre": "ACTION",
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 262,
+          "totalCharacterCount": 874813,
+          "kakuyomuNextWork": null
+        },
+        "Episode:16817330663536567076": {
+          "__typename": "Episode",
+          "id": "16817330663536567076",
+          "title": "ep2　人妻とダンジョン配信を見る。",
+          "publishedAt": "2024-08-05T09:25:03Z"
+        },
+        "Episode:16817330663687216255": {
+          "__typename": "Episode",
+          "id": "16817330663687216255",
+          "title": "ep3　ダンジョン配信者【のの猫】",
+          "publishedAt": "2024-08-06T09:10:47Z"
+        },
+        "Episode:16817330663692799590": {
+          "__typename": "Episode",
+          "id": "16817330663692799590",
+          "title": "ep4　遠くからキミと繋がる一瞬。",
+          "publishedAt": "2024-08-07T09:10:22Z"
+        },
+        "Episode:16817330663695835241": {
+          "__typename": "Episode",
+          "id": "16817330663695835241",
+          "title": "ep5　ヤケ酒！",
+          "publishedAt": "2024-08-08T09:10:35Z"
+        },
+        "Episode:16817330663695865451": {
+          "__typename": "Episode",
+          "id": "16817330663695865451",
+          "title": "探索者について語るスレ1821",
+          "publishedAt": "2024-08-09T09:10:25Z"
+        },
+        "Episode:16817330663853302710": {
+          "__typename": "Episode",
+          "id": "16817330663853302710",
+          "title": "ep6　のの猫",
+          "publishedAt": "2024-08-10T09:10:14Z"
+        },
+        "Episode:16817330663696711293": {
+          "__typename": "Episode",
+          "id": "16817330663696711293",
+          "title": "ep7　新人が来て仕事が増えた。",
+          "publishedAt": "2024-08-11T09:10:42Z"
+        },
+        "Episode:16817330663972273257": {
+          "__typename": "Episode",
+          "id": "16817330663972273257",
+          "title": "ep8　Aランク探索者『相馬創』",
+          "publishedAt": "2024-08-12T09:10:45Z"
+        },
+        "Episode:16817330668732601491": {
+          "__typename": "Episode",
+          "id": "16817330668732601491",
+          "title": "ep9　特別な武器",
+          "publishedAt": "2024-08-13T09:10:09Z"
+        },
+        "Episode:16817330669044228970": {
+          "__typename": "Episode",
+          "id": "16817330669044228970",
+          "title": "ep10　日常もダンジョン並みに面倒",
+          "publishedAt": "2024-08-14T09:10:05Z"
+        },
+        "Episode:16817330669056331037": {
+          "__typename": "Episode",
+          "id": "16817330669056331037",
+          "title": "ep11　嵐の前は静からしい。",
+          "publishedAt": "2024-08-15T09:10:27Z"
+        },
+        "Episode:16817330669113736232": {
+          "__typename": "Episode",
+          "id": "16817330669113736232",
+          "title": "ep12　ドラゴン討伐",
+          "publishedAt": "2024-08-16T09:10:39Z"
+        },
+        "Episode:16817330669156523993": {
+          "__typename": "Episode",
+          "id": "16817330669156523993",
+          "title": "ep13　ナイトメア・オーク",
+          "publishedAt": "2024-08-17T09:10:34Z"
+        },
+        "Episode:16817330669157875571": {
+          "__typename": "Episode",
+          "id": "16817330669157875571",
+          "title": "ep14　接戦",
+          "publishedAt": "2024-08-18T09:10:17Z"
+        },
+        "Episode:16817330669415578841": {
+          "__typename": "Episode",
+          "id": "16817330669415578841",
+          "title": "ep15　病室",
+          "publishedAt": "2024-08-19T09:10:06Z"
+        },
+        "Episode:16817330669418454170": {
+          "__typename": "Episode",
+          "id": "16817330669418454170",
+          "title": "ep16　後輩のおじい様",
+          "publishedAt": "2024-08-20T09:10:49Z"
+        },
+        "Episode:16817330669747290320": {
+          "__typename": "Episode",
+          "id": "16817330669747290320",
+          "title": "ep17　相馬創の評価＆【探索者について語るスレ1903】",
+          "publishedAt": "2024-08-21T09:10:23Z"
+        },
+        "Episode:16818023213652358422": {
+          "__typename": "Episode",
+          "id": "16818023213652358422",
+          "title": "ep18　日常への帰還",
+          "publishedAt": "2024-08-22T09:10:31Z"
+        },
+        "Episode:16818023213665898687": {
+          "__typename": "Episode",
+          "id": "16818023213665898687",
+          "title": "ep19　学校生活",
+          "publishedAt": "2024-08-23T09:10:00Z"
+        },
+        "Episode:16818093072885423716": {
+          "__typename": "Episode",
+          "id": "16818093072885423716",
+          "title": "ep20　新たなる探索者",
+          "publishedAt": "2024-08-24T09:10:21Z"
+        },
+        "Episode:16818093073201287391": {
+          "__typename": "Episode",
+          "id": "16818093073201287391",
+          "title": "ep21　汝は要塞なりや？",
+          "publishedAt": "2024-08-25T09:10:23Z"
+        },
+        "Episode:16818093073209483010": {
+          "__typename": "Episode",
+          "id": "16818093073209483010",
+          "title": "ep22　胸騒ぎ",
+          "publishedAt": "2024-08-26T09:10:46Z"
+        },
+        "Episode:16818093073338234290": {
+          "__typename": "Episode",
+          "id": "16818093073338234290",
+          "title": "ep23　歓迎",
+          "publishedAt": "2024-08-27T09:10:18Z"
+        },
+        "Episode:16818093073338245506": {
+          "__typename": "Episode",
+          "id": "16818093073338245506",
+          "title": "ep24　二体の豚",
+          "publishedAt": "2024-08-28T09:10:48Z"
+        },
+        "Episode:16818093073338262653": {
+          "__typename": "Episode",
+          "id": "16818093073338262653",
+          "title": "ep25　遺言",
+          "publishedAt": "2024-08-29T09:10:47Z"
+        },
+        "Episode:16818093073338271582": {
+          "__typename": "Episode",
+          "id": "16818093073338271582",
+          "title": "ep26　孤軍奮闘",
+          "publishedAt": "2024-08-30T09:10:43Z"
+        },
+        "Episode:16818093073338280661": {
+          "__typename": "Episode",
+          "id": "16818093073338280661",
+          "title": "ep27　頑張る",
+          "publishedAt": "2024-08-31T09:10:26Z"
+        },
+        "Episode:16818093073338332344": {
+          "__typename": "Episode",
+          "id": "16818093073338332344",
+          "title": "ep28　喪失",
+          "publishedAt": "2024-09-01T09:10:31Z"
+        },
+        "Episode:16818093074628675157": {
+          "__typename": "Episode",
+          "id": "16818093074628675157",
+          "title": "ep29　ナイトメア――",
+          "publishedAt": "2024-09-02T09:10:34Z"
+        },
+        "Episode:16818093074720204918": {
+          "__typename": "Episode",
+          "id": "16818093074720204918",
+          "title": "ep30　祝福",
+          "publishedAt": "2024-09-03T09:10:03Z"
+        },
+        "Episode:16818093074752812890": {
+          "__typename": "Episode",
+          "id": "16818093074752812890",
+          "title": "ep31　ダンジョン完全攻略者",
+          "publishedAt": "2024-09-04T09:10:48Z"
+        },
+        "Episode:16818093074885549297": {
+          "__typename": "Episode",
+          "id": "16818093074885549297",
+          "title": "探索者について語るスレ1999",
+          "publishedAt": "2024-09-05T09:10:34Z"
+        },
+        "Episode:16818093076128139179": {
+          "__typename": "Episode",
+          "id": "16818093076128139179",
+          "title": "探索者について語るスレ2000",
+          "publishedAt": "2024-09-06T09:10:07Z"
+        },
+        "Episode:16818093074768287181": {
+          "__typename": "Episode",
+          "id": "16818093074768287181",
+          "title": "ep32　失った物",
+          "publishedAt": "2024-09-07T09:10:34Z"
+        },
+        "Episode:16818093074775380985": {
+          "__typename": "Episode",
+          "id": "16818093074775380985",
+          "title": "ep33　論争",
+          "publishedAt": "2024-09-08T09:10:34Z"
+        },
+        "Episode:16818093079225988169": {
+          "__typename": "Episode",
+          "id": "16818093079225988169",
+          "title": "ep34　再会",
+          "publishedAt": "2024-09-09T09:10:05Z"
+        },
+        "Episode:16818093079259361342": {
+          "__typename": "Episode",
+          "id": "16818093079259361342",
+          "title": "ep35　勇者",
+          "publishedAt": "2024-09-10T09:10:17Z"
+        },
+        "Episode:16818093079261261017": {
+          "__typename": "Episode",
+          "id": "16818093079261261017",
+          "title": "ep36　田舎のダンジョン探索者",
+          "publishedAt": "2024-09-11T09:10:33Z"
+        },
+        "TableOfContentsChapter:16818093090780864902": {
+          "__typename": "TableOfContentsChapter",
+          "id": "16818093090780864902",
+          "episodeUnions": [
+            { "__ref": "Episode:16817330663319458292" },
+            { "__ref": "Episode:16817330663536567076" },
+            { "__ref": "Episode:16817330663687216255" },
+            { "__ref": "Episode:16817330663692799590" },
+            { "__ref": "Episode:16817330663695835241" },
+            { "__ref": "Episode:16817330663695865451" },
+            { "__ref": "Episode:16817330663853302710" },
+            { "__ref": "Episode:16817330663696711293" },
+            { "__ref": "Episode:16817330663972273257" },
+            { "__ref": "Episode:16817330668732601491" },
+            { "__ref": "Episode:16817330669044228970" },
+            { "__ref": "Episode:16817330669056331037" },
+            { "__ref": "Episode:16817330669113736232" },
+            { "__ref": "Episode:16817330669156523993" },
+            { "__ref": "Episode:16817330669157875571" },
+            { "__ref": "Episode:16817330669415578841" },
+            { "__ref": "Episode:16817330669418454170" },
+            { "__ref": "Episode:16817330669747290320" },
+            { "__ref": "Episode:16818023213652358422" },
+            { "__ref": "Episode:16818023213665898687" },
+            { "__ref": "Episode:16818093072885423716" },
+            { "__ref": "Episode:16818093073201287391" },
+            { "__ref": "Episode:16818093073209483010" },
+            { "__ref": "Episode:16818093073338234290" },
+            { "__ref": "Episode:16818093073338245506" },
+            { "__ref": "Episode:16818093073338262653" },
+            { "__ref": "Episode:16818093073338271582" },
+            { "__ref": "Episode:16818093073338280661" },
+            { "__ref": "Episode:16818093073338332344" },
+            { "__ref": "Episode:16818093074628675157" },
+            { "__ref": "Episode:16818093074720204918" },
+            { "__ref": "Episode:16818093074752812890" },
+            { "__ref": "Episode:16818093074885549297" },
+            { "__ref": "Episode:16818093076128139179" },
+            { "__ref": "Episode:16818093074768287181" },
+            { "__ref": "Episode:16818093074775380985" },
+            { "__ref": "Episode:16818093079225988169" },
+            { "__ref": "Episode:16818093079259361342" },
+            { "__ref": "Episode:16818093079261261017" }
+          ],
+          "chapter": { "__ref": "Chapter:16818093090780864902" }
+        },
+        "Episode:16818093084702666914": {
+          "__typename": "Episode",
+          "id": "16818093084702666914",
+          "title": "ep1　退院明けの日々",
+          "publishedAt": "2024-12-25T09:10:06Z"
+        },
+        "Episode:16818093085019814131": {
+          "__typename": "Episode",
+          "id": "16818093085019814131",
+          "title": "ep2　突撃、水瀬さんち！",
+          "publishedAt": "2024-12-26T09:10:15Z"
+        },
+        "Episode:16818093087403957131": {
+          "__typename": "Episode",
+          "id": "16818093087403957131",
+          "title": "ep3　おじい様へのご相談",
+          "publishedAt": "2024-12-27T09:10:22Z"
+        },
+        "Episode:16818093089752000197": {
+          "__typename": "Episode",
+          "id": "16818093089752000197",
+          "title": "探索者について語るスレ2006",
+          "publishedAt": "2024-12-28T09:10:01Z"
+        },
+        "Episode:16818093087404919292": {
+          "__typename": "Episode",
+          "id": "16818093087404919292",
+          "title": "ep4　平穏な日常",
+          "publishedAt": "2024-12-29T09:10:41Z"
+        },
+        "Episode:16818093087405780287": {
+          "__typename": "Episode",
+          "id": "16818093087405780287",
+          "title": "ep5　平穏が続かない！",
+          "publishedAt": "2024-12-30T09:10:08Z"
+        },
+        "Episode:16818093087474630390": {
+          "__typename": "Episode",
+          "id": "16818093087474630390",
+          "title": "ep6　夜叉の森からの召集",
+          "publishedAt": "2024-12-31T09:10:24Z"
+        },
+        "Episode:16818093088823368385": {
+          "__typename": "Episode",
+          "id": "16818093088823368385",
+          "title": "ep7　受付嬢は地雷系",
+          "publishedAt": "2025-01-01T09:10:21Z"
+        },
+        "Episode:16818093088823763951": {
+          "__typename": "Episode",
+          "id": "16818093088823763951",
+          "title": "ep8　夜叉の森ダンジョン",
+          "publishedAt": "2025-01-02T09:10:36Z"
+        },
+        "Episode:16818093088837100496": {
+          "__typename": "Episode",
+          "id": "16818093088837100496",
+          "title": "ep9　復帰戦",
+          "publishedAt": "2025-01-03T09:10:18Z"
+        },
+        "Episode:16818093088843055398": {
+          "__typename": "Episode",
+          "id": "16818093088843055398",
+          "title": "ep10　回想",
+          "publishedAt": "2025-01-04T09:10:01Z"
+        },
+        "Episode:16818093088846060495": {
+          "__typename": "Episode",
+          "id": "16818093088846060495",
+          "title": "ep11　懊悩する探索者",
+          "publishedAt": "2025-01-05T09:10:02Z"
+        },
+        "Episode:16818093089496107857": {
+          "__typename": "Episode",
+          "id": "16818093089496107857",
+          "title": "『夜叉の森ダンジョン・裏掲示板』",
+          "publishedAt": "2025-01-06T09:10:19Z"
+        },
+        "Episode:16818093088904138568": {
+          "__typename": "Episode",
+          "id": "16818093088904138568",
+          "title": "ep12　人妻たちとの焼き肉。～再会を添えて～",
+          "publishedAt": "2025-01-07T09:10:41Z"
+        },
+        "Episode:16818093088995413626": {
+          "__typename": "Episode",
+          "id": "16818093088995413626",
+          "title": "ep13　のの猫、壊れる。",
+          "publishedAt": "2025-01-08T09:10:15Z"
+        },
+        "Episode:16818093089320975670": {
+          "__typename": "Episode",
+          "id": "16818093089320975670",
+          "title": "ep14　師弟関係",
+          "publishedAt": "2025-01-09T09:10:06Z"
+        },
+        "Episode:16818093089375010706": {
+          "__typename": "Episode",
+          "id": "16818093089375010706",
+          "title": "ep15　過去の真相",
+          "publishedAt": "2025-01-10T09:10:29Z"
+        },
+        "Episode:16818093089498716536": {
+          "__typename": "Episode",
+          "id": "16818093089498716536",
+          "title": "ep16　異国の職人",
+          "publishedAt": "2025-01-11T09:10:09Z"
+        },
+        "Episode:16818093089883779255": {
+          "__typename": "Episode",
+          "id": "16818093089883779255",
+          "title": "ep17　新たなご近所さん",
+          "publishedAt": "2025-01-12T09:10:09Z"
+        },
+        "Episode:16818093089472831925": {
+          "__typename": "Episode",
+          "id": "16818093089472831925",
+          "title": "探索者について語るスレ2022",
+          "publishedAt": "2025-01-13T09:10:48Z"
+        },
+        "Episode:16818093089885539353": {
+          "__typename": "Episode",
+          "id": "16818093089885539353",
+          "title": "ep18　夜叉の森探索者ギルド",
+          "publishedAt": "2025-01-14T09:10:10Z"
+        },
+        "Episode:16818093089649790145": {
+          "__typename": "Episode",
+          "id": "16818093089649790145",
+          "title": "ep19　二人の戦闘",
+          "publishedAt": "2025-01-15T09:10:46Z"
+        },
+        "Episode:16818093089669170221": {
+          "__typename": "Episode",
+          "id": "16818093089669170221",
+          "title": "ep20　不審者たち",
+          "publishedAt": "2025-01-16T09:10:00Z"
+        },
+        "Episode:16818093089710210050": {
+          "__typename": "Episode",
+          "id": "16818093089710210050",
+          "title": "ep21　過去との邂逅",
+          "publishedAt": "2025-01-17T09:10:14Z"
+        },
+        "Episode:16818093089715274186": {
+          "__typename": "Episode",
+          "id": "16818093089715274186",
+          "title": "ep22　水瀬七規",
+          "publishedAt": "2025-01-18T09:10:06Z"
+        },
+        "Episode:16818093089886301692": {
+          "__typename": "Episode",
+          "id": "16818093089886301692",
+          "title": "ep22　おバカな探索者",
+          "publishedAt": "2025-01-19T09:10:00Z"
+        },
+        "Episode:16818093089924536048": {
+          "__typename": "Episode",
+          "id": "16818093089924536048",
+          "title": "ep23　覚悟の違い",
+          "publishedAt": "2025-01-20T09:10:12Z"
+        },
+        "Episode:16818093089946227993": {
+          "__typename": "Episode",
+          "id": "16818093089946227993",
+          "title": "ep24　お墓参りと夏休み",
+          "publishedAt": "2025-01-21T09:10:35Z"
+        },
+        "Episode:16818093089999634261": {
+          "__typename": "Episode",
+          "id": "16818093089999634261",
+          "title": "ep25　影猫と東京への出発。",
+          "publishedAt": "2025-01-22T09:10:08Z"
+        },
+        "Episode:16818093090003001978": {
+          "__typename": "Episode",
+          "id": "16818093090003001978",
+          "title": "探索者について語るスレ2030",
+          "publishedAt": "2025-01-23T09:10:32Z"
+        },
+        "Episode:16818093090054855547": {
+          "__typename": "Episode",
+          "id": "16818093090054855547",
+          "title": "ep26　ギルドへの抗議活動！",
+          "publishedAt": "2025-01-24T09:10:12Z"
+        },
+        "Episode:16818093090081311341": {
+          "__typename": "Episode",
+          "id": "16818093090081311341",
+          "title": "ep27　時雨雫",
+          "publishedAt": "2025-01-25T09:10:31Z"
+        },
+        "Episode:16818093090095885931": {
+          "__typename": "Episode",
+          "id": "16818093090095885931",
+          "title": "ep28　相馬一家",
+          "publishedAt": "2025-01-26T09:10:00Z"
+        },
+        "Episode:16818093090118864356": {
+          "__typename": "Episode",
+          "id": "16818093090118864356",
+          "title": "ep29　許容外",
+          "publishedAt": "2025-01-27T09:10:21Z"
+        },
+        "Episode:16818093090145850927": {
+          "__typename": "Episode",
+          "id": "16818093090145850927",
+          "title": "ep30　七規の夜叉の森ダンジョン攻略",
+          "publishedAt": "2025-01-28T09:10:21Z"
+        },
+        "Episode:16818093090173391873": {
+          "__typename": "Episode",
+          "id": "16818093090173391873",
+          "title": "ep31　女子パーティー",
+          "publishedAt": "2025-01-29T09:10:20Z"
+        },
+        "Episode:16818093090175792538": {
+          "__typename": "Episode",
+          "id": "16818093090175792538",
+          "title": "ep32　絶望への招待",
+          "publishedAt": "2025-01-30T09:10:16Z"
+        },
+        "Episode:16818093090221958657": {
+          "__typename": "Episode",
+          "id": "16818093090221958657",
+          "title": "ep33　未探索領域",
+          "publishedAt": "2025-01-31T09:10:19Z"
+        },
+        "Episode:16818093090262540233": {
+          "__typename": "Episode",
+          "id": "16818093090262540233",
+          "title": "ep34　死闘",
+          "publishedAt": "2025-02-01T09:10:25Z"
+        },
+        "Episode:16818093090273756648": {
+          "__typename": "Episode",
+          "id": "16818093090273756648",
+          "title": "ep35　【ダンジョン探索者】のの猫",
+          "publishedAt": "2025-02-02T09:10:16Z"
+        },
+        "Episode:16818093090281415054": {
+          "__typename": "Episode",
+          "id": "16818093090281415054",
+          "title": "ep36　Sランク探索者の移動法",
+          "publishedAt": "2025-02-03T09:10:18Z"
+        },
+        "Episode:16818093090283760859": {
+          "__typename": "Episode",
+          "id": "16818093090283760859",
+          "title": "ep37　己が探索者であるために。",
+          "publishedAt": "2025-02-04T09:10:12Z"
+        },
+        "Episode:16818093093318476230": {
+          "__typename": "Episode",
+          "id": "16818093093318476230",
+          "title": "ep38　ロック・ビートル戦",
+          "publishedAt": "2025-02-05T09:10:41Z"
+        },
+        "Episode:16818093090454135760": {
+          "__typename": "Episode",
+          "id": "16818093090454135760",
+          "title": "探索者について語るスレ2041～2042",
+          "publishedAt": "2025-02-06T09:10:29Z"
+        },
+        "Episode:16818093090330629828": {
+          "__typename": "Episode",
+          "id": "16818093090330629828",
+          "title": "ep39　異世界からの来訪者１",
+          "publishedAt": "2025-02-07T09:10:20Z"
+        },
+        "Episode:16818093090400757652": {
+          "__typename": "Episode",
+          "id": "16818093090400757652",
+          "title": "ep40　異世界からの来訪者２",
+          "publishedAt": "2025-02-08T09:10:15Z"
+        },
+        "Episode:16818093090436479360": {
+          "__typename": "Episode",
+          "id": "16818093090436479360",
+          "title": "ep41　異世界からの来訪者３",
+          "publishedAt": "2025-02-09T09:10:48Z"
+        },
+        "Episode:16818093093318747649": {
+          "__typename": "Episode",
+          "id": "16818093093318747649",
+          "title": "ep42　帰還",
+          "publishedAt": "2025-02-10T09:10:06Z"
+        },
+        "Episode:16818093090455650928": {
+          "__typename": "Episode",
+          "id": "16818093090455650928",
+          "title": "ep43　平穏な日常はまだ遠く。",
+          "publishedAt": "2025-02-11T09:10:00Z"
+        },
+        "TableOfContentsChapter:16818093090850343909": {
+          "__typename": "TableOfContentsChapter",
+          "id": "16818093090850343909",
+          "episodeUnions": [
+            { "__ref": "Episode:16818093084702666914" },
+            { "__ref": "Episode:16818093085019814131" },
+            { "__ref": "Episode:16818093087403957131" },
+            { "__ref": "Episode:16818093089752000197" },
+            { "__ref": "Episode:16818093087404919292" },
+            { "__ref": "Episode:16818093087405780287" },
+            { "__ref": "Episode:16818093087474630390" },
+            { "__ref": "Episode:16818093088823368385" },
+            { "__ref": "Episode:16818093088823763951" },
+            { "__ref": "Episode:16818093088837100496" },
+            { "__ref": "Episode:16818093088843055398" },
+            { "__ref": "Episode:16818093088846060495" },
+            { "__ref": "Episode:16818093089496107857" },
+            { "__ref": "Episode:16818093088904138568" },
+            { "__ref": "Episode:16818093088995413626" },
+            { "__ref": "Episode:16818093089320975670" },
+            { "__ref": "Episode:16818093089375010706" },
+            { "__ref": "Episode:16818093089498716536" },
+            { "__ref": "Episode:16818093089883779255" },
+            { "__ref": "Episode:16818093089472831925" },
+            { "__ref": "Episode:16818093089885539353" },
+            { "__ref": "Episode:16818093089649790145" },
+            { "__ref": "Episode:16818093089669170221" },
+            { "__ref": "Episode:16818093089710210050" },
+            { "__ref": "Episode:16818093089715274186" },
+            { "__ref": "Episode:16818093089886301692" },
+            { "__ref": "Episode:16818093089924536048" },
+            { "__ref": "Episode:16818093089946227993" },
+            { "__ref": "Episode:16818093089999634261" },
+            { "__ref": "Episode:16818093090003001978" },
+            { "__ref": "Episode:16818093090054855547" },
+            { "__ref": "Episode:16818093090081311341" },
+            { "__ref": "Episode:16818093090095885931" },
+            { "__ref": "Episode:16818093090118864356" },
+            { "__ref": "Episode:16818093090145850927" },
+            { "__ref": "Episode:16818093090173391873" },
+            { "__ref": "Episode:16818093090175792538" },
+            { "__ref": "Episode:16818093090221958657" },
+            { "__ref": "Episode:16818093090262540233" },
+            { "__ref": "Episode:16818093090273756648" },
+            { "__ref": "Episode:16818093090281415054" },
+            { "__ref": "Episode:16818093090283760859" },
+            { "__ref": "Episode:16818093093318476230" },
+            { "__ref": "Episode:16818093090454135760" },
+            { "__ref": "Episode:16818093090330629828" },
+            { "__ref": "Episode:16818093090400757652" },
+            { "__ref": "Episode:16818093090436479360" },
+            { "__ref": "Episode:16818093093318747649" },
+            { "__ref": "Episode:16818093090455650928" }
+          ],
+          "chapter": { "__ref": "Chapter:16818093090850343909" }
+        },
+        "Chapter:16818093090780864902": {
+          "__typename": "Chapter",
+          "id": "16818093090780864902",
+          "level": 1,
+          "title": "第一章　三船ダンジョン編"
+        },
+        "Chapter:16818093090850343909": {
+          "__typename": "Chapter",
+          "id": "16818093090850343909",
+          "level": 1,
+          "title": "第二章　夜叉の森ダンジョン編"
+        },
+        "LoyaltyUser:1177354054880450035": {
+          "__typename": "LoyaltyUser",
+          "id": "1177354054880450035",
+          "giftPromotionMessage": "",
+          "receiveGift": true,
+          "giftThanksMessage": ""
+        },
+        "Work:16817330661274615404": {
+          "__typename": "Work",
+          "id": "16817330661274615404",
+          "title": "住んでる場所が田舎すぎて、ダンジョン探索者が俺一人なんだが？",
+          "alternateTitle": null,
+          "adminCoverImageUrl": null,
+          "promotionalImageUrl": null,
+          "adminSquareImageUrl": null,
+          "baseColor": "#0033C4",
+          "author": { "__ref": "UserAccount:1177354054880450035" },
+          "kakuyomuNextWork": null,
+          "publicationLabelName": null,
+          "publicationLabelImageUrl": null,
+          "genre": "ACTION",
+          "isFreshWork": false,
+          "hasFreshEpisode": false,
+          "publishedAt": "2024-08-05T03:35:28Z",
+          "lastEpisodePublishedAt": "2025-02-11T09:10:00Z",
+          "alternateAuthorName": null,
+          "visitorWorkFollowing": null,
+          "adminBookInformationUrl": null,
+          "visitorReadingHistory": null,
+          "firstPublicEpisodeUnion": {
+            "__ref": "Episode:16817330663319458292"
+          },
+          "adminHorizontalImageUrl": null,
+          "totalReviewPoint": 37908,
+          "totalPublicEpisodeCommentCount": 6140,
+          "totalFollowers": 57541,
+          "catchphrase": "「仲間？　他の探索者？　そんなの居ないよ。ここは田舎だからね」",
+          "introduction": "【ダンジョン配信者】の存在により、世はまさに空前のダンジョンブームとなっていた。しかしそれは都会に限った話。\n\nAランク探索者である相馬創の住む田舎町には、他に探索者が居らず、彼は仕事に忙殺される日々を送っていた。\n\nこれは活動拠点が田舎のため、いまいちパッとしない少年が世界中にその名を轟かせる物語。",
+          "tagLabels": [
+            "ダンジョン",
+            "ハーレム",
+            "主人公最強",
+            "配信",
+            "カクヨムオンリー",
+            "掲示板",
+            "人妻",
+            "コメディ"
+          ],
+          "workTopWorkReviews": {
+            "__ref": "WorkTopWorkReviews:16817330661274615404"
+          },
+          "fanFictionSource": null,
+          "serialStatus": "RUNNING",
+          "publicEpisodeCount": 88,
+          "totalCharacterCount": 260798,
+          "isCruel": true,
+          "isViolent": true,
+          "isSexual": true,
+          "relatedWorks({\"limit\":30})": [
+            { "__ref": "Work:16818093082740683707" },
+            { "__ref": "Work:16818093081482228894" },
+            { "__ref": "Work:16818093081469820220" },
+            { "__ref": "Work:16818093083619570361" },
+            { "__ref": "Work:16818093081676799618" },
+            { "__ref": "Work:16818093082274494821" },
+            { "__ref": "Work:16818093081577825168" },
+            { "__ref": "Work:1177354054935113637" },
+            { "__ref": "Work:16818093081729592845" },
+            { "__ref": "Work:16818093080021653997" },
+            { "__ref": "Work:16818093080910701538" },
+            { "__ref": "Work:16818093082699485944" },
+            { "__ref": "Work:16817330668503046681" },
+            { "__ref": "Work:16818093082209797689" },
+            { "__ref": "Work:16818093082287771841" },
+            { "__ref": "Work:16818093081625161476" },
+            { "__ref": "Work:16818093081383617181" },
+            { "__ref": "Work:16818093081894522431" },
+            { "__ref": "Work:16817330660648111686" },
+            { "__ref": "Work:16818093081624854077" },
+            { "__ref": "Work:16818093078722053459" },
+            { "__ref": "Work:16817330669253720614" },
+            { "__ref": "Work:16818093074173866568" },
+            { "__ref": "Work:16818093081155090667" },
+            { "__ref": "Work:16818093073073624701" },
+            { "__ref": "Work:16818093079908687642" },
+            { "__ref": "Work:16818093082040601282" },
+            { "__ref": "Work:16817330657186803576" },
+            { "__ref": "Work:16818023213017479173" },
+            { "__ref": "Work:16817330665909357201" }
+          ],
+          "reviewCount": 13462,
+          "workReviewByVisitor": null,
+          "totalReadCount": 13497980,
+          "totalWorkContestCount": 1,
+          "totalUserEventCount": 3,
+          "editedAt": "2025-04-01T08:00:23Z",
+          "publicWorkCollections": [],
+          "mediaMix": null,
+          "tableOfContents": [
+            { "__ref": "TableOfContentsChapter:16818093090780864902" },
+            { "__ref": "TableOfContentsChapter:16818093090850343909" }
+          ],
+          "hasPublication": false,
+          "activeWorkContest": null,
+          "enteringUserEvents({\"first\":50,\"status\":\"OPEN\"})": {
+            "__typename": "UserEventConnection",
+            "nodes": []
+          },
+          "ogImageUrl": "https://cdn-static.kakuyomu.jp/works/16817330661274615404/ogimage.png?q8Dt-FV32dKdrDYJ7J4hprLKVOs",
+          "waitingEpisodeReservations": [],
+          "schedule": null,
+          "adBypass": true,
+          "adUnsafe": true,
+          "canShowAdForVisitor": true,
+          "canShowAsBlogInHatenaBookmark": false
+        },
+        "GiftItem:16816927859240802446": {
+          "__typename": "GiftItem",
+          "id": "16816927859240802446",
+          "plan": "light",
+          "nextOptionIncluded": false,
+          "price": 437,
+          "tax": 43
+        },
+        "GiftItem:16816927859240802447": {
+          "__typename": "GiftItem",
+          "id": "16816927859240802447",
+          "plan": "standard",
+          "nextOptionIncluded": false,
+          "price": 673,
+          "tax": 67
+        },
+        "GiftItem:16816927859240802448": {
+          "__typename": "GiftItem",
+          "id": "16816927859240802448",
+          "plan": "deluxe",
+          "nextOptionIncluded": false,
+          "price": 1546,
+          "tax": 154
+        },
+        "GiftItem:16818093073489369044": {
+          "__typename": "GiftItem",
+          "id": "16818093073489369044",
+          "plan": "no_gift",
+          "nextOptionIncluded": true,
+          "price": 980,
+          "tax": 0
+        },
+        "GiftItem:16818093073489369100": {
+          "__typename": "GiftItem",
+          "id": "16818093073489369100",
+          "plan": "light",
+          "nextOptionIncluded": true,
+          "price": 1120,
+          "tax": 0
+        },
+        "GiftItem:16818093073489369124": {
+          "__typename": "GiftItem",
+          "id": "16818093073489369124",
+          "plan": "standard",
+          "nextOptionIncluded": true,
+          "price": 1380,
+          "tax": 0
+        },
+        "GiftItem:16818093073489369161": {
+          "__typename": "GiftItem",
+          "id": "16818093073489369161",
+          "plan": "deluxe",
+          "nextOptionIncluded": true,
+          "price": 2340,
+          "tax": 0
+        }
+      }
+    },
+    "__N_SSP": true
+  },
+  "page": "/works/[workId]",
+  "query": { "workId": "16817330661274615404" },
+  "buildId": "rWHXQ5b7e1RetjrNal9-P"
+}

@@ -1,0 +1,53 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { QueueModule } from '../infrastructure/queue/queue.module.js';
+import { EpubQueueProcessor } from './epub-queue.processor.js';
+import { ApplicationModule } from '../application/application.module.js';
+import { NovelOrmEntity } from '../infrastructure/entities/novel.orm-entity.js';
+import { EpubJobOrmEntity } from '../shared/dto/epub-job.orm-entity.js';
+import { UserOrmEntity } from '../infrastructure/entities/user.orm-entity.js';
+import { EmailLogOrmEntity } from '../infrastructure/entities/email-log.orm-entity.js';
+
+/**
+ * Worker 模組 - 只包含處理 EPUB 轉換任務所需的模組
+ * 與 AppModule 不同，不包含 HTTP 控制器等 API 元件
+ */
+@Module({
+  imports: [
+    // 基礎配置模組
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+
+    // 數據庫配置 - 與 AppModule 相同，但僅供 Worker 使用
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('DB_HOST'),
+        port: configService.get('DB_PORT'),
+        username: configService.get('DB_USERNAME'),
+        password: configService.get('DB_PASSWORD'),
+        database: configService.get('DB_DATABASE'),
+        entities: [
+          NovelOrmEntity,
+          EpubJobOrmEntity,
+          UserOrmEntity,
+          EmailLogOrmEntity,
+        ],
+        synchronize: false,
+      }),
+    }),
+
+    // 應用層模組 - 提供 ProcessJobUseCase
+    ApplicationModule,
+
+    // 隊列模組 - 提供 BullMQ 連接
+    QueueModule,
+  ],
+  providers: [EpubQueueProcessor],
+})
+export class WorkerModule {}
