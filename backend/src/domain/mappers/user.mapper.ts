@@ -1,4 +1,4 @@
-import { User, UserRole } from '../entities/user.entity.js';
+import { User } from '../entities/user.entity.js';
 import { UserOrmEntity } from '@/infrastructure/entities/user.orm-entity.js';
 
 /**
@@ -16,15 +16,11 @@ export class UserMapper {
     ormEntity.googleId = domainEntity.googleId;
     ormEntity.email = domainEntity.email;
     ormEntity.displayName = domainEntity.displayName;
-    ormEntity.role = domainEntity.role;
+    ormEntity.kindleEmail = domainEntity.kindleEmail || null;
     ormEntity.dailyEmailQuota = domainEntity.dailyEmailQuota;
     ormEntity.createdAt = domainEntity.createdAt;
 
     // 處理可選屬性
-    if (domainEntity.upgradedAt) {
-      ormEntity.upgradedAt = domainEntity.upgradedAt;
-    }
-
     if (domainEntity.lastLoginAt) {
       ormEntity.lastLoginAt = domainEntity.lastLoginAt;
     }
@@ -41,10 +37,9 @@ export class UserMapper {
       ormEntity.googleId,
       ormEntity.email,
       ormEntity.displayName,
-      ormEntity.role as UserRole,
       ormEntity.createdAt,
       ormEntity.dailyEmailQuota,
-      ormEntity.upgradedAt,
+      ormEntity.kindleEmail,
       ormEntity.lastLoginAt,
     );
   }

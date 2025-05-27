@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository as TypeOrmRepository } from 'typeorm';
+import { Repository as TypeOrmRepository, LessThan, Not, In } from 'typeorm';
 import {
   PagedRepository,
   PagedResult,
   PaginationOptions,
 } from '@/domain/ports/repository.port.js';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
-import {
-  EpubJobOrmEntity,
-  EpubJobStatus,
-} from '@/shared/dto/epub-job.orm-entity.js';
+import { EpubJobOrmEntity } from '@/infrastructure/entities/epub-job.orm-entity.js';
 import { EpubJobMapper } from '@/domain/mappers/epub-job.mapper.js';
+import { JobStatus } from '@/domain/enums/job-status.enum.js';
 
 /**
  * EpubJob 儲存庫 TypeORM 實現
@@ -66,6 +64,17 @@ export class EpubJobRepositoryTypeORM implements PagedRepository<EpubJob> {
   }
 
   /**
+   * 根據狀態查詢 EPUB 任務
+   * @param statuses 要查詢的狀態列表
+   */
+  async findByStatus(statuses: JobStatus[]): Promise<EpubJob[]> {
+    const entities = await this.repository.find({
+      where: statuses.map((status) => ({ status })),
+    });
+    return EpubJobMapper.toDomainList(entities);
+  }
+
+  /**
    * 分頁查詢 EPUB 任務
    */
   async findPaged(options: PaginationOptions): Promise<PagedResult<EpubJob>> {
@@ -117,9 +126,28 @@ export class EpubJobRepositoryTypeORM implements PagedRepository<EpubJob> {
   // }
 
   /**
+   * 查詢最近的活躍任務
+   * 活躍任務定義為：在指定時間之後創建的，且狀態不是已完成或已失敗的任務
+   * @param since 查詢起始時間
+   */
+  async findRecentActiveJobs(since: Date): Promise<EpubJob[]> {
+    const entities = await this.repository.find({
+      where: {
+        createdAt: LessThan(new Date()), // 所有已創建的任務
+        status: Not(In([JobStatus.COMPLETED, JobStatus.FAILED])), // 排除已完成和已失敗的任務
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return EpubJobMapper.toDomainList(entities);
+  }
+
+  /**
    * 更新 EPUB 任務狀態
    */
-  async updateStatus(id: string, status: EpubJobStatus): Promise<EpubJob> {
+  async updateStatus(id: string, status: JobStatus): Promise<EpubJob> {
     await this.repository.update(id, { status });
     const updatedEntity = await this.repository.findOne({ where: { id } });
     return EpubJobMapper.toDomain(updatedEntity!);

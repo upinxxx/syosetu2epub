@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { User } from '../infrastructure/entities/user.orm-entity.js';
-import { Novel } from '../infrastructure/entities/novel.orm-entity.js';
-import { EmailLog } from '@email/entities/email-log.entity.js';
+import { UserOrmEntity } from '../infrastructure/entities/user.orm-entity.js';
+import { NovelOrmEntity } from '../infrastructure/entities/novel.orm-entity.js';
 import * as dotenv from 'dotenv';
-import { EpubJob } from '../shared/dto/epub-job.orm-entity.js';
+import { EpubJobOrmEntity } from '../infrastructure/entities/epub-job.orm-entity.js';
+import { KindleDeliveryOrmEntity } from '../infrastructure/entities/kindle-delivery.orm-entity.js';
 
 dotenv.config();
 
@@ -17,7 +17,12 @@ export default new DataSource({
   database: process.env.DB_DATABASE,
   synchronize: false,
   logging: false,
-  entities: [User, Novel, EpubJob, EmailLog],
+  entities: [
+    UserOrmEntity,
+    NovelOrmEntity,
+    EpubJobOrmEntity,
+    KindleDeliveryOrmEntity,
+  ],
   migrations: ['src/migrations/*.ts'],
   // migrations: ['dist/migrations/*.js'],
 });

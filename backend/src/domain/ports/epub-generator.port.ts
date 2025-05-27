@@ -29,7 +29,7 @@ export interface EpubMetadata {
   novelDescription: string;
 
   /** 小說章節內容 */
-  chapters?: ChapterContent[];
+  chapters: ChapterContent[];
 }
 
 /**

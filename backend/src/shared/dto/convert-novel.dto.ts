@@ -1,10 +1,4 @@
-import {
-  IsUUID,
-  IsNotEmpty,
-  IsOptional,
-  IsBoolean,
-  IsString,
-} from 'class-validator';
+import { IsUUID, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 
 /**
  * 提交小說轉換任務 DTO
@@ -26,20 +20,4 @@ export class ConvertNovelDto {
   @IsOptional()
   @IsBoolean()
   includeCover?: boolean = true;
-
-  /**
-   * 是否在完成後發送電子郵件通知
-   * @default false
-   */
-  @IsOptional()
-  @IsBoolean()
-  sendEmail?: boolean = false;
-
-  /**
-   * 自定義電子郵件地址（如果不使用用户默認郵件）
-   * @example "user@example.com"
-   */
-  @IsOptional()
-  @IsString()
-  customEmail?: string;
 }

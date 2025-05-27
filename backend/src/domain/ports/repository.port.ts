@@ -1,4 +1,5 @@
 import { Entity } from '../entities/entity.js';
+import { User } from '../entities/user.entity.js';
 
 /**
  * 通用儲存庫接口
@@ -19,6 +20,32 @@ export interface Repository<T extends Entity<unknown>> {
    * 刪除實體
    */
   delete(entity: T): Promise<void>;
+
+  /**
+   * 更新實體
+   */
+  update?(entity: T): Promise<T>;
+
+  /**
+   * 創建新的持久化實體
+   */
+  create?(entityData: any): any;
+}
+
+/**
+ * 使用者儲存庫接口
+ * 擴展通用儲存庫接口，為使用者實體提供特定的查詢方法
+ */
+export interface UserRepository extends Repository<User> {
+  /**
+   * 根據電子郵件查找使用者
+   */
+  findByEmail(email: string): Promise<User | null>;
+
+  /**
+   * 根據 Google ID 查找使用者
+   */
+  findByGoogleId(googleId: string): Promise<User | null>;
 }
 
 /**
@@ -52,3 +79,10 @@ export interface PagedRepository<T extends Entity<unknown>>
    */
   findPaged(options: PaginationOptions): Promise<PagedResult<T>>;
 }
+
+/**
+ * 支持分頁的使用者儲存庫接口
+ */
+export interface PagedUserRepository
+  extends UserRepository,
+    PagedRepository<User> {}

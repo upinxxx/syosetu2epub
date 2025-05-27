@@ -3,9 +3,9 @@ import { RepositoriesModule } from './repositories/repositories.module.js';
 import { CrawlerModule } from './crawler/crawler.module.js';
 import { PreviewProviderModule } from './preview-provider/preview-provider.module.js';
 import { StorageModule } from './storage/storage.module.js';
-import { EmailModule } from './email/email.module.js';
 import { EpubGeneratorModule } from './epub-generator/epub-generator.module.js';
 import { QueueModule } from './queue/queue.module.js';
+import { AuthInfrastructureModule } from './auth/auth.infrastructure.module.js';
 
 /**
  * 基礎設施模組
@@ -19,7 +19,7 @@ import { QueueModule } from './queue/queue.module.js';
     PreviewProviderModule, // 預覽提供者
     StorageModule, // 儲存模組
     QueueModule,
-    EmailModule, // 電子郵件模組
+    AuthInfrastructureModule, // 認證基礎設施模組
   ],
   exports: [
     EpubGeneratorModule,
@@ -27,8 +27,8 @@ import { QueueModule } from './queue/queue.module.js';
     CrawlerModule,
     PreviewProviderModule,
     StorageModule,
-    EmailModule,
     QueueModule,
+    AuthInfrastructureModule,
   ],
 })
 export class InfrastructureModule {}

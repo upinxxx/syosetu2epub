@@ -2,14 +2,6 @@ import { randomUUID } from 'crypto';
 import { Entity } from './entity.js';
 
 /**
- * 使用者角色枚舉
- */
-export enum UserRole {
-  FREE = 'free',
-  PRO = 'pro',
-}
-
-/**
  * 使用者領域實體
  * 負責處理使用者的業務邏輯和驗證規則
  */
@@ -18,8 +10,7 @@ export class User implements Entity<User> {
   private _googleId: string;
   private _email: string;
   private _displayName: string;
-  private _role: UserRole;
-  private _upgradedAt?: Date;
+  private _kindleEmail?: string;
   private _dailyEmailQuota: number;
   private _lastLoginAt?: Date;
   private _createdAt: Date;
@@ -29,18 +20,16 @@ export class User implements Entity<User> {
     googleId: string,
     email: string,
     displayName: string,
-    role: UserRole,
     createdAt: Date,
     dailyEmailQuota: number = 0,
-    upgradedAt?: Date,
+    kindleEmail?: string,
     lastLoginAt?: Date,
   ) {
     this._id = id;
     this._googleId = googleId;
     this._email = email;
     this._displayName = displayName;
-    this._role = role;
-    this._upgradedAt = upgradedAt;
+    this._kindleEmail = kindleEmail;
     this._dailyEmailQuota = dailyEmailQuota;
     this._lastLoginAt = lastLoginAt;
     this._createdAt = createdAt;
@@ -73,9 +62,8 @@ export class User implements Entity<User> {
       googleId,
       email,
       displayName,
-      UserRole.FREE,
       new Date(),
-      0,
+      3, // 預設每日郵件配額
     );
   }
 
@@ -87,10 +75,9 @@ export class User implements Entity<User> {
     googleId: string,
     email: string,
     displayName: string,
-    role: UserRole,
     createdAt: Date,
     dailyEmailQuota: number = 0,
-    upgradedAt?: Date,
+    kindleEmail?: string,
     lastLoginAt?: Date,
   ): User {
     return new User(
@@ -98,60 +85,65 @@ export class User implements Entity<User> {
       googleId,
       email,
       displayName,
-      role,
       createdAt,
       dailyEmailQuota,
-      upgradedAt,
+      kindleEmail,
       lastLoginAt,
     );
-  }
-
-  /**
-   * 升級使用者為 PRO 角色
-   */
-  public upgradeToPro(): void {
-    if (this._role === UserRole.PRO) {
-      return;
-    }
-
-    this._role = UserRole.PRO;
-    this._upgradedAt = new Date();
-    this._dailyEmailQuota = 10; // 假設 PRO 用戶每日可發送 10 封郵件
-  }
-
-  /**
-   * 記錄使用者登入
-   */
-  public recordLogin(): void {
-    this._lastLoginAt = new Date();
-  }
-
-  /**
-   * 消耗郵件配額
-   * @returns 是否成功消耗配額
-   */
-  public consumeEmailQuota(): boolean {
-    if (this._dailyEmailQuota <= 0) {
-      return false;
-    }
-
-    this._dailyEmailQuota--;
-    return true;
-  }
-
-  /**
-   * 重置郵件配額
-   */
-  public resetEmailQuota(): void {
-    this._dailyEmailQuota = this._role === UserRole.PRO ? 10 : 3;
   }
 
   /**
    * 驗證郵箱格式
    */
   private static validateEmail(email: string): boolean {
+    // 簡易驗證
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  /**
+   * 驗證 Kindle 電子郵件格式
+   */
+  private validateKindleEmail(kindleEmail: string): boolean {
+    // Kindle 電子郵件驗證
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return !kindleEmail || emailRegex.test(kindleEmail);
+  }
+
+  /**
+   * 記錄用戶登入
+   */
+  public recordLogin(): void {
+    this._lastLoginAt = new Date();
+  }
+
+  /**
+   * 設定 Kindle 電子郵件
+   */
+  public setKindleEmail(kindleEmail?: string): void {
+    if (kindleEmail && !this.validateKindleEmail(kindleEmail)) {
+      throw new Error('Kindle 電子郵件格式不正確');
+    }
+
+    this._kindleEmail = kindleEmail;
+  }
+
+  /**
+   * 重置郵件配額
+   */
+  public resetEmailQuota(): void {
+    this._dailyEmailQuota = 3; // 所有使用者都有相同的配額
+  }
+
+  /**
+   * 消耗郵件配額
+   */
+  public consumeEmailQuota(): void {
+    if (this._dailyEmailQuota <= 0) {
+      throw new Error('已超出今日郵件配額');
+    }
+
+    this._dailyEmailQuota -= 1;
   }
 
   /**
@@ -174,24 +166,13 @@ export class User implements Entity<User> {
       throw new Error('顯示名稱不能為空');
     }
 
-    if (!this._role) {
-      throw new Error('角色不能為空');
+    if (this._kindleEmail && !this.validateKindleEmail(this._kindleEmail)) {
+      throw new Error('Kindle 電子郵件格式不正確');
     }
 
     if (!this._createdAt) {
       throw new Error('創建時間不能為空');
     }
-
-    if (this._role === UserRole.PRO && !this._upgradedAt) {
-      throw new Error('PRO 用戶必須有升級時間');
-    }
-  }
-
-  /**
-   * 檢查使用者是否為 PRO 角色
-   */
-  public isPro(): boolean {
-    return this._role === UserRole.PRO;
   }
 
   /**
@@ -222,12 +203,8 @@ export class User implements Entity<User> {
     return this._displayName;
   }
 
-  get role(): UserRole {
-    return this._role;
-  }
-
-  get upgradedAt(): Date | undefined {
-    return this._upgradedAt;
+  get kindleEmail(): string | undefined {
+    return this._kindleEmail;
   }
 
   get dailyEmailQuota(): number {

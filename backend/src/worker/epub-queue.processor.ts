@@ -1,22 +1,19 @@
 // src/worker/queue.processor.ts
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { ProcessJobUseCase } from '../application/use-cases/process-job.use-case.js';
-import { EpubJobData } from '@/application/dto/epub-job-data.dto.js';
+import { EpubJobData } from '@/shared/dto/epub-job-data.dto.js';
+import { ConvertFacade } from '@/application/convert/convert.facade.js';
 
 /**
  * EPUB 隊列處理器
- * 接收 BullMQ 任務，並調用 ProcessJobUseCase 處理
+ * 接收 BullMQ 任務，並調用 Facade 處理
  */
 @Processor('epub')
 export class EpubQueueProcessor extends WorkerHost {
   private readonly logger = new Logger(EpubQueueProcessor.name);
 
-  constructor(
-    @Inject(ProcessJobUseCase)
-    private readonly processJobUseCase: ProcessJobUseCase,
-  ) {
+  constructor(private readonly convertFacade: ConvertFacade) {
     super();
   }
 
@@ -38,7 +35,7 @@ export class EpubQueueProcessor extends WorkerHost {
       }
 
       // 執行任務處理
-      await this.processJobUseCase.execute({
+      await this.convertFacade.processJob({
         jobId: jobData.jobId,
         novelId: jobData.novelId,
       });

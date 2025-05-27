@@ -1,13 +1,15 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { NovelOrmEntity } from './infrastructure/entities/novel.orm-entity.js';
-import { EpubJobOrmEntity } from './shared/dto/epub-job.orm-entity.js';
+import { EpubJobOrmEntity } from './infrastructure/entities/epub-job.orm-entity.js';
 import { UserOrmEntity } from './infrastructure/entities/user.orm-entity.js';
-import { EmailLogOrmEntity } from './infrastructure/entities/email-log.orm-entity.js';
+import { KindleDeliveryOrmEntity } from './infrastructure/entities/kindle-delivery.orm-entity.js';
 import { InfrastructureModule } from './infrastructure/infrastructure.module.js';
 import { ApplicationModule } from './application/application.module.js';
 import { HttpModule } from './presentation/http.module.js';
+import cookieParser from 'cookie-parser';
 
 /**
  * 應用程式主模組
@@ -17,6 +19,9 @@ import { HttpModule } from './presentation/http.module.js';
   imports: [
     // 基礎配置模塊
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // 定時任務模塊
+    ScheduleModule.forRoot(),
 
     // 數據庫配置
     TypeOrmModule.forRootAsync({
@@ -33,7 +38,7 @@ import { HttpModule } from './presentation/http.module.js';
           NovelOrmEntity,
           EpubJobOrmEntity,
           UserOrmEntity,
-          EmailLogOrmEntity,
+          KindleDeliveryOrmEntity,
         ],
         synchronize: false,
       }),
@@ -44,5 +49,10 @@ import { HttpModule } from './presentation/http.module.js';
     ApplicationModule, // 應用層：用例和服務
     HttpModule, // 表現層：控制器和路由
   ],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(cookieParser()).forRoutes('*');
+  }
+}

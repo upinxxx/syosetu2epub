@@ -1,17 +1,48 @@
 import { Module } from '@nestjs/common';
-import { UseCasesModule } from './use-cases/use-cases.module.js';
+import { BullModule } from '@nestjs/bullmq';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { KindleDeliveryModule } from './kindle-delivery/kindle-delivery.module.js';
 import { InfrastructureModule } from '../infrastructure/infrastructure.module.js';
+import { AuthModule } from './auth/auth.module.js';
+import { ConvertModule } from './convert/convert.module.js';
+import { PreviewModule } from './preview/preview.module.js';
+import { JobsModule } from './jobs/jobs.module.js';
+
 /**
  * 應用層模組
- * 整合所有使用案例，並依賴於基礎設施模組
+ * 整合所有子域模組，並依賴於基礎設施模組
  */
 @Module({
   imports: [
-    InfrastructureModule, // 導入基礎設施模組
-    UseCasesModule, // 導入所有 Use Case
+    // 配置 BullMQ
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get('REDIS_HOST', 'localhost'),
+          port: configService.get('REDIS_PORT', 6379),
+        },
+      }),
+    }),
+
+    // 子域模組
+    AuthModule,
+    ConvertModule,
+    KindleDeliveryModule,
+    PreviewModule,
+    JobsModule,
+
+    // 基礎設施模組
+    InfrastructureModule,
   ],
   exports: [
-    UseCasesModule, // 導出所有 Use Case
+    // 導出所有子域模組
+    AuthModule,
+    ConvertModule,
+    KindleDeliveryModule,
+    PreviewModule,
+    JobsModule,
   ],
 })
 export class ApplicationModule {}

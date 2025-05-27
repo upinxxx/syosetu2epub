@@ -1,16 +1,19 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { QueueModule } from '../infrastructure/queue/queue.module.js';
 import { EpubQueueProcessor } from './epub-queue.processor.js';
+import { PreviewQueueProcessor } from './preview-queue.processor.js';
 import { ApplicationModule } from '../application/application.module.js';
 import { NovelOrmEntity } from '../infrastructure/entities/novel.orm-entity.js';
-import { EpubJobOrmEntity } from '../shared/dto/epub-job.orm-entity.js';
+import { EpubJobOrmEntity } from '../infrastructure/entities/epub-job.orm-entity.js';
 import { UserOrmEntity } from '../infrastructure/entities/user.orm-entity.js';
-import { EmailLogOrmEntity } from '../infrastructure/entities/email-log.orm-entity.js';
+import { JobsModule } from '../application/jobs/jobs.module.js';
+import { SchedulerService } from './scheduler.service.js';
 
 /**
- * Worker 模組 - 只包含處理 EPUB 轉換任務所需的模組
+ * Worker 模組 - 包含處理 EPUB 轉換和預覽任務所需的模組
  * 與 AppModule 不同，不包含 HTTP 控制器等 API 元件
  */
 @Module({
@@ -20,6 +23,9 @@ import { EmailLogOrmEntity } from '../infrastructure/entities/email-log.orm-enti
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // 排程模組 - 用於 Worker 的定時任務
+    ScheduleModule.forRoot(),
 
     // 數據庫配置 - 與 AppModule 相同，但僅供 Worker 使用
     TypeOrmModule.forRootAsync({
@@ -32,12 +38,7 @@ import { EmailLogOrmEntity } from '../infrastructure/entities/email-log.orm-enti
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [
-          NovelOrmEntity,
-          EpubJobOrmEntity,
-          UserOrmEntity,
-          EmailLogOrmEntity,
-        ],
+        entities: [NovelOrmEntity, EpubJobOrmEntity, UserOrmEntity],
         synchronize: false,
       }),
     }),
@@ -47,7 +48,10 @@ import { EmailLogOrmEntity } from '../infrastructure/entities/email-log.orm-enti
 
     // 隊列模組 - 提供 BullMQ 連接
     QueueModule,
+
+    // Job 模組 - 提供任務狀態同步服務
+    JobsModule,
   ],
-  providers: [EpubQueueProcessor],
+  providers: [EpubQueueProcessor, PreviewQueueProcessor, SchedulerService],
 })
 export class WorkerModule {}

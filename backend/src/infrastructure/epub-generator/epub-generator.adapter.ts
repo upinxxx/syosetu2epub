@@ -76,6 +76,9 @@ export class EpubGeneratorAdapter implements EpubGeneratorPort {
 
       const opfTemplatePath = join(__dirname, 'templates', 'custom.opf.ejs');
 
+      // 單頁小說不顯示目錄頁
+      const isHideToc = metadata.chapters.length === 1;
+
       const options = {
         title: metadata.novelTitle,
         author: metadata.novelAuthor,
@@ -85,6 +88,7 @@ export class EpubGeneratorAdapter implements EpubGeneratorPort {
         verbose: false,
         customHtmlTocTemplatePath: tocTemplatePath,
         customOpfTemplatePath: opfTemplatePath,
+        hideToC: isHideToc,
       };
 
       const outputDir = this.getOutputDir();

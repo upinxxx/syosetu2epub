@@ -3,7 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { KindleDeliveryOrmEntity } from './kindle-delivery.orm-entity.js';
 
 /**
  * 使用者資料實體 - 領域層
@@ -22,11 +24,8 @@ export class UserOrmEntity {
   @Column({ type: 'varchar' })
   displayName: string;
 
-  @Column({ default: 'free', type: 'varchar' })
-  role: 'free' | 'pro';
-
-  @Column({ nullable: true, type: 'timestamp' })
-  upgradedAt: Date;
+  @Column({ nullable: true, type: 'varchar', length: 320 })
+  kindleEmail: string | null;
 
   @Column({ default: 0, type: 'int' })
   dailyEmailQuota: number;
@@ -36,4 +35,7 @@ export class UserOrmEntity {
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
+
+  @OneToMany(() => KindleDeliveryOrmEntity, (delivery) => delivery.user)
+  kindleDeliveries: KindleDeliveryOrmEntity[];
 }

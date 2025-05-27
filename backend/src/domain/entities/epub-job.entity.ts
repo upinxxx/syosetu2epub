@@ -1,4 +1,5 @@
 import { Novel } from './novel.entity.js';
+import { User } from './user.entity.js';
 import { randomUUID } from 'crypto';
 import { Entity } from './entity.js';
 import { JobStatus } from '../enums/job-status.enum.js';
@@ -11,6 +12,8 @@ export class EpubJob implements Entity<EpubJob> {
   private _id: string;
   private _novelId: string;
   private _novel?: Novel;
+  private _userId?: string;
+  private _user?: User;
   private _status: JobStatus;
   private _publicUrl?: string;
   private _errorMessage?: string;
@@ -24,6 +27,8 @@ export class EpubJob implements Entity<EpubJob> {
     status: JobStatus,
     createdAt: Date,
     novel?: Novel,
+    userId?: string,
+    user?: User,
     publicUrl?: string,
     errorMessage?: string,
     completedAt?: Date,
@@ -32,6 +37,8 @@ export class EpubJob implements Entity<EpubJob> {
     this._id = id;
     this._novelId = novelId;
     this._novel = novel;
+    this._userId = userId;
+    this._user = user;
     this._status = status;
     this._publicUrl = publicUrl;
     this._errorMessage = errorMessage;
@@ -45,7 +52,12 @@ export class EpubJob implements Entity<EpubJob> {
   /**
    * 創建新的 EPUB 任務
    */
-  public static create(novelId: string, novel?: Novel): EpubJob {
+  public static create(
+    novelId: string,
+    novel?: Novel,
+    userId?: string,
+    user?: User,
+  ): EpubJob {
     if (!novelId) {
       throw new Error('小說 ID 不能為空');
     }
@@ -56,6 +68,8 @@ export class EpubJob implements Entity<EpubJob> {
       JobStatus.QUEUED,
       new Date(),
       novel,
+      userId,
+      user,
     );
   }
 
@@ -68,6 +82,8 @@ export class EpubJob implements Entity<EpubJob> {
     status,
     createdAt,
     novel,
+    userId,
+    user,
     publicUrl,
     errorMessage,
     completedAt,
@@ -78,6 +94,8 @@ export class EpubJob implements Entity<EpubJob> {
     status: JobStatus;
     createdAt: Date;
     novel?: Novel;
+    userId?: string;
+    user?: User;
     publicUrl?: string;
     errorMessage?: string;
     completedAt?: Date;
@@ -89,6 +107,8 @@ export class EpubJob implements Entity<EpubJob> {
       status,
       createdAt,
       novel,
+      userId,
+      user,
       publicUrl,
       errorMessage,
       completedAt,
@@ -116,7 +136,7 @@ export class EpubJob implements Entity<EpubJob> {
       throw new Error(`無法完成狀態為 ${this._status} 的任務`);
     }
 
-    if (!publicUrl || publicUrl.trim() === '') {
+    if (!publicUrl) {
       throw new Error('公開 URL 不能為空');
     }
 
@@ -231,6 +251,14 @@ export class EpubJob implements Entity<EpubJob> {
 
   get novel(): Novel | undefined {
     return this._novel;
+  }
+
+  get userId(): string | undefined {
+    return this._userId;
+  }
+
+  get user(): User | undefined {
+    return this._user;
   }
 
   get status(): JobStatus {

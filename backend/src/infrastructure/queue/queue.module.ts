@@ -20,9 +20,14 @@ import { QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
         },
       }),
     }),
-    BullModule.registerQueue({
-      name: 'epub',
-    }),
+    BullModule.registerQueue(
+      {
+        name: 'epub',
+      },
+      {
+        name: 'preview',
+      },
+    ),
   ],
   providers: [
     QueueAdapter,

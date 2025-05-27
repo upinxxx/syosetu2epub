@@ -49,7 +49,15 @@ export async function crawlNovelIndex(baseUrl: string): Promise<NovelIndex> {
   const novelTitle = $('.p-novel__title').text().trim();
   const novelAuthor = $('.p-novel__author > a').text().trim();
   const novelDescription = $('.p-novel__summary').text().trim();
-
+  // 單頁小說
+  if (!novelDescription) {
+    return {
+      novelTitle,
+      novelAuthor,
+      novelDescription,
+      chapters: [{ chapterTitle: null, title: novelTitle, url: baseUrl }],
+    };
+  }
   // 判斷最大頁數
   let maxPage = 1;
   const lastPager = $('.c-pager__item.c-pager__item--last');
