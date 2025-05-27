@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeOrmRepository, LessThan, Not, In } from 'typeorm';
 import {
-  PagedRepository,
+  EpubJobRepository,
   PagedResult,
   PaginationOptions,
-} from '@/domain/ports/repository.port.js';
+} from '@/domain/ports/repository/index.js';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
 import { EpubJobOrmEntity } from '@/infrastructure/entities/epub-job.orm-entity.js';
 import { EpubJobMapper } from '@/domain/mappers/epub-job.mapper.js';
@@ -16,7 +16,7 @@ import { JobStatus } from '@/domain/enums/job-status.enum.js';
  * 實現 Port 接口並調用 Mapper 進行領域模型轉換
  */
 @Injectable()
-export class EpubJobRepositoryTypeORM implements PagedRepository<EpubJob> {
+export class EpubJobRepositoryTypeORM implements EpubJobRepository {
   constructor(
     @InjectRepository(EpubJobOrmEntity)
     private readonly repository: TypeOrmRepository<EpubJobOrmEntity>,

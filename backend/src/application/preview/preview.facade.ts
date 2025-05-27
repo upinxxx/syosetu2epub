@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { AddPreviewJobUseCase } from './use-cases/add-preview-job.use-case.js';
 import { GetNovelPreviewUseCase } from './use-cases/get-novel-preview.use-case.js';
 import { GetPreviewJobStatusUseCase } from './use-cases/get-preview-job-status.use-case.js';
@@ -10,27 +10,32 @@ import { PreviewNovelJobData } from '@/shared/dto/preview-novel-job-data.dto.js'
 @Injectable()
 export class PreviewFacade {
   constructor(
+    @Inject(AddPreviewJobUseCase)
     private readonly addPreviewJob: AddPreviewJobUseCase,
+    @Inject(GetNovelPreviewUseCase)
     private readonly getNovelPreview: GetNovelPreviewUseCase,
+    @Inject(GetPreviewJobStatusUseCase)
     private readonly getPreviewJobStatus: GetPreviewJobStatusUseCase,
+    @Inject(PreviewNovelUseCase)
     private readonly previewNovel: PreviewNovelUseCase,
+    @Inject(ProcessPreviewUseCase)
     private readonly processPreviewJob: ProcessPreviewUseCase,
   ) {}
 
-  submitPreviewJob(novelId: string, userId?: string) {
-    return this.addPreviewJob.execute(novelId, userId);
+  submitPreviewJob(source: NovelSource, sourceId: string, userId?: string) {
+    return this.addPreviewJob.execute(source, sourceId);
   }
 
-  getPreview(jobId: string) {
-    return this.getNovelPreview.execute(jobId);
+  // 小說id
+  getPreviewById(id: string) {
+    return this.getNovelPreview.execute(id);
   }
 
   getJobStatus(jobId: string) {
     return this.getPreviewJobStatus.execute(jobId);
   }
 
-  previewNovelFromUrl(novelUrl: string, source: NovelSource) {
-    const sourceId = this.extractSourceIdFromUrl(novelUrl);
+  getPreviewBySource(source: NovelSource, sourceId: string) {
     return this.previewNovel.execute(source, sourceId);
   }
 

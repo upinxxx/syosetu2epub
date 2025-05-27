@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile, StrategyOptions } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
@@ -12,17 +12,26 @@ import { GoogleProfile } from '../../domain/ports/auth.port.js';
  */
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+  private readonly logger = new Logger(GoogleStrategy.name);
+
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
+    const clientID = configService.get<string>('GOOGLE_CLIENT_ID')!;
+    const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET')!;
+    const callbackURL = configService.get<string>('GOOGLE_CALLBACK_URL')!;
+
     const options: StrategyOptions = {
-      clientID: configService.get<string>('GOOGLE_CLIENT_ID')!,
-      clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
-      callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL')!,
+      clientID,
+      clientSecret,
+      callbackURL,
       scope: ['email', 'profile'],
     };
 
     super(options);
+
+    this.logger.debug(`初始化 Google OAuth 策略`);
+    this.logger.debug(`回調 URL: ${callbackURL}`);
   }
 
   /**
@@ -30,10 +39,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
    * @returns 經過轉換的 GoogleProfile 領域對象
    */
   async validate(
-    _accessToken: string,
-    _refreshToken: string,
+    accessToken: string,
+    refreshToken: string,
     profile: Profile,
   ): Promise<GoogleProfile> {
+    this.logger.debug(`Google OAuth 回調驗證成功，用戶 ID: ${profile.id}`);
+
     // 將 Passport 資料結構轉換為領域層的 GoogleProfile，供應用層使用
     return {
       id: profile.id,

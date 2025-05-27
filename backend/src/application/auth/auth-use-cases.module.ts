@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
 import { UserOrmEntity } from '@/infrastructure/entities/user.orm-entity.js';
 import { ValidateOrCreateUserUseCase } from './use-cases/validate-or-create-user.use-case.js';
 import { GetCurrentUserUseCase } from './use-cases/get-current-user.use-case.js';

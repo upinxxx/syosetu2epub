@@ -1,7 +1,9 @@
 import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
 import { QUEUE_PORT_TOKEN, QueuePort } from '@/domain/ports/queue.port.js';
-import { NOVEL_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
-import { PagedRepository } from '@/domain/ports/repository.port.js';
+import {
+  NOVEL_REPOSITORY_TOKEN,
+  PagedRepository,
+} from '@/domain/ports/repository/index.js';
 import { Novel } from '@/domain/entities/novel.entity.js';
 import { PreviewNovelResponseDto } from '../dto/preview-novel-response.dto.js';
 import { JobStatus } from '@/domain/enums/job-status.enum.js';

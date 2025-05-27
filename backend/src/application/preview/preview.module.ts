@@ -17,13 +17,31 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
   ],
   providers: [
     // 預覽相關用例
-    AddPreviewJobUseCase,
-    GetNovelPreviewUseCase,
-    GetPreviewJobStatusUseCase,
-    PreviewNovelUseCase,
-    ProcessPreviewUseCase,
+    {
+      provide: AddPreviewJobUseCase,
+      useClass: AddPreviewJobUseCase,
+    },
+    {
+      provide: GetNovelPreviewUseCase,
+      useClass: GetNovelPreviewUseCase,
+    },
+    {
+      provide: GetPreviewJobStatusUseCase,
+      useClass: GetPreviewJobStatusUseCase,
+    },
+    {
+      provide: PreviewNovelUseCase,
+      useClass: PreviewNovelUseCase,
+    },
+    {
+      provide: ProcessPreviewUseCase,
+      useClass: ProcessPreviewUseCase,
+    },
     // Facade
-    PreviewFacade,
+    {
+      provide: PreviewFacade,
+      useClass: PreviewFacade,
+    },
   ],
   exports: [
     // 僅導出 Facade

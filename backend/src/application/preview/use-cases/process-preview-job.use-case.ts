@@ -3,8 +3,10 @@ import { PREVIEW_PROVIDER_FACTORY_TOKEN } from '@/domain/ports/preview-provider.
 import { PreviewProviderFactoryPort } from '@/domain/ports/preview-provider.factory.port.js';
 import { QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
 import { QueuePort } from '@/domain/ports/queue.port.js';
-import { NOVEL_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
-import { PagedRepository } from '@/domain/ports/repository.port.js';
+import {
+  NOVEL_REPOSITORY_TOKEN,
+  PagedRepository,
+} from '@/domain/ports/repository/index.js';
 import { Novel } from '@/domain/entities/novel.entity.js';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
 import { PreviewNovelJobData } from '../../../shared/dto/preview-novel-job-data.dto.js';

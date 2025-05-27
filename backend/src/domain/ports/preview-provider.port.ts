@@ -12,5 +12,5 @@ export interface PreviewProviderPort {
    * 獲取小說基本信息，包括標題、作者、描述和章節列表
    * @param sourceId 小說 ID
    */
-  fetchNovelInfo(ourceId: string): Promise<NovelIndex>;
+  fetchNovelInfo(sourceId: string): Promise<NovelIndex>;
 }

@@ -17,13 +17,31 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
   ],
   providers: [
     // 轉換相關用例
-    SubmitEpubJobUseCase,
-    ProcessEpubJobUseCase,
-    GetEpubJobStatusUseCase,
-    GetDownloadLinkUseCase,
-    GenerateEpubUseCase,
+    {
+      provide: SubmitEpubJobUseCase,
+      useClass: SubmitEpubJobUseCase,
+    },
+    {
+      provide: ProcessEpubJobUseCase,
+      useClass: ProcessEpubJobUseCase,
+    },
+    {
+      provide: GetEpubJobStatusUseCase,
+      useClass: GetEpubJobStatusUseCase,
+    },
+    {
+      provide: GetDownloadLinkUseCase,
+      useClass: GetDownloadLinkUseCase,
+    },
+    {
+      provide: GenerateEpubUseCase,
+      useClass: GenerateEpubUseCase,
+    },
     // Facade
-    ConvertFacade,
+    {
+      provide: ConvertFacade,
+      useClass: ConvertFacade,
+    },
   ],
   exports: [
     // 僅導出 Facade

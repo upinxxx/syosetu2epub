@@ -11,12 +11,13 @@ import { EpubJobRepositoryTypeORM } from './epub-job-repository.adapter.js';
 import { UserRepositoryTypeORM } from './user-repository.adapter.js';
 import { KindleDeliveryRepositoryImpl } from './kindle-delivery.repository.js';
 
-// 定義提供者令牌
-export const NOVEL_REPOSITORY_TOKEN = 'NOVEL_REPOSITORY';
-export const EPUB_JOB_REPOSITORY_TOKEN = 'EPUB_JOB_REPOSITORY';
-export const USER_REPOSITORY_TOKEN = 'USER_REPOSITORY';
-export const KINDLE_DELIVERY_REPOSITORY_TOKEN = 'KINDLE_DELIVERY_REPOSITORY';
-export const PREVIEW_JOB_REPOSITORY_TOKEN = 'PREVIEW_JOB_REPOSITORY';
+// 導入 Domain 層定義的 Token
+import {
+  NOVEL_REPOSITORY_TOKEN,
+  EPUB_JOB_REPOSITORY_TOKEN,
+  USER_REPOSITORY_TOKEN,
+  KINDLE_DELIVERY_REPOSITORY_TOKEN,
+} from '@/domain/ports/repository/index.js';
 
 /**
  * 儲存庫模組

@@ -10,6 +10,7 @@ import { InfrastructureModule } from './infrastructure/infrastructure.module.js'
 import { ApplicationModule } from './application/application.module.js';
 import { HttpModule } from './presentation/http.module.js';
 import cookieParser from 'cookie-parser';
+import { Logger } from '@nestjs/common';
 
 /**
  * 應用程式主模組
@@ -53,6 +54,25 @@ import cookieParser from 'cookie-parser';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    // 增加詳細的 cookie 解析選項
     consumer.apply(cookieParser()).forRoutes('*');
+
+    // 添加調試中間件
+    if (process.env.NODE_ENV !== 'production') {
+      consumer
+        .apply((req: any, res: any, next: () => void) => {
+          const logger = new Logger('HttpDebug');
+          logger.debug(`Incoming request: ${req.method} ${req.url}`);
+          if (Object.keys(req.cookies).length > 0) {
+            logger.debug(`Cookies: ${JSON.stringify(req.cookies)}`);
+          }
+          // 增加響應完成事件的監聽
+          res.on('finish', () => {
+            logger.debug(`Response status: ${res.statusCode}`);
+          });
+          next();
+        })
+        .forRoutes('*');
+    }
   }
 }

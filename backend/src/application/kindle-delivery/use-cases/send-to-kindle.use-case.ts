@@ -5,9 +5,9 @@ import { KindleDelivery } from '@/domain/entities/kindle-delivery.entity.js';
 import {
   KindleDeliveryRepository,
   KINDLE_DELIVERY_REPOSITORY_TOKEN,
-} from '@/domain/ports/kindle-delivery-repository.port.js';
-import { EPUB_JOB_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
-import { Repository } from '@/domain/ports/repository.port.js';
+} from '@/domain/ports/repository/index.js';
+import { EPUB_JOB_REPOSITORY_TOKEN } from '@/domain/ports/repository/index.js';
+import { Repository } from '@/domain/ports/repository/index.js';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
 import { JobStatus } from '@/domain/enums/job-status.enum.js';
 

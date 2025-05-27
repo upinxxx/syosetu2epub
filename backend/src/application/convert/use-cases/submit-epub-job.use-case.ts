@@ -2,10 +2,12 @@ import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
 import { Novel } from '@/domain/entities/novel.entity.js';
 import {
-  NOVEL_REPOSITORY_TOKEN,
   EPUB_JOB_REPOSITORY_TOKEN,
-} from '@/infrastructure/repositories/repositories.module.js';
-import { Repository } from '@/domain/ports/repository.port.js';
+  NOVEL_REPOSITORY_TOKEN,
+  USER_REPOSITORY_TOKEN,
+  Repository,
+  UserRepository,
+} from '@/domain/ports/repository/index.js';
 import { QueuePort, QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
 
 /**
@@ -23,12 +25,19 @@ export class SubmitEpubJobUseCase {
     private readonly novelRepository: Repository<Novel>,
     @Inject(QUEUE_PORT_TOKEN)
     private readonly queueService: QueuePort,
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: UserRepository,
   ) {}
 
   /**
    * 建立和提交 EPUB 轉換任務
+   * @param novelId 小說ID
+   * @param userId 用戶ID（可為 null 或字符串，匿名用戶為 null）
    */
-  async execute(novelId: string, userId?: string): Promise<{ jobId: string }> {
+  async execute(
+    novelId: string,
+    userId: string | null,
+  ): Promise<{ jobId: string }> {
     try {
       // 1. 檢查小說是否存在
       const novel = await this.novelRepository.findById(novelId);
@@ -40,7 +49,27 @@ export class SubmitEpubJobUseCase {
       this.logger.log(`找到小說: ${novel.title}, ID: ${novel.id}`);
 
       // 2. 創建任務記錄
-      const job = EpubJob.create(novelId, novel, userId);
+      let validUserId: string | null = null;
+
+      // 檢查用戶是否存在
+      if (userId !== null) {
+        // 如果提供了用戶ID，需要驗證用戶是否存在
+        this.logger.log(`檢查用戶 ${userId} 是否存在`);
+        const userExists = await this.userRepository.findById(userId);
+
+        if (userExists) {
+          this.logger.log(`創建登入用戶 ${userId} 的轉換任務`);
+          validUserId = userId;
+        } else {
+          this.logger.warn(`用戶 ${userId} 不存在，當作匿名處理`);
+          validUserId = null;
+        }
+      } else {
+        this.logger.log('創建匿名用戶的轉換任務');
+      }
+
+      // 創建 EPUB 任務實體
+      const job = EpubJob.create(novelId, novel, validUserId);
 
       // 3. 保存任務到數據庫
       const savedJob = await this.epubJobRepository.save(job);

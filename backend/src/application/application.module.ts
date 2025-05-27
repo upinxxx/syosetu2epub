@@ -7,25 +7,12 @@ import { AuthModule } from './auth/auth.module.js';
 import { ConvertModule } from './convert/convert.module.js';
 import { PreviewModule } from './preview/preview.module.js';
 import { JobsModule } from './jobs/jobs.module.js';
-
 /**
  * 應用層模組
  * 整合所有子域模組，並依賴於基礎設施模組
  */
 @Module({
   imports: [
-    // 配置 BullMQ
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get('REDIS_HOST', 'localhost'),
-          port: configService.get('REDIS_PORT', 6379),
-        },
-      }),
-    }),
-
     // 子域模組
     AuthModule,
     ConvertModule,
@@ -36,6 +23,7 @@ import { JobsModule } from './jobs/jobs.module.js';
     // 基礎設施模組
     InfrastructureModule,
   ],
+
   exports: [
     // 導出所有子域模組
     AuthModule,

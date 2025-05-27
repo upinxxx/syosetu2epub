@@ -1,9 +1,11 @@
 import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
-import { NovelRepositoryTypeORM } from '@/infrastructure/repositories/novel-repository.adapter.js';
-import { NOVEL_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
+import {
+  NOVEL_REPOSITORY_TOKEN,
+  PagedRepository,
+  NovelRepository,
+} from '@/domain/ports/repository/index.js';
 import { Novel } from '@/domain/entities/novel.entity.js';
-import { PagedRepository } from '@/domain/ports/repository.port.js';
 import {
   PREVIEW_PROVIDER_FACTORY_TOKEN,
   PreviewProviderFactoryPort,
@@ -19,7 +21,7 @@ export class PreviewNovelUseCase {
 
   constructor(
     @Inject(NOVEL_REPOSITORY_TOKEN)
-    private readonly novelRepository: PagedRepository<Novel>,
+    private readonly novelRepository: NovelRepository,
     @Inject(PREVIEW_PROVIDER_FACTORY_TOKEN)
     private readonly previewProviderFactory: PreviewProviderFactoryPort,
   ) {}
@@ -103,8 +105,10 @@ export class PreviewNovelUseCase {
   ): Promise<Novel | null> {
     try {
       // 使用自定義查詢方法查找小說
-      const novelRepository = this.novelRepository as NovelRepositoryTypeORM;
-      return await novelRepository.findBySourceAndSourceId(source, sourceId);
+      return await this.novelRepository.findBySourceAndSourceId(
+        source,
+        sourceId,
+      );
     } catch (error) {
       this.logger.error(`查找小說失敗: ${error.message}`, error.stack);
       return null;

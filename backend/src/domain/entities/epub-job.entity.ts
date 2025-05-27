@@ -12,7 +12,7 @@ export class EpubJob implements Entity<EpubJob> {
   private _id: string;
   private _novelId: string;
   private _novel?: Novel;
-  private _userId?: string;
+  private _userId?: string | null;
   private _user?: User;
   private _status: JobStatus;
   private _publicUrl?: string;
@@ -27,7 +27,7 @@ export class EpubJob implements Entity<EpubJob> {
     status: JobStatus,
     createdAt: Date,
     novel?: Novel,
-    userId?: string,
+    userId?: string | null,
     user?: User,
     publicUrl?: string,
     errorMessage?: string,
@@ -51,11 +51,15 @@ export class EpubJob implements Entity<EpubJob> {
 
   /**
    * 創建新的 EPUB 任務
+   * @param novelId 小說ID
+   * @param novel 小說實體（可選）
+   * @param userId 用戶ID（可選，匿名用戶為 null）
+   * @param user 用戶實體（可選）
    */
   public static create(
     novelId: string,
     novel?: Novel,
-    userId?: string,
+    userId?: string | null,
     user?: User,
   ): EpubJob {
     if (!novelId) {
@@ -94,7 +98,7 @@ export class EpubJob implements Entity<EpubJob> {
     status: JobStatus;
     createdAt: Date;
     novel?: Novel;
-    userId?: string;
+    userId?: string | null;
     user?: User;
     publicUrl?: string;
     errorMessage?: string;
@@ -253,7 +257,7 @@ export class EpubJob implements Entity<EpubJob> {
     return this._novel;
   }
 
-  get userId(): string | undefined {
+  get userId(): string | null | undefined {
     return this._userId;
   }
 

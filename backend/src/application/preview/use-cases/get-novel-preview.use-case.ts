@@ -1,6 +1,8 @@
 import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
-import { NOVEL_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
-import { PagedRepository } from '@/domain/ports/repository.port.js';
+import {
+  NOVEL_REPOSITORY_TOKEN,
+  PagedRepository,
+} from '@/domain/ports/repository/index.js';
 import { Novel } from '@/domain/entities/novel.entity.js';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
 import { PreviewNovelUseCase } from './preview-novel.use-case.js';
@@ -16,6 +18,7 @@ export class GetNovelPreviewUseCase {
   constructor(
     @Inject(NOVEL_REPOSITORY_TOKEN)
     private readonly novelRepository: PagedRepository<Novel>,
+    @Inject(PreviewNovelUseCase)
     private readonly previewNovelUseCase: PreviewNovelUseCase,
   ) {}
 

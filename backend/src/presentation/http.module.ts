@@ -1,11 +1,18 @@
 import { Module } from '@nestjs/common';
 import { NovelController } from './novel.controller.js';
-import { ApplicationModule } from '@/application/application.module.js';
 import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js';
 import { AuthController } from './auth.controller.js';
 import { PassportModule } from '@nestjs/passport';
 import { AuthInfrastructureModule } from '@/infrastructure/auth/auth.infrastructure.module.js';
 import { KindleDeliveryController } from './kindle-delivery.controller.js';
+import { PreviewFacade } from '@/application/preview/preview.facade.js';
+import { ConvertFacade } from '@/application/convert/convert.facade.js';
+import { AuthFacade } from '@/application/auth/auth.facade.js';
+import { PreviewModule } from '@/application/preview/preview.module.js';
+import { ConvertModule } from '@/application/convert/convert.module.js';
+import { AuthModule } from '@/application/auth/auth.module.js';
+import { KindleDeliveryModule } from '@/application/kindle-delivery/kindle-delivery.module.js';
+import { JobsModule } from '@/application/jobs/jobs.module.js';
 
 /**
  * HTTP 模組
@@ -15,18 +22,22 @@ import { KindleDeliveryController } from './kindle-delivery.controller.js';
   imports: [
     // 核心層與基礎設施層模組
     InfrastructureModule, // 導入基礎設施層模組
-    ApplicationModule, // 導入應用層模組（包含所有子域模組）
+
+    // 直接引入所需的應用層子模組，而不是整個 ApplicationModule
+    PreviewModule,
+    ConvertModule,
+    AuthModule,
+    KindleDeliveryModule,
+    JobsModule,
 
     // Passport 認證框架
     PassportModule.register({ defaultStrategy: 'jwt' }),
-
-    // 認證相關基礎設施
-    AuthInfrastructureModule,
   ],
   controllers: [
     NovelController, // 小說相關控制器
     AuthController, // 認證相關控制器
     KindleDeliveryController, // Kindle 交付控制器
   ],
+  providers: [],
 })
 export class HttpModule {}

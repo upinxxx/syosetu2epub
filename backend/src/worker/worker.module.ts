@@ -9,8 +9,10 @@ import { ApplicationModule } from '../application/application.module.js';
 import { NovelOrmEntity } from '../infrastructure/entities/novel.orm-entity.js';
 import { EpubJobOrmEntity } from '../infrastructure/entities/epub-job.orm-entity.js';
 import { UserOrmEntity } from '../infrastructure/entities/user.orm-entity.js';
+import { KindleDeliveryOrmEntity } from '../infrastructure/entities/kindle-delivery.orm-entity.js';
 import { JobsModule } from '../application/jobs/jobs.module.js';
 import { SchedulerService } from './scheduler.service.js';
+import { ConvertModule } from '../application/convert/convert.module.js';
 
 /**
  * Worker 模組 - 包含處理 EPUB 轉換和預覽任務所需的模組
@@ -38,10 +40,18 @@ import { SchedulerService } from './scheduler.service.js';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [NovelOrmEntity, EpubJobOrmEntity, UserOrmEntity],
+        entities: [
+          NovelOrmEntity,
+          EpubJobOrmEntity,
+          UserOrmEntity,
+          KindleDeliveryOrmEntity,
+        ],
         synchronize: false,
       }),
     }),
+
+    // 優先導入 ConvertModule，確保 ConvertFacade 可用
+    ConvertModule,
 
     // 應用層模組 - 提供 ProcessJobUseCase
     ApplicationModule,

@@ -1,8 +1,7 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { QueuePort, QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
-import { Repository } from '@/domain/ports/repository.port.js';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
-import { EPUB_JOB_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
+import { EPUB_JOB_REPOSITORY_TOKEN } from '@/domain/ports/repository/index.js';
 import { JobStatus } from '@/domain/enums/job-status.enum.js';
 import { EpubJobRepositoryTypeORM } from '@/infrastructure/repositories/epub-job-repository.adapter.js';
 

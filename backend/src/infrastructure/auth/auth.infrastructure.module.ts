@@ -11,6 +11,10 @@ import { JwtAuthAdapter } from './jwt-auth.adapter.js';
 import { RepositoriesModule } from '../repositories/repositories.module.js';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AnonymousStrategy } from './anonymous.strategy.js';
+
+// 創建 ExternalAuthProvider 的令牌
+export const EXTERNAL_AUTH_PROVIDER_TOKEN = Symbol('ExternalAuthProvider');
 
 /**
  * 認證基礎設施模組
@@ -35,12 +39,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     // 基礎設施層適配器
     GoogleStrategy,
     JwtStrategy,
+    AnonymousStrategy,
     GoogleAuthAdapter,
     JwtAuthAdapter,
 
     // 將 GoogleAuthAdapter 繫結到領域層定義的出站埠接口
     {
-      provide: 'ExternalAuthProvider',
+      provide: EXTERNAL_AUTH_PROVIDER_TOKEN,
       useExisting: GoogleAuthAdapter,
     },
 
@@ -53,7 +58,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   exports: [
     // 導出領域層定義的接口，而非具體實現
     {
-      provide: 'ExternalAuthProvider',
+      provide: EXTERNAL_AUTH_PROVIDER_TOKEN,
       useExisting: GoogleAuthAdapter,
     },
     {

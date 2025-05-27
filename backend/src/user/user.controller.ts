@@ -10,8 +10,10 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { AuthGuard } from '@nestjs/passport';
-import { USER_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
-import { Repository } from '@/domain/ports/repository.port.js';
+import {
+  USER_REPOSITORY_TOKEN,
+  UserRepository,
+} from '@/domain/ports/repository/index.js';
 import { User } from '@/domain/entities/user.entity.js';
 
 class UpdateProfileDto {
@@ -24,7 +26,7 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     @Inject(USER_REPOSITORY_TOKEN)
-    private readonly userRepository: Repository<User>,
+    private readonly userRepository: UserRepository,
   ) {}
 
   @Get('profile')
@@ -66,7 +68,7 @@ export class UserController {
       user.setKindleEmail(dto.kindleEmail || undefined);
     }
 
-    const updatedUser = await this.userRepository.update(user);
+    const updatedUser = await this.userRepository.save(user);
 
     return {
       id: updatedUser.id,

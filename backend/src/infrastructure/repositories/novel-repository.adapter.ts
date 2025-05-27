@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeOrmRepository } from 'typeorm';
 import {
-  PagedRepository,
+  NovelRepository,
   PagedResult,
   PaginationOptions,
-} from '@/domain/ports/repository.port.js';
+} from '@/domain/ports/repository/index.js';
 import { Novel } from '@/domain/entities/novel.entity.js';
 import { NovelOrmEntity } from '@/infrastructure/entities/novel.orm-entity.js';
 import { NovelMapper } from '@/domain/mappers/novel.mapper.js';
@@ -15,7 +15,7 @@ import { NovelMapper } from '@/domain/mappers/novel.mapper.js';
  * 實現 Port 接口並調用 Mapper 進行領域模型轉換
  */
 @Injectable()
-export class NovelRepositoryTypeORM implements PagedRepository<Novel> {
+export class NovelRepositoryTypeORM implements NovelRepository {
   constructor(
     @InjectRepository(NovelOrmEntity)
     private readonly repository: TypeOrmRepository<NovelOrmEntity>,

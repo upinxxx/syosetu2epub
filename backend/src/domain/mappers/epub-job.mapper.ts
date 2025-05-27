@@ -20,7 +20,13 @@ export class EpubJobMapper {
     ormEntity.id = domainEntity.id;
     ormEntity.novelId = domainEntity.novelId;
     ormEntity.status = domainEntity.status;
-    ormEntity.userId = domainEntity.userId || null;
+
+    // 重要：確保 userId 為 null 而不是 undefined
+    // 只有當 userId 是有效的字符串時才設置，否則設為 null
+    ormEntity.userId =
+      domainEntity.userId && domainEntity.userId.trim() !== ''
+        ? domainEntity.userId
+        : null;
 
     // 處理可選屬性
     if (domainEntity.publicUrl) {

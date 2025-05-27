@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import axios from "@/lib/axios";
-import { X, DownloadCloud } from "lucide-react";
+import {
+  X,
+  DownloadCloud,
+  Minimize2,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { Toast, ToastContainer } from "@/components/ui/toast";
 
 // 功能特點資料
@@ -65,14 +71,15 @@ interface NovelPreview {
 }
 
 // 預覽任務狀態類型
-type PreviewTaskStatus = "pending" | "processing" | "completed" | "failed";
+type PreviewJobStatus = "queued" | "processing" | "completed" | "failed";
 
 // 預覽任務響應介面
-interface PreviewTaskResponse {
+interface PreviewJobResponse {
   success: boolean;
-  taskId?: string;
+  jobId?: string;
+  novelId?: string;
   preview?: NovelPreview;
-  status?: PreviewTaskStatus;
+  status?: PreviewJobStatus;
   message?: string;
 }
 
@@ -88,18 +95,74 @@ interface ConversionJobResponse {
   message?: string;
 }
 
+// 隨機生成柔和的明亮色彩
+const getRandomSoftColor = () => {
+  // 柔和明亮的顏色組合
+  const colors = [
+    {
+      border: "border-teal-500",
+      bg: "bg-teal-500",
+      text: "text-teal-600",
+      hover: "hover:bg-teal-600",
+      light: "bg-teal-50",
+    },
+    {
+      border: "border-sky-500",
+      bg: "bg-sky-500",
+      text: "text-sky-600",
+      hover: "hover:bg-sky-600",
+      light: "bg-sky-50",
+    },
+    {
+      border: "border-indigo-500",
+      bg: "bg-indigo-500",
+      text: "text-indigo-600",
+      hover: "hover:bg-indigo-600",
+      light: "bg-indigo-50",
+    },
+    {
+      border: "border-violet-500",
+      bg: "bg-violet-500",
+      text: "text-violet-600",
+      hover: "hover:bg-violet-600",
+      light: "bg-violet-50",
+    },
+    {
+      border: "border-rose-500",
+      bg: "bg-rose-500",
+      text: "text-rose-600",
+      hover: "hover:bg-rose-600",
+      light: "bg-rose-50",
+    },
+    {
+      border: "border-emerald-500",
+      bg: "bg-emerald-500",
+      text: "text-emerald-600",
+      hover: "hover:bg-emerald-600",
+      light: "bg-emerald-50",
+    },
+    {
+      border: "border-cyan-500",
+      bg: "bg-cyan-500",
+      text: "text-cyan-600",
+      hover: "hover:bg-cyan-600",
+      light: "bg-cyan-50",
+    },
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
 export default function Home() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sourceId, setSourceId] = useState("");
   const [source, setSource] = useState("");
   const [error, setError] = useState("");
-  const [inputStyle, setInputStyle] = useState("");
   const [preview, setPreview] = useState<NovelPreview | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [conversionLoading, setConversionLoading] = useState(false);
-  const [previewTaskId, setPreviewTaskId] = useState<string | null>(null);
-  const [previewStatus, setPreviewStatus] = useState<PreviewTaskStatus | null>(
+  const [previewJobId, setPreviewJobId] = useState<string | null>(null);
+  const [previewStatus, setPreviewStatus] = useState<PreviewJobStatus | null>(
     null
   );
   const [activeJobs, setActiveJobs] = useState<
@@ -113,6 +176,13 @@ export default function Home() {
       }
     >
   >(new Map());
+  const [previewColor, setPreviewColor] = useState(getRandomSoftColor());
+  const [statusBarCollapsed, setStatusBarCollapsed] = useState(false);
+
+  // 組件掛載時設置一個隨機顏色
+  useEffect(() => {
+    setPreviewColor(getRandomSoftColor());
+  }, []);
 
   // 驗證輸入的網址或 ID
   useEffect(() => {
@@ -120,7 +190,6 @@ export default function Home() {
       setError("");
       setSource("");
       setSourceId("");
-      setInputStyle("");
       return;
     }
 
@@ -165,7 +234,6 @@ export default function Home() {
       setError("請輸入正確的網址或作品 ID");
       setSource("");
       setSourceId("");
-      setInputStyle("");
       return;
     }
 
@@ -178,7 +246,6 @@ export default function Home() {
     setSource(detectedSource);
     setSourceId(detectedSourceId);
     setError("");
-    setInputStyle(SITE_COLORS[detectedSource].border);
   }, [input]);
 
   // 處理下載請求
@@ -200,7 +267,7 @@ export default function Home() {
       };
 
       // 提交預覽請求
-      const response = await axios.post<PreviewTaskResponse>(
+      const response = await axios.post<PreviewJobResponse>(
         "/novels/preview",
         requestData,
         {
@@ -222,6 +289,8 @@ export default function Home() {
       // 如果後端直接返回預覽數據（同步模式）
       if (response.data.preview) {
         console.log("設置預覽數據:", response.data.preview);
+        // 每次顯示預覽時重新生成隨機顏色
+        setPreviewColor(getRandomSoftColor());
         setPreview(response.data.preview);
         setShowPreview(true);
         setIsLoading(false);
@@ -229,11 +298,57 @@ export default function Home() {
       }
 
       // 如果後端返回任務ID（非同步模式）
-      if (response.data.taskId) {
-        setPreviewTaskId(response.data.taskId);
-        setPreviewStatus("pending");
+      if (response.data.jobId) {
+        setPreviewJobId(response.data.jobId);
+        setPreviewStatus("queued");
         // 開始輪詢任務狀態
-        pollPreviewTask(response.data.taskId);
+        pollPreviewJob(response.data.jobId);
+      } else if (response.data.novelId) {
+        console.log("後端返回了novelId，但沒有jobId，將直接獲取預覽數據");
+        try {
+          const previewResponse = await axios.get<PreviewJobResponse>(
+            `/novels/preview/${response.data.novelId}`,
+            {
+              headers: {
+                Accept: "application/json",
+              },
+            }
+          );
+
+          if (previewResponse.data.success && previewResponse.data.preview) {
+            console.log("成功獲取預覽數據:", previewResponse.data.preview);
+            setPreviewColor(getRandomSoftColor());
+            setPreview(previewResponse.data.preview);
+            setShowPreview(true);
+          } else {
+            setError("無法獲取小說預覽詳情");
+          }
+        } catch (previewError: any) {
+          console.error("獲取預覽詳情失敗:", previewError);
+
+          // 嘗試使用最小化的資訊創建預覽
+          // 即使無法獲取完整預覽，也可以展示基本資訊並允許用戶繼續
+          try {
+            const minimalPreview: NovelPreview = {
+              novelId: response.data.novelId,
+              title: `${
+                source === "narou" ? "小說家になろう" : "カクヨム"
+              }小說`,
+              author: "作者資訊獲取失敗",
+              description: "無法獲取完整小說資訊，但您仍可繼續轉換流程。",
+              source: source,
+              sourceId: sourceId,
+            };
+
+            setPreviewColor(getRandomSoftColor());
+            setPreview(minimalPreview);
+            setShowPreview(true);
+            console.log("已創建最小化預覽:", minimalPreview);
+          } catch (e) {
+            setError("獲取小說預覽詳情失敗");
+          }
+        }
+        setIsLoading(false);
       } else {
         setError("獲取預覽任務 ID 失敗");
         setIsLoading(false);
@@ -259,11 +374,11 @@ export default function Home() {
   };
 
   // 輪詢預覽任務狀態
-  const pollPreviewTask = async (taskId: string) => {
+  const pollPreviewJob = async (jobId: string) => {
     try {
-      console.log("輪詢預覽任務狀態:", taskId);
-      const response = await axios.get<PreviewTaskResponse>(
-        `/novels/preview/status/${taskId}`,
+      console.log("輪詢預覽任務狀態:", jobId);
+      const response = await axios.get<PreviewJobResponse>(
+        `/novels/preview-status/${jobId}`,
         {
           headers: {
             Accept: "application/json",
@@ -279,15 +394,45 @@ export default function Home() {
         return;
       }
 
-      const status = response.data.status || "pending";
+      // 獲取狀態並轉換為前端使用的狀態類型
+      let status: PreviewJobStatus;
+
+      // 將後端返回的狀態映射到前端狀態
+      switch (String(response.data.status)) {
+        case "completed":
+        case "COMPLETED":
+          status = "completed";
+          break;
+        case "failed":
+        case "FAILED":
+          status = "failed";
+          break;
+        case "processing":
+        case "PROCESSING":
+          status = "processing";
+          break;
+        case "queued":
+        case "QUEUED":
+          status = "queued";
+          break;
+        default:
+          console.warn(
+            `未知的任務狀態: ${response.data.status}，默認為 queued`
+          );
+          status = "queued";
+      }
+
       setPreviewStatus(status);
-      console.log("預覽任務狀態:", status);
+      console.log("預覽任務狀態(原始):", response.data.status);
+      console.log("預覽任務狀態(轉換後):", status);
 
       // 根據任務狀態處理
       switch (status) {
         case "completed":
           if (response.data.preview) {
             console.log("設置預覽數據:", response.data.preview);
+            // 每次顯示預覽時重新生成隨機顏色
+            setPreviewColor(getRandomSoftColor());
             setPreview(response.data.preview);
             setShowPreview(true);
           } else {
@@ -303,10 +448,10 @@ export default function Home() {
           break;
 
         case "processing":
-        case "pending":
+        case "queued":
           // 繼續輪詢，設置延遲以避免過於頻繁的請求
           console.log("任務仍在處理中，將在2秒後再次輪詢");
-          setTimeout(() => pollPreviewTask(taskId), 2000);
+          setTimeout(() => pollPreviewJob(jobId), 2000);
           break;
 
         default:
@@ -346,8 +491,8 @@ export default function Home() {
         }
       );
 
-      if (!response.data.success) {
-        setError(response.data.message || "提交轉檔任務失敗");
+      if (!response.data.jobId) {
+        setError("提交轉檔任務失敗");
         setConversionLoading(false);
         return;
       }
@@ -395,7 +540,36 @@ export default function Home() {
         return;
       }
 
-      const status = response.data.status as ConversionJobStatus;
+      // 將後端返回的狀態映射到前端狀態
+      let status: ConversionJobStatus;
+
+      switch (String(response.data.status)) {
+        case "completed":
+        case "COMPLETED":
+          status = "completed";
+          break;
+        case "failed":
+        case "FAILED":
+          status = "failed";
+          break;
+        case "processing":
+        case "PROCESSING":
+          status = "processing";
+          break;
+        case "queued":
+        case "QUEUED":
+          status = "queued";
+          break;
+        default:
+          console.warn(
+            `未知的轉檔任務狀態: ${response.data.status}，默認為 failed`
+          );
+          status = "failed";
+      }
+
+      console.log(`轉檔任務 ${jobId} 狀態(原始): ${response.data.status}`);
+      console.log(`轉檔任務 ${jobId} 狀態(轉換後): ${status}`);
+
       const publicUrl = response.data.publicUrl;
 
       // 更新任務狀態
@@ -494,6 +668,11 @@ export default function Home() {
     setPreview(null);
   };
 
+  // 切換狀態欄收合/展開
+  const toggleStatusBar = () => {
+    setStatusBarCollapsed(!statusBarCollapsed);
+  };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -504,7 +683,7 @@ export default function Home() {
               將小說轉換為 EPUB 電子書
             </h1>
             <p className="text-lg mb-8 text-white">
-              支援成為小說家吧（syosetu）和カクヨム（kakuyomu）網站，一鍵轉換下載
+              支援成為小説家になろう和カクヨム網站小說，一鍵轉換下載EPUB
             </p>
 
             {/* URL Input Section */}
@@ -514,12 +693,12 @@ export default function Home() {
                   placeholder="輸入小說網址或作品 ID..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  className={`w-full sm:w-96 bg-white border-2 ${inputStyle}`}
+                  className="w-full sm:w-96 bg-white border-2 border-sky-400"
                 />
                 <Button
                   onClick={handleDownload}
                   disabled={isLoading || !source || !sourceId}
-                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-medium"
                 >
                   {isLoading ? "處理中..." : "獲取預覽"}
                 </Button>
@@ -538,7 +717,7 @@ export default function Home() {
                 <div className="mt-4 text-sm text-gray-500">
                   {previewStatus === "processing" ? (
                     <p className="animate-pulse">正在爬取小說資料，請稍候...</p>
-                  ) : previewStatus === "pending" ? (
+                  ) : previewStatus === "queued" ? (
                     <p className="animate-pulse">正在等待處理，請稍候...</p>
                   ) : (
                     <p className="animate-pulse">正在處理您的請求，請稍候...</p>
@@ -550,23 +729,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 小說預覽彈出元素 */}
+      {/* 小說預覽彈出元件 */}
       {showPreview && preview && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div
-            className={`bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden ${
-              preview.source === NOVEL_SITES.NAROU
-                ? "border-l-4 border-blue-500"
-                : "border-l-4 border-orange-500"
-            }`}
+            className={`bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden border-l-8 ${previewColor.border}`}
           >
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
-                <h2
-                  className={`text-2xl font-bold ${
-                    SITE_COLORS[preview.source].heading
-                  }`}
-                >
+                <h2 className={`text-2xl font-bold ${previewColor.text}`}>
                   {preview.title}
                 </h2>
                 <button
@@ -577,36 +748,34 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="mb-4 space-y-1">
-                <p className="text-gray-700 flex items-center">
-                  <span className="font-medium mr-2">作者：</span>
-                  <span>{preview.author}</span>
-                </p>
-                <p className="text-gray-700 flex items-center">
-                  <span className="font-medium mr-2">來源：</span>
+              <div className="mb-6 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span
-                    className={
+                    className={`px-3 py-1 ${previewColor.bg} text-white rounded-full text-sm font-bold`}
+                  >
+                    {preview.author}
+                  </span>
+                  <span
+                    className={`px-3 py-1 ${
                       preview.source === NOVEL_SITES.NAROU
-                        ? "text-blue-600"
-                        : "text-orange-600"
-                    }
+                        ? "bg-[#18b7cd]"
+                        : "bg-[#4baae0]"
+                    } text-white rounded-full text-sm font-bold`}
                   >
                     {preview.source === NOVEL_SITES.NAROU
                       ? "小說家になろう"
                       : "カクヨム"}
                   </span>
-                </p>
+                </div>
               </div>
 
               <div className="mb-6">
                 <h3
-                  className={`text-lg font-semibold mb-2 pb-1 ${
-                    SITE_COLORS[preview.source].accent
-                  } border-b`}
+                  className={`text-lg font-semibold mb-2 pb-1 border-b ${previewColor.border}`}
                 >
                   簡介
                 </h3>
-                <div className="text-gray-700 whitespace-pre-line bg-gray-50 p-4 rounded-md max-h-64 overflow-y-auto">
+                <div className="text-gray-700 whitespace-pre-line bg-gray-100 p-4 rounded-md max-h-64 overflow-y-auto">
                   {preview.description}
                 </div>
               </div>
@@ -615,7 +784,7 @@ export default function Home() {
                 <Button
                   onClick={handleConfirmConversion}
                   disabled={conversionLoading}
-                  className={`text-white ${SITE_COLORS[preview.source].button}`}
+                  className={`text-white ${previewColor.bg} ${previewColor.hover} font-semibold`}
                 >
                   {conversionLoading ? "處理中..." : "確認轉換"}
                 </Button>
@@ -697,14 +866,14 @@ export default function Home() {
             <Button
               asChild
               variant="default"
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-sky-500 hover:bg-sky-600"
             >
               <Link to="/how-to-use">使用教學</Link>
             </Button>
             <Button
               asChild
               variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              className="border-sky-500 text-sky-500 hover:bg-sky-50"
             >
               <Link to="/me">註冊/登入</Link>
             </Button>
@@ -722,19 +891,19 @@ export default function Home() {
             <nav className="flex gap-6">
               <Link
                 to="/how-to-use"
-                className="text-gray-600 hover:text-blue-600 text-sm"
+                className="text-gray-600 hover:text-sky-500 text-sm"
               >
                 使用教學
               </Link>
               <Link
                 to="/me"
-                className="text-gray-600 hover:text-blue-600 text-sm"
+                className="text-gray-600 hover:text-sky-500 text-sm"
               >
                 會員中心
               </Link>
               <a
                 href="mailto:support@example.com"
-                className="text-gray-600 hover:text-blue-600 text-sm"
+                className="text-gray-600 hover:text-sky-500 text-sm"
               >
                 聯絡我們
               </a>
@@ -743,37 +912,88 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* 任務狀態 Toast 元件 */}
-      <ToastContainer position="bottom-right">
-        {Array.from(activeJobs.entries()).map(([jobId, job]) => (
-          <Toast
-            key={jobId}
-            title={job.title}
-            message={getStatusText(job.status)}
-            variant={getStatusVariant(job.status)}
-            duration={
-              job.status === "completed" || job.status === "failed" ? 0 : 0
-            }
-            onClose={() =>
-              job.status === "completed" || job.status === "failed"
-                ? removeJob(jobId)
-                : null
-            }
-            action={
-              job.status === "completed" && job.publicUrl ? (
-                <a
-                  className="text-blue-500 hover:text-blue-700 underline"
-                  href={job.publicUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  下載 EPUB
-                </a>
-              ) : null
-            }
-          />
-        ))}
-      </ToastContainer>
+      {/* 任務狀態欄 */}
+      {activeJobs.size > 0 && (
+        <div
+          className={`fixed bottom-4 right-4 w-72 bg-white rounded-lg shadow-lg border border-sky-100 z-40 transition-all duration-300 overflow-hidden ${
+            statusBarCollapsed ? "h-12" : "max-h-80"
+          }`}
+        >
+          <div
+            className="bg-sky-400 text-white p-2 flex justify-between items-center cursor-pointer"
+            onClick={toggleStatusBar}
+          >
+            <h3 className="text-sm font-medium">
+              轉檔任務 ({activeJobs.size})
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleStatusBar();
+                }}
+                className="text-white hover:text-sky-100"
+              >
+                {statusBarCollapsed ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
+              </button>
+            </div>
+          </div>
+          <div
+            className={`overflow-y-auto ${
+              statusBarCollapsed ? "hidden" : "max-h-72"
+            }`}
+          >
+            {Array.from(activeJobs.entries()).map(([jobId, job]) => (
+              <div
+                key={jobId}
+                className="p-3 border-b border-sky-50 hover:bg-sky-50 transition-colors"
+              >
+                <div className="flex justify-between items-center">
+                  <div
+                    className="truncate font-medium text-sm mr-2"
+                    style={{ maxWidth: "160px" }}
+                  >
+                    {job.title}
+                  </div>
+                  <button
+                    onClick={() => removeJob(jobId)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span
+                    className={`text-xs ${
+                      job.status === "queued" || job.status === "processing"
+                        ? "text-sky-500"
+                        : job.status === "completed"
+                        ? "text-green-500"
+                        : "text-rose-500"
+                    }`}
+                  >
+                    {getStatusText(job.status)}
+                  </span>
+                  {job.status === "completed" && job.publicUrl && (
+                    <a
+                      href={job.publicUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs bg-sky-500 hover:bg-sky-600 text-white px-2 py-1 rounded-full transition-colors"
+                    >
+                      <DownloadCloud size={12} /> 下載
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

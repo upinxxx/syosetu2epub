@@ -4,8 +4,8 @@ import { buildNovelUrl } from '@/infrastructure/utils/url-builder.js';
 import {
   EPUB_JOB_REPOSITORY_TOKEN,
   NOVEL_REPOSITORY_TOKEN,
-} from '@/infrastructure/repositories/repositories.module.js';
-import { Repository } from '@/domain/ports/repository.port.js';
+  Repository,
+} from '@/domain/ports/repository/index.js';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
 import { Novel } from '@/domain/entities/novel.entity.js';
 import { GenerateEpubUseCase } from './generate-epub.use-case.js';

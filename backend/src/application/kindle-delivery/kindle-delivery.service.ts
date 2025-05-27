@@ -6,9 +6,9 @@ import { KindleDeliveryPort } from '@/domain/ports/kindle-delivery.port.js';
 import {
   KindleDeliveryRepository,
   KINDLE_DELIVERY_REPOSITORY_TOKEN,
-} from '@/domain/ports/kindle-delivery-repository.port.js';
-import { EPUB_JOB_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
-import { Repository } from '@/domain/ports/repository.port.js';
+  EPUB_JOB_REPOSITORY_TOKEN,
+} from '@/domain/ports/repository/index.js';
+import { Repository } from '@/domain/ports/repository/index.js';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
 import { JobStatus } from '@/domain/enums/job-status.enum.js';
 
@@ -110,7 +110,7 @@ export class KindleDeliveryService implements KindleDeliveryPort {
     try {
       // 標記為處理中
       delivery.startProcessing();
-      await this.kindleDeliveryRepository.update(delivery);
+      await this.kindleDeliveryRepository.save(delivery);
 
       // 獲取 EPUB 任務
       const epubJob = await this.epubJobRepository.findById(delivery.epubJobId);
@@ -134,12 +134,12 @@ export class KindleDeliveryService implements KindleDeliveryPort {
 
       // 標記為成功
       delivery.markSuccess();
-      await this.kindleDeliveryRepository.update(delivery);
+      await this.kindleDeliveryRepository.save(delivery);
       this.logger.log(`Kindle 交付任務 ${delivery.id} 已成功完成`);
     } catch (error) {
       // 標記為失敗
       delivery.markFailed(error.message);
-      await this.kindleDeliveryRepository.update(delivery);
+      await this.kindleDeliveryRepository.save(delivery);
       this.logger.error(
         `Kindle 交付任務 ${delivery.id} 失敗: ${error.message}`,
       );

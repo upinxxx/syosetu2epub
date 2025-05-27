@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { JobStatusSyncService } from '@/application/jobs/job-status-sync.service.js';
 
@@ -10,7 +10,10 @@ import { JobStatusSyncService } from '@/application/jobs/job-status-sync.service
 export class SchedulerService {
   private readonly logger = new Logger(SchedulerService.name);
 
-  constructor(private readonly jobStatusSyncService: JobStatusSyncService) {}
+  constructor(
+    @Inject(JobStatusSyncService)
+    private readonly jobStatusSyncService: JobStatusSyncService,
+  ) {}
 
   /**
    * 每小時同步一次任務狀態

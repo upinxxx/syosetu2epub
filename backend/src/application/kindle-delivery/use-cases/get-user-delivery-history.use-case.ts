@@ -3,7 +3,7 @@ import { KindleDelivery } from '@/domain/entities/kindle-delivery.entity.js';
 import {
   KindleDeliveryRepository,
   KINDLE_DELIVERY_REPOSITORY_TOKEN,
-} from '@/domain/ports/kindle-delivery-repository.port.js';
+} from '@/domain/ports/repository/index.js';
 
 /**
  * 獲取用戶的 Kindle 交付歷史用例

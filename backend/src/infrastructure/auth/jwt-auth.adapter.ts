@@ -2,8 +2,10 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserAuthPort, GoogleProfile } from '@/domain/ports/auth.port.js';
 import { User } from '@/domain/entities/user.entity.js';
-import { PagedUserRepository } from '@/domain/ports/repository.port.js';
-import { USER_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
+import {
+  PagedUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from '@/domain/ports/repository/index.js';
 import { ConfigService } from '@nestjs/config';
 
 /**
@@ -33,7 +35,7 @@ export class JwtAuthAdapter implements UserAuthPort {
       // 記錄登入
       userByGoogleId.recordLogin();
       // 保存更新後的領域實體到資料庫
-      await this.userRepository.update(userByGoogleId);
+      await this.userRepository.save(userByGoogleId);
       return userByGoogleId;
     }
 
@@ -44,7 +46,7 @@ export class JwtAuthAdapter implements UserAuthPort {
       // 記錄登入
       userByEmail.recordLogin();
       // 保存更新後的領域實體到資料庫
-      await this.userRepository.update(userByEmail);
+      await this.userRepository.save(userByEmail);
       return userByEmail;
     }
 
@@ -80,7 +82,6 @@ export class JwtAuthAdapter implements UserAuthPort {
     const payload = {
       sub: user.id,
       email: user.email,
-      role: user.role,
     };
 
     return this.jwtService.sign(payload, {

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeOrmRepository } from 'typeorm';
 import { KindleDeliveryOrmEntity } from '../entities/kindle-delivery.orm-entity.js';
 import { KindleDelivery } from '@/domain/entities/kindle-delivery.entity.js';
-import { KindleDeliveryRepository } from '@/domain/ports/kindle-delivery-repository.port.js';
+import { KindleDeliveryRepository } from '@/domain/ports/repository/index.js';
 import { KindleDeliveryMapper } from '@/domain/mappers/kindle-delivery.mapper.js';
 
 /**
@@ -23,24 +23,6 @@ export class KindleDeliveryRepositoryImpl implements KindleDeliveryRepository {
     const ormEntity = KindleDeliveryMapper.toPersistence(entity);
     const savedEntity = await this.kindleDeliveryRepository.save(ormEntity);
     return KindleDeliveryMapper.toDomain(savedEntity);
-  }
-
-  /**
-   * 更新 Kindle 交付
-   */
-  async update(entity: KindleDelivery): Promise<KindleDelivery> {
-    const ormEntity = KindleDeliveryMapper.toPersistence(entity);
-    await this.kindleDeliveryRepository.update(entity.id, ormEntity);
-    const updatedEntity = await this.kindleDeliveryRepository.findOne({
-      where: { id: entity.id },
-      relations: ['epubJob', 'user'],
-    });
-
-    if (!updatedEntity) {
-      throw new Error(`找不到 ID 為 ${entity.id} 的 Kindle 交付記錄`);
-    }
-
-    return KindleDeliveryMapper.toDomain(updatedEntity);
   }
 
   /**
@@ -118,16 +100,5 @@ export class KindleDeliveryRepositoryImpl implements KindleDeliveryRepository {
    */
   async delete(entity: KindleDelivery): Promise<void> {
     await this.kindleDeliveryRepository.delete(entity.id);
-  }
-
-  /**
-   * 查找所有 Kindle 交付
-   */
-  async findAll(): Promise<KindleDelivery[]> {
-    const ormEntities = await this.kindleDeliveryRepository.find({
-      relations: ['epubJob', 'user'],
-    });
-
-    return KindleDeliveryMapper.toDomainList(ormEntities);
   }
 }

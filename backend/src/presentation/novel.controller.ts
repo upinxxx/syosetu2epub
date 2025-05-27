@@ -11,6 +11,7 @@ import {
   Res,
   Request,
   UseGuards,
+  Inject,
 } from '@nestjs/common';
 import { PreviewNovelDto } from '../shared/dto/preview-novel.dto.js';
 import { ConvertNovelDto } from '../shared/dto/convert-novel.dto.js';
@@ -28,8 +29,8 @@ export class NovelController {
   private readonly logger = new Logger(NovelController.name);
 
   constructor(
-    private readonly convertFacade: ConvertFacade,
-    private readonly previewFacade: PreviewFacade,
+    @Inject(ConvertFacade) private readonly convertFacade: ConvertFacade,
+    @Inject(PreviewFacade) private readonly previewFacade: PreviewFacade,
   ) {}
 
   /**
@@ -39,11 +40,8 @@ export class NovelController {
   @UseGuards(AuthGuard(['jwt', 'anonymous']))
   async convert(@Body() dto: ConvertNovelDto, @Request() req) {
     this.logger.log(`提交小說轉換任務: ${JSON.stringify(dto)}`);
-
-    // 如果用戶已登入，則獲取用戶 ID
-    const userId = req.user?.sub;
-
-    return this.convertFacade.submitJob(dto.novelId, userId);
+    // 將 req.user 傳遞給 Facade，讓應用層處理用戶身份邏輯
+    return this.convertFacade.submitJob(dto.novelId, req.user);
   }
 
   /**
@@ -53,13 +51,13 @@ export class NovelController {
   async preview(@Body() dto: PreviewNovelDto) {
     this.logger.log(`預覽請求: ${JSON.stringify(dto)}`);
 
-    // 使用 previewNovelFromUrl 方法，將源和源 ID 傳入
-    const result = await this.previewFacade.previewNovelFromUrl(
-      `https://example.com/${dto.sourceId}`,
+    // 使用 previewNovelFromUrl 方法
+    const result = await this.previewFacade.getPreviewBySource(
       dto.source,
+      dto.sourceId,
     );
 
-    // 假設結果中包含一個 novelId
+    // 返回結果
     return {
       success: true,
       novelId: result.novelId,
@@ -80,7 +78,7 @@ export class NovelController {
    */
   @Get('preview/:id')
   async previewById(@Param('id') id: string) {
-    return this.previewFacade.getPreview(id);
+    return this.previewFacade.getPreviewById(id);
   }
 
   /**

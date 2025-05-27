@@ -5,6 +5,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# 開發文件
+docs/
+
 #  前端 Vite + React
 dist/
 *.local

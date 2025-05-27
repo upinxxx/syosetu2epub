@@ -39,7 +39,7 @@ export class UserMapper {
       ormEntity.displayName,
       ormEntity.createdAt,
       ormEntity.dailyEmailQuota,
-      ormEntity.kindleEmail,
+      ormEntity.kindleEmail || undefined,
       ormEntity.lastLoginAt,
     );
   }

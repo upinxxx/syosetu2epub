@@ -1,6 +1,6 @@
 // src/worker/preview-queue.processor.ts
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { PreviewNovelJobData } from '@/shared/dto/preview-novel-job-data.dto.js';
 import { PreviewFacade } from '@/application/preview/preview.facade.js';
@@ -13,7 +13,10 @@ import { PreviewFacade } from '@/application/preview/preview.facade.js';
 export class PreviewQueueProcessor extends WorkerHost {
   private readonly logger = new Logger(PreviewQueueProcessor.name);
 
-  constructor(private readonly previewFacade: PreviewFacade) {
+  constructor(
+    @Inject(PreviewFacade)
+    private readonly previewFacade: PreviewFacade,
+  ) {
     super();
   }
 

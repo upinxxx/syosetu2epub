@@ -1,12 +1,34 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { LoginButton } from "./LoginButton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, User } from "lucide-react";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  // 獲取用戶頭像或顯示名稱的首字母
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
   };
 
   return (
@@ -40,24 +62,67 @@ export default function Navbar() {
             >
               使用教學
             </Link>
-            <Link
-              to="/me"
-              className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
-            >
-              會員中心
-            </Link>
+            {isAuthenticated && (
+              <Link
+                to="/me"
+                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+              >
+                會員中心
+              </Link>
+            )}
           </nav>
 
-          {/* 登入/註冊按鈕(桌面版) */}
+          {/* 登入/用戶資訊按鈕(桌面版) */}
           <div className="hidden md:flex items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              className="ml-4 border-blue-600 text-blue-600 hover:bg-blue-50"
-              asChild
-            >
-              <Link to="/me">登入</Link>
-            </Button>
+            {!isAuthenticated ? (
+              <LoginButton className="ml-4 border-blue-600 text-blue-600 hover:bg-blue-50" />
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full"
+                  >
+                    <Avatar className="h-8 w-8">
+                      {user?.avatar && (
+                        <AvatarImage src={user.avatar} alt={user.displayName} />
+                      )}
+                      <AvatarFallback>
+                        {user?.displayName
+                          ? getInitials(user.displayName)
+                          : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user?.displayName}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/me"
+                      className="flex w-full cursor-pointer items-center"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      <span>會員中心</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>登出</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {/* 手機版選單按鈕 */}
@@ -133,17 +198,31 @@ export default function Navbar() {
             >
               使用教學
             </Link>
-            <Link
-              to="/me"
-              className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              會員中心
-            </Link>
+            {isAuthenticated && (
+              <Link
+                to="/me"
+                className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                會員中心
+              </Link>
+            )}
             <div className="pt-4">
-              <Button className="w-full justify-center" size="sm" asChild>
-                <Link to="/me">登入/註冊</Link>
-              </Button>
+              {!isAuthenticated ? (
+                <LoginButton className="w-full justify-center" />
+              ) : (
+                <Button
+                  variant="destructive"
+                  className="w-full justify-center"
+                  size="sm"
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  登出
+                </Button>
+              )}
             </div>
           </div>
         </div>

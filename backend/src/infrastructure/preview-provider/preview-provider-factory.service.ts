@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PreviewProviderPort } from '../../domain/ports/preview-provider.port.js';
 import { NarouPreviewProvider } from './providers/narou-preview.provider.js';
 import { KakuyomuPreviewProvider } from './providers/kakuyomu-preview.provider.js';
-import { PreviewFactoryPort } from '@/domain/ports/preview-provider.factory.port.js';
+import { PreviewProviderFactoryPort } from '@/domain/ports/preview-provider.factory.port.js';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
 
 /**
@@ -11,7 +11,9 @@ import { NovelSource } from '@/domain/enums/novel-source.enum.js';
  * 實現 PreviewProviderPort 介面，並依據 URL 選擇合適的具體實現
  */
 @Injectable()
-export class PreviewProviderFactoryService implements PreviewFactoryPort {
+export class PreviewProviderFactoryService
+  implements PreviewProviderFactoryPort
+{
   private readonly logger = new Logger(PreviewProviderFactoryService.name);
   private readonly providers: PreviewProviderPort[] = [];
 

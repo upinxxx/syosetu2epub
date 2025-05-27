@@ -22,11 +22,23 @@ import { AuthFacade } from './auth.facade.js';
   ],
   providers: [
     // 認證相關用例
-    ValidateOrCreateUserUseCase,
-    GetCurrentUserUseCase,
-    GenerateTokenUseCase,
+    {
+      provide: ValidateOrCreateUserUseCase,
+      useClass: ValidateOrCreateUserUseCase,
+    },
+    {
+      provide: GetCurrentUserUseCase,
+      useClass: GetCurrentUserUseCase,
+    },
+    {
+      provide: GenerateTokenUseCase,
+      useClass: GenerateTokenUseCase,
+    },
     // Facade
-    AuthFacade,
+    {
+      provide: AuthFacade,
+      useClass: AuthFacade,
+    },
   ],
   exports: [
     // 僅導出 Facade

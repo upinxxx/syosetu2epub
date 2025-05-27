@@ -1,8 +1,9 @@
 import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
-import { Repository } from '@/domain/ports/repository.port.js';
-import { EpubJob } from '@/domain/entities/epub-job.entity.js';
-import { EPUB_JOB_REPOSITORY_TOKEN } from '@/infrastructure/repositories/repositories.module.js';
-import { JobStatusResponseDto } from '../../shared/dto/job-status.dto.js';
+import {
+  EPUB_JOB_REPOSITORY_TOKEN,
+  EpubJobRepository,
+} from '@/domain/ports/repository/index.js';
+import { JobStatusResponseDto } from '../../../shared/dto/job-status.dto.js';
 import { QueuePort } from '@/domain/ports/queue.port.js';
 import { QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
 
@@ -15,7 +16,7 @@ export class GetEpubJobStatusUseCase {
 
   constructor(
     @Inject(EPUB_JOB_REPOSITORY_TOKEN)
-    private readonly epubJobRepository: Repository<EpubJob>,
+    private readonly epubJobRepository: EpubJobRepository,
     @Inject(QUEUE_PORT_TOKEN)
     private readonly queueAdapter: QueuePort,
   ) {}
