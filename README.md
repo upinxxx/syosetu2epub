@@ -47,6 +47,7 @@ src/
 │  ├─ kindle-delivery/
 │  │   ├─ kindle-delivery.module.ts
 │  │   ├─ kindle-delivery.facade.ts
+│  │   ├─ kindle-delivery.processor.ts  # Kindle 交付佇列處理器
 │  │   └─ use-cases/
 │  │       ├─ send-to-kindle.use-case.ts
 │  │       └─ get-delivery-history.query.ts
@@ -71,27 +72,26 @@ src/
 │  ├─ storage/
 │  └─ repositories/
 │
-├─ presentation/                  # 入站介面
+├─ presentation/                  # HTTP 入站介面 (Controllers)
 │  ├─ http/                       # REST / GraphQL Controller
 │  │   └─ controllers/
-│  └─ worker/                     # 背景處理進程
-│      ├─ processors/
-│      │   ├─ convert-queue.processor.ts
-│      │   ├─ preview-queue.processor.ts
-│      │   └─ kindle-delivery.processor.ts
-│      └─ worker.module.ts
+│
+├─ worker/                        # 背景任務處理進程 (BullMQ Processors)
+│  ├─ epub-queue.processor.ts
+│  ├─ preview-queue.processor.ts
+│  └─ worker.module.ts            # 整合 Worker 相關的模組與 Processor
 │
 └─ config/                         # TypeORM 等組態
 ```
 
 ### 重要改動摘要
 
-| 區域                            | 說明                                                                                                                                                     |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Application → 子域 + Facade** | 每個子域（auth、convert、preview、kindle‑delivery）暴露一支 `*Facade`，Controller / Worker 只依賴 Facade，內部再呼叫多支 Use‑Cases，保持單一職責且易測。 |
-| **Jobs 子域**                   | 新增 `job-status-sync.service.ts` 負責定時比對佇列與資料庫狀態，統一背景同步流程。                                                                       |
-| **Worker**                      | 所有 BullMQ Processor 統一放在 `presentation/worker/processors/`，與 HTTP Controller 並列為「Ingress Adapter」。                                         |
-| **Infrastructure**              | 仍維持對外系統整合（PostgreSQL、Supabase、SES、Redis…），但所有實作僅依賴 Domain Port。                                                                  |
+| 區域                            | 說明                                                                                                                                                                                                                                                                                               |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Application → 子域 + Facade** | 每個子域（auth、convert、preview、kindle‑delivery）暴露一支 `*Facade`，Controller / Worker 只依賴 Facade，內部再呼叫多支 Use‑Cases，保持單一職責且易測。                                                                                                                                           |
+| **Jobs 子域**                   | 新增 `job-status-sync.service.ts` 負責定時比對佇列與資料庫狀態，統一背景同步流程。                                                                                                                                                                                                                 |
+| **Worker**                      | 大部分的 BullMQ Processor 放在 `src/worker/` 目錄下 (例如 `epub-queue.processor.ts`, `preview-queue.processor.ts`)。例外的是 `kindle-delivery.processor.ts` 位於 `src/application/kindle-delivery/`。這些 Processor 與 HTTP Controller 同樣作為「Ingress Adapter」的角色，處理來自佇列的異步任務。 |
+| **Infrastructure**              | 仍維持對外系統整合（PostgreSQL、Supabase、SES、Redis…），但所有實作僅依賴 Domain Port。                                                                                                                                                                                                            |
 
 > 這樣的結構讓 **核心業務 (Domain + Use‑Cases)** 與 **框架 / 第三方套件** 解耦；同時 Facade 提供簡潔 API 供多種 Adapter 共用，背景同步與長流程也有專屬模組管理。
 

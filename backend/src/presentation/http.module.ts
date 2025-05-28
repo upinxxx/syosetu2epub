@@ -1,13 +1,8 @@
 import { Module } from '@nestjs/common';
 import { NovelController } from './novel.controller.js';
-import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js';
 import { AuthController } from './auth.controller.js';
-import { PassportModule } from '@nestjs/passport';
-import { AuthInfrastructureModule } from '@/infrastructure/auth/auth.infrastructure.module.js';
 import { KindleDeliveryController } from './kindle-delivery.controller.js';
-import { PreviewFacade } from '@/application/preview/preview.facade.js';
-import { ConvertFacade } from '@/application/convert/convert.facade.js';
-import { AuthFacade } from '@/application/auth/auth.facade.js';
+import { PassportModule } from '@nestjs/passport';
 import { PreviewModule } from '@/application/preview/preview.module.js';
 import { ConvertModule } from '@/application/convert/convert.module.js';
 import { AuthModule } from '@/application/auth/auth.module.js';
@@ -20,9 +15,6 @@ import { JobsModule } from '@/application/jobs/jobs.module.js';
  */
 @Module({
   imports: [
-    // 核心層與基礎設施層模組
-    InfrastructureModule, // 導入基礎設施層模組
-
     // 直接引入所需的應用層子模組，而不是整個 ApplicationModule
     PreviewModule,
     ConvertModule,

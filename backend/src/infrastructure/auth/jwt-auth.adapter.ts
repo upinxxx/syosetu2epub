@@ -84,9 +84,6 @@ export class JwtAuthAdapter implements UserAuthPort {
       email: user.email,
     };
 
-    return this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: '7d',
-    });
+    return this.jwtService.sign(payload);
   }
 }

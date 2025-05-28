@@ -13,8 +13,6 @@ import { AuthFacade } from './auth.facade.js';
  */
 @Module({
   imports: [
-    // 認證相關基礎設施
-    TypeOrmModule.forFeature([UserOrmEntity]),
     // 引入儲存庫模組
     RepositoriesModule,
     // 引入認證基礎設施模組（包含 JwtModule）

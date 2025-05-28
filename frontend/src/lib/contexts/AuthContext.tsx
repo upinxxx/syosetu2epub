@@ -14,7 +14,6 @@ interface User {
   email: string;
   displayName: string;
   avatar?: string;
-  role: string;
 }
 
 interface AuthContextType {
@@ -57,18 +56,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
+    setIsLoading(true);
+
     // 檢查是否在快取有效期內
     const now = Date.now();
     const timeSinceLastCheck = now - lastAuthCheck.current;
 
     if (timeSinceLastCheck < AUTH_CACHE_TTL && lastAuthCheck.current > 0) {
       console.log("使用快取的認證狀態，跳過 API 請求");
+      setIsLoading(false);
       return;
     }
 
     try {
       isRefreshing.current = true;
-      setIsLoading(true);
       console.log("開始檢查認證狀態...");
 
       // 首先檢查可見 cookie
@@ -80,6 +81,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
         setIsAuthenticated(false);
         lastAuthCheck.current = now;
+        setIsLoading(false);
+        isRefreshing.current = false;
         return;
       }
 
@@ -128,7 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       );
       setUser(null);
       setIsAuthenticated(false);
-      // 重置認證檢查時間
+      // 重置認證檢查時間並清除快取
       lastAuthCheck.current = 0;
     } catch (error) {
       console.error("登出失敗", error);
