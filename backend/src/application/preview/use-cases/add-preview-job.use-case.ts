@@ -35,7 +35,6 @@ export class AddPreviewJobUseCase {
         jobId,
         source,
         sourceId,
-        requestId: randomUUID(),
       };
 
       // 添加任務到佇列

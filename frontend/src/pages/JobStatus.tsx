@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Layout from "@/components/Layout";
+import SendToKindleButton from "@/components/SendToKindleButton";
+import { useAuth } from "@/lib/auth";
 
 // 任務狀態類型
 type JobStatus = "pending" | "processing" | "completed" | "failed";
@@ -24,6 +26,7 @@ export default function JobStatus() {
   const { jobId } = useParams<{ jobId: string }>();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     // TODO: 實作 API 呼叫獲取任務狀態
@@ -35,10 +38,11 @@ export default function JobStatus() {
         setJob({
           id: jobId || "",
           title: "範例小說標題",
-          status: "processing",
-          progress: 45,
+          status: "completed", // 修改為已完成狀態，以便測試SendToKindle按鈕
+          progress: 100,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          downloadUrl: "https://example.com/download/epub.epub",
         });
       } catch (error) {
         console.error("獲取任務狀態失敗:", error);
@@ -98,6 +102,10 @@ export default function JobStatus() {
         return "等待中";
     }
   };
+
+  // 判斷是否顯示Send to Kindle按鈕
+  const showSendToKindle =
+    job.status === "completed" && job.downloadUrl && isAuthenticated;
 
   return (
     <Layout>
@@ -188,9 +196,12 @@ export default function JobStatus() {
         {/* 操作按鈕 */}
         <div className="flex gap-4">
           {job.status === "completed" && job.downloadUrl && (
-            <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
-              下載 EPUB
-            </Button>
+            <>
+              <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+                下載 EPUB
+              </Button>
+              {showSendToKindle && <SendToKindleButton epubJobId={job.id} />}
+            </>
           )}
           {job.status === "failed" && (
             <Button

@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import KindleEmailForm from "@/components/KindleEmailForm";
+import { useAuth } from "@/lib/auth";
 
 // 用戶資料介面
 interface UserStats {
@@ -16,6 +24,9 @@ interface UserStats {
 }
 
 export default function Me() {
+  const { user } = useAuth();
+  const [isKindleEmailDialogOpen, setIsKindleEmailDialogOpen] = useState(false);
+
   // TODO: 實作 API 呼叫獲取用戶資料
   const userStats: UserStats = {
     totalJobs: 25,
@@ -148,14 +159,17 @@ export default function Me() {
                 <div>
                   <h3 className="font-medium text-gray-800">Kindle 電子郵件</h3>
                   <p className="text-sm text-gray-500">
-                    設定 Kindle 收件信箱以啟用自動轉寄功能
+                    {user?.kindleEmail
+                      ? `目前設定：${user.kindleEmail}`
+                      : "設定 Kindle 收件信箱以啟用自動轉寄功能"}
                   </p>
                 </div>
                 <Button
                   variant="outline"
                   className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  onClick={() => setIsKindleEmailDialogOpen(true)}
                 >
-                  設定
+                  {user?.kindleEmail ? "修改" : "設定"}
                 </Button>
               </div>
 
@@ -188,6 +202,22 @@ export default function Me() {
           </Card>
         </section>
       </div>
+
+      {/* Kindle 電子郵件設定對話框 */}
+      <Dialog
+        open={isKindleEmailDialogOpen}
+        onOpenChange={setIsKindleEmailDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>設定 Kindle 電子郵件</DialogTitle>
+          </DialogHeader>
+          <KindleEmailForm
+            initialEmail={user?.kindleEmail}
+            onSuccess={() => setIsKindleEmailDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { QueueModule } from '../infrastructure/queue/queue.module.js';
 import { EpubQueueProcessor } from './epub-queue.processor.js';
 import { PreviewQueueProcessor } from './preview-queue.processor.js';
+import { KindleDeliveryProcessor } from './kindle-delivery.processor.js';
 import { ApplicationModule } from '../application/application.module.js';
 import { NovelOrmEntity } from '../infrastructure/entities/novel.orm-entity.js';
 import { EpubJobOrmEntity } from '../infrastructure/entities/epub-job.orm-entity.js';
@@ -13,6 +14,7 @@ import { KindleDeliveryOrmEntity } from '../infrastructure/entities/kindle-deliv
 import { JobsModule } from '../application/jobs/jobs.module.js';
 import { SchedulerService } from './scheduler.service.js';
 import { ConvertModule } from '../application/convert/convert.module.js';
+import { KindleDeliveryModule } from '../application/kindle-delivery/kindle-delivery.module.js';
 
 /**
  * Worker 模組 - 包含處理 EPUB 轉換和預覽任務所需的模組
@@ -53,6 +55,9 @@ import { ConvertModule } from '../application/convert/convert.module.js';
     // 優先導入 ConvertModule，確保 ConvertFacade 可用
     ConvertModule,
 
+    // 導入 KindleDeliveryModule，確保 KindleDeliveryFacade 可用
+    KindleDeliveryModule,
+
     // 應用層模組 - 提供 ProcessJobUseCase
     ApplicationModule,
 
@@ -62,6 +67,11 @@ import { ConvertModule } from '../application/convert/convert.module.js';
     // Job 模組 - 提供任務狀態同步服務
     JobsModule,
   ],
-  providers: [EpubQueueProcessor, PreviewQueueProcessor, SchedulerService],
+  providers: [
+    EpubQueueProcessor,
+    PreviewQueueProcessor,
+    KindleDeliveryProcessor,
+    SchedulerService,
+  ],
 })
 export class WorkerModule {}

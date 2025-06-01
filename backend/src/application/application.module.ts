@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { KindleDeliveryModule } from './kindle-delivery/kindle-delivery.module.js';
 import { InfrastructureModule } from '../infrastructure/infrastructure.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ConvertModule } from './convert/convert.module.js';
@@ -16,7 +15,6 @@ import { JobsModule } from './jobs/jobs.module.js';
     // 子域模組
     AuthModule,
     ConvertModule,
-    KindleDeliveryModule,
     PreviewModule,
     JobsModule,
 
@@ -28,7 +26,6 @@ import { JobsModule } from './jobs/jobs.module.js';
     // 導出所有子域模組
     AuthModule,
     ConvertModule,
-    KindleDeliveryModule,
     PreviewModule,
     JobsModule,
   ],

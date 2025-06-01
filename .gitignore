@@ -76,3 +76,6 @@ playwright-report/
 output/
 tmp/
 tmp_epub/
+
+# Demo 
+demo/
