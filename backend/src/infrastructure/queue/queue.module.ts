@@ -27,6 +27,9 @@ import { QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
       {
         name: 'preview',
       },
+      {
+        name: 'kindle-delivery',
+      },
     ),
   ],
   providers: [

@@ -1,32 +1,21 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
-import { RepositoriesModule } from '@/infrastructure/repositories/repositories.module.js';
-import { KindleDeliveryProcessor } from './kindle-delivery.processor.js';
-import { SendToKindleUseCase } from './use-cases/send-to-kindle.use-case.js';
-import { GetUserDeliveryHistoryUseCase } from './use-cases/get-user-delivery-history.use-case.js';
-import { ProcessDeliveryJobUseCase } from './use-cases/process-delivery-job.use-case.js';
+
+import { SendToKindleUseCase } from './send-to-kindle.use-case.js';
+import { GetDeliveryHistoryQuery } from './get-delivery-history.query.js';
+import { GetRecentDeliveryQuery } from './get-recent-delivery.query.js';
+import { GetDeliveryStatusQuery } from './get-delivery-status.query.js';
 import { KindleDeliveryFacade } from './kindle-delivery.facade.js';
+import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js';
 
 @Module({
-  imports: [
-    RepositoriesModule,
-    BullModule.registerQueue({
-      name: 'kindle-delivery',
-    }),
-  ],
+  imports: [InfrastructureModule],
   providers: [
-    // 用例
-    SendToKindleUseCase,
-    GetUserDeliveryHistoryUseCase,
-    ProcessDeliveryJobUseCase,
-    // Processor
-    KindleDeliveryProcessor,
-    // Facade
-    KindleDeliveryFacade,
+    { provide: SendToKindleUseCase, useClass: SendToKindleUseCase },
+    { provide: GetDeliveryHistoryQuery, useClass: GetDeliveryHistoryQuery },
+    { provide: GetRecentDeliveryQuery, useClass: GetRecentDeliveryQuery },
+    { provide: GetDeliveryStatusQuery, useClass: GetDeliveryStatusQuery },
+    { provide: KindleDeliveryFacade, useClass: KindleDeliveryFacade },
   ],
-  exports: [
-    // 僅導出 Facade
-    KindleDeliveryFacade,
-  ],
+  exports: [KindleDeliveryFacade],
 })
 export class KindleDeliveryModule {}

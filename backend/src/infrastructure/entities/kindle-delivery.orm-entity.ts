@@ -39,7 +39,7 @@ export class KindleDeliveryOrmEntity {
   @Column({
     type: 'varchar',
     enum: DeliveryStatus,
-    default: DeliveryStatus.QUEUED,
+    default: DeliveryStatus.PENDING,
   })
   status: DeliveryStatus;
 

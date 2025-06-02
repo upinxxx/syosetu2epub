@@ -66,7 +66,12 @@ export interface JobStatusCache {
 
   /** 上次更新時間 */
   updatedAt: Date;
+
+  /** 預覽數據 */
   previewData?: any;
+
+  /** 原始任務數據 */
+  data?: JobData;
 }
 
 /**

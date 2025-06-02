@@ -7,12 +7,11 @@ import {
 } from "react-router-dom";
 import Home from "./pages/Home";
 import Me from "./pages/Me";
-import JobStatus from "./pages/JobStatus";
 import Orders from "./pages/Orders";
 import HowToUse from "./pages/HowToUse";
 import NotFound from "./pages/NotFound";
 import OAuthSuccess from "./pages/OAuthSuccess";
-import { AuthProvider } from "./lib/contexts/AuthContext";
+import { AuthProvider } from "@/lib/contexts";
 import { ProtectedRoute } from "./lib/components/ProtectedRoute";
 
 function App() {
@@ -42,7 +41,6 @@ function App() {
           />
 
           {/* 公開路由 */}
-          <Route path="/jobs/:jobId" element={<JobStatus />} />
           <Route path="/how-to-use" element={<HowToUse />} />
 
           {/* OAuth 相關路由 - 使用獨立路由，避免與其他路由互相影響 */}

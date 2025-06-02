@@ -24,11 +24,14 @@ export class QueueAdapter implements QueuePort {
     private readonly epubQueue: Queue,
     @InjectQueue('preview')
     private readonly previewQueue: Queue,
+    @InjectQueue('kindle-delivery')
+    private readonly kindleDeliveryQueue: Queue,
   ) {
     // 初始化隊列映射
     this.queues = new Map<string, Queue>();
     this.queues.set('epub', epubQueue);
     this.queues.set('preview', previewQueue);
+    this.queues.set('kindle-delivery', kindleDeliveryQueue);
   }
 
   /**
@@ -73,6 +76,7 @@ export class QueueAdapter implements QueuePort {
           jobId: jobId.toString(),
           status: JobStatus.QUEUED,
           updatedAt: new Date(),
+          data: data, // 存儲原始任務數據
         });
       }
 

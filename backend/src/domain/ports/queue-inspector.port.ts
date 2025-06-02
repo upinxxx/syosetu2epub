@@ -43,6 +43,9 @@ export interface JobStatusCache {
 
   /** 預覽數據 */
   previewData?: any;
+
+  /** 原始任務數據 */
+  data?: any;
 }
 
 export const QUEUE_INSPECTOR_TOKEN = Symbol('QueueInspectorPort');

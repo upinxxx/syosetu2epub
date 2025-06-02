@@ -86,12 +86,12 @@ src/
 
 ### 重要改動摘要
 
-| 區域                            | 說明                                                                                                                                                                                                                                                                                               |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Application → 子域 + Facade** | 每個子域（auth、convert、preview、kindle‑delivery）暴露一支 `*Facade`，Controller / Worker 只依賴 Facade，內部再呼叫多支 Use‑Cases，保持單一職責且易測。                                                                                                                                           |
-| **Jobs 子域**                   | 新增 `job-status-sync.service.ts` 負責定時比對佇列與資料庫狀態，統一背景同步流程。                                                                                                                                                                                                                 |
-| **Worker**                      | 大部分的 BullMQ Processor 放在 `src/worker/` 目錄下 (例如 `epub-queue.processor.ts`, `preview-queue.processor.ts`)。例外的是 `kindle-delivery.processor.ts` 位於 `src/application/kindle-delivery/`。這些 Processor 與 HTTP Controller 同樣作為「Ingress Adapter」的角色，處理來自佇列的異步任務。 |
-| **Infrastructure**              | 仍維持對外系統整合（PostgreSQL、Supabase、SES、Redis…），但所有實作僅依賴 Domain Port。                                                                                                                                                                                                            |
+| 區域                            | 說明                                                                                                                                                                                                              |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Application → 子域 + Facade** | 每個子域（auth、convert、preview、kindle‑delivery）暴露一支 `*Facade`，Controller / Worker 只依賴 Facade，內部再呼叫多支 Use‑Cases，保持單一職責且易測。                                                          |
+| **Jobs 子域**                   | 新增 `job-status-sync.service.ts` 負責定時比對佇列與資料庫狀態，統一背景同步流程。                                                                                                                                |
+| **Worker**                      | 大部分的 BullMQ Processor 放在 `src/worker/` 目錄下 (例如 `epub-queue.processor.ts`, `preview-queue.processor.ts`)。這些 Processor 與 HTTP Controller 同樣作為「Ingress Adapter」的角色，處理來自佇列的異步任務。 |
+| **Infrastructure**              | 仍維持對外系統整合（PostgreSQL、Supabase、SES、Redis…），但所有實作僅依賴 Domain Port。                                                                                                                           |
 
 > 這樣的結構讓 **核心業務 (Domain + Use‑Cases)** 與 **框架 / 第三方套件** 解耦；同時 Facade 提供簡潔 API 供多種 Adapter 共用，背景同步與長流程也有專屬模組管理。
 
@@ -142,13 +142,12 @@ src/
 - ✅ EPUB 轉換佇列系統
 - ✅ EPUB 檔案生成與存儲
 - ✅ 使用 Google 帳號登入(Google OAuth)
+- ✅ 會員專屬功能：將 EPUB 直接轉寄至 Kindle
 
 ### 進行中/未完成功能
 
-- 🔄 用戶權限管理（遊客/會員）
-- 🔄 會員專屬功能：將 EPUB 直接轉寄至 Kindle
-- 🔄 用戶任務歷史記錄
-- 🔄 每日轉寄配額管理
+- ✅ 用戶任務歷史記錄
+- ✅ 每日轉寄配額管理
 - 🔄 多語言支援
 - 🔄 添加更多小說網站支援
 - 🔄 API 限流與安全性強化
@@ -169,9 +168,24 @@ src/
 ### Kindle 發送功能
 
 - 新增 Kindle 交付功能，可將 EPUB 檔案發送到指定的 Kindle 電子郵件地址
+- 使用 Resend.com 郵件服務發送電子郵件，支援 EPUB 附件
+- 每日發送配額限制（每位用戶 3 次/日）
+- 支援 `@kindle.com` 和 `@kindle.amazon.com` 格式的 Kindle 郵箱
 - 新增 API 端點：
   - `POST /api/kindle/send` 發送 EPUB 到 Kindle
   - `GET /api/kindle/history` 獲取發送歷史記錄
+
+### Send to Kindle 使用流程
+
+1. 會員在「會員中心」頁面設定 Kindle 專屬郵箱（格式必須是 `xxx@kindle.com` 或 `xxx@kindle.amazon.com`）
+2. 在轉換完成的 EPUB 任務頁面，點擊「發送到 Kindle」按鈕
+3. 系統會將 EPUB 檔案從 Supabase Storage 下載，並通過 Resend 郵件服務發送到指定的 Kindle 郵箱
+4. 發送狀態可在「會員中心」的「Kindle 交付歷史」中查看
+
+### Kindle 電子郵件設定注意事項
+
+1. 請確保您在 Amazon 帳戶中已將 `noreply@kindle.syosetu2epub.online` 加入到「已核准的電子郵件清單」中
+2. 某些地區的 Kindle 可能需要支付「個人文件傳送費用」，請參考 Amazon 官方說明
 
 ## 本地開發設定
 
@@ -179,13 +193,17 @@ src/
 
 1. 後端環境變數 (backend/.env)：
 
-```
+```env
 # 資料庫設定
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_DATABASE=syosetu2epub
+
+# Resend 郵件服務設定
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL=noreply@kindle.syosetu2epub.online
 
 # JWT 認證
 JWT_SECRET=your_jwt_secret_key_here
@@ -204,17 +222,6 @@ FRONTEND_URL=http://localhost:5173
 ```
 VITE_API_URL=http://localhost:3000
 ```
-
-### Google OAuth 設定步驟
-
-1. 前往 [Google Cloud Console](https://console.cloud.google.com/)
-2. 創建一個新專案
-3. 在「API 和服務」中啟用「Google+ API」
-4. 在「憑證」中創建 OAuth 客戶端 ID
-   - 應用類型：Web 應用
-   - 授權的 JavaScript 來源：`http://localhost:5173`
-   - 授權的重定向 URI：`http://localhost:3000/api/auth/google/callback`
-5. 複製生成的客戶端 ID 和密鑰到後端 .env 檔案中
 
 ### 本地開發與測試
 
@@ -235,22 +242,3 @@ pnpm run dev
 cd frontend
 pnpm run dev
 ```
-
-## Google OAuth 登入測試步驟
-
-1. 確保已設定好所有環境變數，特別是 Google OAuth 相關設定
-2. 啟動前端和後端服務
-3. 開啟瀏覽器訪問 `http://localhost:5173`
-4. 點擊導航欄上的「使用 Google 登入」按鈕
-5. 您將被重定向到 Google 登入頁面
-6. 使用您的 Google 帳號登入
-7. 授權應用程式存取您的基本資料
-8. 登入成功後，您將被重定向到成功頁面，然後自動返回首頁
-9. 導航欄會顯示您的頭像和下拉選單
-10. 您現在可以訪問需要登入的頁面，如「會員中心」和「我的訂單」
-
-### 常見問題排解
-
-- **CORS 錯誤**：確保前端和後端的環境變數正確設定
-- **Cookie 問題**：確保 `withCredentials: true` 在前端 API 請求中設定
-- **Google OAuth 錯誤**：檢查 Google Cloud Console 中的重定向 URI 是否正確

@@ -18,9 +18,4 @@ export class PreviewNovelJobData {
    * 小說來源 ID
    */
   sourceId: string;
-
-  /**
-   * 請求 ID (用於追蹤請求)
-   */
-  requestId?: string;
 }

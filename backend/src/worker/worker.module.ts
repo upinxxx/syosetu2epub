@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { QueueModule } from '../infrastructure/queue/queue.module.js';
 import { EpubQueueProcessor } from './epub-queue.processor.js';
 import { PreviewQueueProcessor } from './preview-queue.processor.js';
+import { KindleDeliveryProcessor } from './kindle-delivery.processor.js';
 import { ApplicationModule } from '../application/application.module.js';
 import { NovelOrmEntity } from '../infrastructure/entities/novel.orm-entity.js';
 import { EpubJobOrmEntity } from '../infrastructure/entities/epub-job.orm-entity.js';
@@ -13,7 +14,8 @@ import { KindleDeliveryOrmEntity } from '../infrastructure/entities/kindle-deliv
 import { JobsModule } from '../application/jobs/jobs.module.js';
 import { SchedulerService } from './scheduler.service.js';
 import { ConvertModule } from '../application/convert/convert.module.js';
-
+import supabaseConfig from '../config/supabase.config.js';
+import resendConfig from '../config/resend.config.js';
 /**
  * Worker 模組 - 包含處理 EPUB 轉換和預覽任務所需的模組
  * 與 AppModule 不同，不包含 HTTP 控制器等 API 元件
@@ -24,6 +26,7 @@ import { ConvertModule } from '../application/convert/convert.module.js';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      load: [supabaseConfig, resendConfig],
     }),
 
     // 排程模組 - 用於 Worker 的定時任務
@@ -53,7 +56,7 @@ import { ConvertModule } from '../application/convert/convert.module.js';
     // 優先導入 ConvertModule，確保 ConvertFacade 可用
     ConvertModule,
 
-    // 應用層模組 - 提供 ProcessJobUseCase
+    // 應用層模組 - 提供所有 Use Cases 和 Facades (包含 KindleDeliveryModule)
     ApplicationModule,
 
     // 隊列模組 - 提供 BullMQ 連接
@@ -62,6 +65,11 @@ import { ConvertModule } from '../application/convert/convert.module.js';
     // Job 模組 - 提供任務狀態同步服務
     JobsModule,
   ],
-  providers: [EpubQueueProcessor, PreviewQueueProcessor, SchedulerService],
+  providers: [
+    EpubQueueProcessor,
+    PreviewQueueProcessor,
+    KindleDeliveryProcessor,
+    SchedulerService,
+  ],
 })
 export class WorkerModule {}

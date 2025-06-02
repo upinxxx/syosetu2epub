@@ -7,13 +7,15 @@ import React, {
   useCallback,
 } from "react";
 import type { ReactNode } from "react";
-import axios from "axios";
+import axios from "@/lib/axios";
+import { isAxiosError, AxiosError } from "axios";
 
 interface User {
   id: string;
   email: string;
   displayName: string;
   avatar?: string;
+  kindleEmail?: string;
 }
 
 interface AuthContextType {
@@ -40,9 +42,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const lastAuthCheck = useRef<number>(0);
   // 認證快取過期時間（5分鐘）
   const AUTH_CACHE_TTL = 5 * 60 * 1000;
-
-  // 恢復直接連接後端的設定
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   // 檢查可見的 cookie 來判斷登入狀態
   const checkVisibleCookie = useCallback(() => {
@@ -86,13 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
-      const response = await axios.get(`${apiUrl}/api/auth/status`, {
-        withCredentials: true, // 必須設置，以便發送 Cookie
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.get("/api/auth/status");
 
       console.log("認證狀態響應:", response.data);
       if (response.data.isAuthenticated) {
@@ -107,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       lastAuthCheck.current = now;
     } catch (error) {
       console.error("驗證狀態檢查失敗", error);
-      if (axios.isAxiosError(error)) {
+      if (isAxiosError(error)) {
         console.error("錯誤詳情:", {
           status: error.response?.status,
           data: error.response?.data,
@@ -120,15 +113,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
       isRefreshing.current = false;
     }
-  }, [apiUrl, checkVisibleCookie]);
+  }, [checkVisibleCookie]);
 
   const logout = useCallback(async () => {
     try {
-      await axios.post(
-        `${apiUrl}/api/auth/logout`,
-        {},
-        { withCredentials: true }
-      );
+      await axios.post("/api/auth/logout", {});
       setUser(null);
       setIsAuthenticated(false);
       // 重置認證檢查時間並清除快取
@@ -136,7 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error("登出失敗", error);
     }
-  }, [apiUrl]);
+  }, []);
 
   // 在組件掛載時檢查認證狀態
   useEffect(() => {

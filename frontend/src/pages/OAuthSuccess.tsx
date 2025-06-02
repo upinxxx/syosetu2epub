@@ -6,7 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Loader2, Home } from "lucide-react";
 
 /**
  * OAuth 登入成功頁面
@@ -15,6 +16,11 @@ import { Loader2 } from "lucide-react";
  */
 const OAuthSuccess: React.FC = () => {
   const [countdown, setCountdown] = useState(3);
+
+  const handleGoHome = () => {
+    console.log("用戶點擊立即跳轉按鈕");
+    window.location.replace("/");
+  };
 
   useEffect(() => {
     console.log("OAuth 成功頁面已載入，準備重定向...");
@@ -53,6 +59,13 @@ const OAuthSuccess: React.FC = () => {
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p>正在返回首頁，請稍候... {countdown}</p>
+            <Button
+              onClick={handleGoHome}
+              className="bg-sky-500 hover:bg-sky-600 text-white font-medium"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              點此立即跳轉至首頁
+            </Button>
           </div>
         </CardContent>
       </Card>

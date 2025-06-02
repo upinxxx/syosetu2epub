@@ -77,7 +77,7 @@ export class KindleDelivery implements Entity<KindleDelivery> {
       epubJobId,
       userId,
       toEmail,
-      DeliveryStatus.QUEUED,
+      DeliveryStatus.PENDING,
       now,
       now,
       epubJob,
@@ -132,7 +132,7 @@ export class KindleDelivery implements Entity<KindleDelivery> {
    * 開始處理交付
    */
   public startProcessing(): void {
-    if (this._status !== DeliveryStatus.QUEUED) {
+    if (this._status !== DeliveryStatus.PENDING) {
       throw new Error(`無法開始處理狀態為 ${this._status} 的交付`);
     }
 
@@ -148,7 +148,7 @@ export class KindleDelivery implements Entity<KindleDelivery> {
       throw new Error(`無法將狀態為 ${this._status} 的交付標記為成功`);
     }
 
-    this._status = DeliveryStatus.SUCCESS;
+    this._status = DeliveryStatus.COMPLETED;
     this._sentAt = new Date();
     this._updatedAt = new Date();
   }
@@ -157,7 +157,7 @@ export class KindleDelivery implements Entity<KindleDelivery> {
    * 標記交付失敗
    */
   public markFailed(errorMessage: string): void {
-    if (this._status === DeliveryStatus.SUCCESS) {
+    if (this._status === DeliveryStatus.COMPLETED) {
       throw new Error('已成功的交付不能標記為失敗');
     }
 
@@ -206,7 +206,7 @@ export class KindleDelivery implements Entity<KindleDelivery> {
       throw new Error('失敗的交付必須有錯誤訊息');
     }
 
-    if (this._status === DeliveryStatus.SUCCESS && !this._sentAt) {
+    if (this._status === DeliveryStatus.COMPLETED && !this._sentAt) {
       throw new Error('成功的交付必須有發送時間');
     }
   }
