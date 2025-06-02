@@ -4,9 +4,11 @@ import {
   Get,
   Post,
   Query,
+  Param,
   UseGuards,
   Request,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { KindleDeliveryFacade } from '@/application/kindle-delivery/kindle-delivery.facade.js';
@@ -18,7 +20,10 @@ interface SendToKindleDto {
 
 @Controller('api/kindle')
 export class KindleDeliveryController {
-  constructor(private readonly kindleDeliveryFacade: KindleDeliveryFacade) {}
+  constructor(
+    @Inject(KindleDeliveryFacade)
+    private readonly kindleDeliveryFacade: KindleDeliveryFacade,
+  ) {}
 
   @Post('send')
   @UseGuards(AuthGuard('jwt'))
@@ -33,17 +38,26 @@ export class KindleDeliveryController {
 
     const userId = req.user.sub;
 
-    const delivery = await this.kindleDeliveryFacade.sendToKindleEmail(
-      dto.jobId,
+    const delivery = await this.kindleDeliveryFacade.sendToKindle(
       userId,
+      dto.jobId,
       dto.kindleEmail,
     );
 
-    return {
-      id: delivery.id,
-      status: 'success',
-      message: 'EPUB 檔案已成功寄送至您的 Kindle',
-    };
+    return this.kindleDeliveryFacade.formatSendResponse(delivery);
+  }
+
+  @Get('delivery-status/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async getDeliveryStatus(@Param('id') deliveryId: string, @Request() req) {
+    const userId = req.user.sub;
+
+    const delivery = await this.kindleDeliveryFacade.getDeliveryStatus(
+      deliveryId,
+      userId,
+    );
+
+    return this.kindleDeliveryFacade.formatStatusResponse(delivery);
   }
 
   @Get('history')
@@ -55,35 +69,10 @@ export class KindleDeliveryController {
   ) {
     const userId = req.user.sub;
 
-    const result = await this.kindleDeliveryFacade.getUserDeliveryHistory(
+    return this.kindleDeliveryFacade.getFormattedDeliveryHistory(
       userId,
       page,
       limit,
     );
-
-    return {
-      items: result.items.map((delivery) => ({
-        id: delivery.id,
-        epubJob: {
-          id: delivery.epubJobId,
-          novel: delivery.epubJob?.novel
-            ? {
-                title: delivery.epubJob.novel.title,
-                author: delivery.epubJob.novel.author,
-              }
-            : null,
-        },
-        toEmail: delivery.toEmail,
-        status: delivery.status,
-        errorMessage: delivery.errorMessage,
-        sentAt: delivery.sentAt,
-      })),
-      meta: {
-        page: result.page,
-        limit: result.limit,
-        totalItems: result.totalItems,
-        totalPages: result.totalPages,
-      },
-    };
   }
 }

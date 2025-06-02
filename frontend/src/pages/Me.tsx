@@ -11,7 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import KindleEmailForm from "@/components/KindleEmailForm";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/contexts";
+import { CheckCircle, XCircle, Settings, Mail } from "lucide-react";
 
 // 用戶資料介面
 interface UserStats {
@@ -42,36 +43,7 @@ export default function Me() {
         <h1 className="text-2xl font-bold mb-8 text-gray-800">會員中心</h1>
 
         {/* 用戶狀態概覽 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white border border-gray-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">會員等級</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-xl font-semibold">
-                  {userStats.membershipType === "premium"
-                    ? "付費會員"
-                    : "免費會員"}
-                </span>
-                {userStats.membershipType === "free" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                  >
-                    升級會員
-                  </Button>
-                )}
-              </div>
-              {userStats.membershipExpiry && (
-                <p className="text-sm text-gray-500 mt-2">
-                  到期日：{userStats.membershipExpiry}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
           <Card className="bg-white border border-gray-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">今日配額</CardTitle>
@@ -84,25 +56,6 @@ export default function Me() {
               <p className="text-sm text-gray-600">
                 已使用 {userStats.usedQuota} / {userStats.dailyQuota} 次
               </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">轉換統計</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm">總任務數：{userStats.totalJobs}</p>
-                <p className="text-sm">完成任務：{userStats.completedJobs}</p>
-                <p className="text-sm text-gray-500">
-                  完成率：
-                  {Math.round(
-                    (userStats.completedJobs / userStats.totalJobs) * 100
-                  )}
-                  %
-                </p>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -154,49 +107,66 @@ export default function Me() {
         <section>
           <h2 className="text-xl font-semibold mb-4 text-gray-800">會員設定</h2>
           <Card className="bg-white border border-gray-200">
-            <CardContent className="space-y-4 p-6">
-              <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-md transition-colors">
-                <div>
-                  <h3 className="font-medium text-gray-800">Kindle 電子郵件</h3>
-                  <p className="text-sm text-gray-500">
-                    {user?.kindleEmail
-                      ? `目前設定：${user.kindleEmail}`
-                      : "設定 Kindle 收件信箱以啟用自動轉寄功能"}
-                  </p>
+            <CardContent className="p-6">
+              {/* Kindle 電子郵件設定 */}
+              <div className="flex items-start justify-between p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors duration-200">
+                <div className="flex items-start space-x-3 flex-1">
+                  <div className="flex-shrink-0 mt-1">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-medium text-gray-900">
+                        Kindle 電子郵件
+                      </h3>
+                      {user?.kindleEmail ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+                    {user?.kindleEmail ? (
+                      <div className="space-y-1">
+                        <p className="text-sm text-green-700 font-medium">
+                          ✅ 已設定完成
+                        </p>
+                        <p className="text-sm text-gray-600 break-all">
+                          {user.kindleEmail}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          您可以直接發送 EPUB 檔案到 Kindle 裝置
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-sm text-gray-600 font-medium">
+                          ❌ 尚未設定
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          設定 Kindle 收件信箱以啟用自動轉寄功能
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          設定後可直接將轉檔完成的 EPUB 發送到您的 Kindle
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                  onClick={() => setIsKindleEmailDialogOpen(true)}
-                >
-                  {user?.kindleEmail ? "修改" : "設定"}
-                </Button>
-              </div>
-
-              <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-md transition-colors">
-                <div>
-                  <h3 className="font-medium text-gray-800">通知設定</h3>
-                  <p className="text-sm text-gray-500">管理電子郵件通知偏好</p>
+                <div className="flex-shrink-0 ml-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={
+                      user?.kindleEmail
+                        ? "border-blue-600 text-blue-600 hover:bg-blue-50"
+                        : "border-green-600 text-green-600 hover:bg-green-50"
+                    }
+                    onClick={() => setIsKindleEmailDialogOpen(true)}
+                  >
+                    <Settings className="mr-1 h-3 w-3" />
+                    {user?.kindleEmail ? "修改" : "設定"}
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                >
-                  管理
-                </Button>
-              </div>
-
-              <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-md transition-colors">
-                <div>
-                  <h3 className="font-medium text-gray-800">帳號安全</h3>
-                  <p className="text-sm text-gray-500">更改密碼與安全設定</p>
-                </div>
-                <Button
-                  variant="outline"
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                >
-                  設定
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -210,7 +180,10 @@ export default function Me() {
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>設定 Kindle 電子郵件</DialogTitle>
+            <DialogTitle className="flex items-center space-x-2">
+              <Mail className="h-5 w-5 text-blue-600" />
+              <span>設定 Kindle 電子郵件</span>
+            </DialogTitle>
           </DialogHeader>
           <KindleEmailForm
             initialEmail={user?.kindleEmail}

@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { basename, extname } from 'node:path';
 
 import { FileDownloaderPort } from '@/domain/ports/file-downloader.port.js';
@@ -8,18 +8,20 @@ import { FileDownloaderPort } from '@/domain/ports/file-downloader.port.js';
 @Injectable()
 export class SupabaseFileDownloaderAdapter implements FileDownloaderPort {
   private readonly logger = new Logger(SupabaseFileDownloaderAdapter.name);
-  private readonly supabaseClient;
+  private readonly supabase: SupabaseClient;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    @Inject(ConfigService) private readonly configService: ConfigService,
+  ) {
     const supabaseConfig = this.configService.get('supabase');
     const url = supabaseConfig?.url;
-    const serviceKey = supabaseConfig?.serviceKey;
+    const serviceKey = supabaseConfig?.key;
 
     if (!url || !serviceKey) {
       throw new Error('Supabase configuration is missing');
     }
 
-    this.supabaseClient = createClient(url, serviceKey);
+    this.supabase = createClient(url, serviceKey);
   }
 
   /**
@@ -33,7 +35,7 @@ export class SupabaseFileDownloaderAdapter implements FileDownloaderPort {
       const { bucket, path } = this.parseSupabaseUrl(url);
 
       // 下載檔案
-      const { data, error } = await this.supabaseClient.storage
+      const { data, error } = await this.supabase.storage
         .from(bucket)
         .download(path);
 

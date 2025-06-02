@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import axios from "@/lib/axios";
+import { useAuth } from "@/lib/contexts";
 import {
   X,
   DownloadCloud,
@@ -13,6 +14,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Toast, ToastContainer } from "@/components/ui/toast";
+import SendToKindleButton from "@/components/SendToKindleButton";
 
 // 功能特點資料
 const features = [
@@ -153,6 +155,7 @@ const getRandomSoftColor = () => {
 };
 
 export default function Home() {
+  const { isAuthenticated, user } = useAuth();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sourceId, setSourceId] = useState("");
@@ -821,65 +824,65 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Recent Novels Section */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-8 text-gray-800">
-            最近轉換的小說
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="border border-gray-200 rounded-md overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-2">
-                    範例小說標題 {item}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                    這是一個範例小說描述，實際內容將從資料庫取得。這裡會顯示小說的簡短摘要或描述。
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">2分鐘前</span>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/jobs/${item}`}>查看詳情</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
-      <section className="bg-gray-50 py-12 border-t border-gray-200">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">
-            開始使用 Syosetu2EPUB
-          </h2>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            註冊會員即可享有更多進階功能，包括批量轉換、Kindle 轉寄等服務
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              asChild
-              variant="default"
-              className="bg-sky-500 hover:bg-sky-600"
-            >
-              <Link to="/how-to-use">使用教學</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="border-sky-500 text-sky-500 hover:bg-sky-50"
-            >
-              <Link to="/me">註冊/登入</Link>
-            </Button>
+      {!isAuthenticated && (
+        <section className="bg-gray-50 py-12 border-t border-gray-200">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">
+              開始使用 Syosetu2EPUB
+            </h2>
+            <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+              註冊會員即可享有更多進階功能，包括批量轉換、Kindle 轉寄等服務
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                asChild
+                variant="default"
+                className="bg-sky-500 hover:bg-sky-600"
+              >
+                <Link to="/how-to-use">使用教學</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="border-sky-500 text-sky-500 hover:bg-sky-50"
+              >
+                <Link to="/me">註冊/登入</Link>
+              </Button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Welcome Section for Authenticated Users */}
+      {isAuthenticated && (
+        <section className="bg-gradient-to-r from-sky-50 to-blue-50 py-12 border-t border-gray-200">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">
+              歡迎回來，{user?.displayName || "會員"}！
+            </h2>
+            <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+              您已經是我們的會員，可以享受完整的轉換服務。查看您的轉換記錄或管理您的帳戶設定。
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                asChild
+                variant="default"
+                className="bg-sky-500 hover:bg-sky-600"
+              >
+                <Link to="/orders">我的轉換記錄</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="border-sky-500 text-sky-500 hover:bg-sky-50"
+              >
+                <Link to="/me">會員中心</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="bg-white py-8 border-t border-gray-200">
@@ -979,14 +982,20 @@ export default function Home() {
                     {getStatusText(job.status)}
                   </span>
                   {job.status === "completed" && job.publicUrl && (
-                    <a
-                      href={job.publicUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs bg-sky-500 hover:bg-sky-600 text-white px-2 py-1 rounded-full transition-colors"
-                    >
-                      <DownloadCloud size={12} /> 下載
-                    </a>
+                    <div className="flex items-center gap-1">
+                      <a
+                        href={job.publicUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs bg-sky-500 hover:bg-sky-600 text-white px-2 py-1 rounded-full transition-colors"
+                      >
+                        <DownloadCloud size={12} /> 下載
+                      </a>
+                      {/* 只對已登入且有 kindleEmail 的用戶顯示 Send to Kindle 按鈕 */}
+                      {isAuthenticated && user?.kindleEmail && (
+                        <SendToKindleButton epubJobId={jobId} />
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

@@ -8,7 +8,7 @@ import {
 } from '@/domain/ports/repository/index.js';
 import { KindleDelivery } from '@/domain/entities/kindle-delivery.entity.js';
 
-interface DeliveryHistoryResult {
+export interface DeliveryHistoryResult {
   items: KindleDelivery[];
   totalItems: number;
   totalPages: number;

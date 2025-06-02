@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -8,8 +8,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/contexts";
+import { useCooldown } from "@/lib/hooks/useCooldown";
 import KindleEmailForm from "./KindleEmailForm";
+import { Clock } from "lucide-react";
 
 interface SendToKindleButtonProps {
   epubJobId: string;
@@ -46,18 +48,36 @@ export default function SendToKindleButton({
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pollTimer, setPollTimer] = useState<number | null>(null);
+  const [pollRetryCount, setPollRetryCount] = useState(0);
+  const MAX_POLL_RETRIES = 3;
+
+  // 使用冷卻 Hook
+  const {
+    isInCooldown,
+    remainingSeconds,
+    startCooldown,
+    handleServerCooldownError,
+  } = useCooldown(epubJobId);
 
   // 檢查用戶是否已登入且有Kindle郵箱
   const hasKindleEmail = isAuthenticated && user?.kindleEmail;
+
+  // 按鈕是否應該被禁用
+  const isButtonDisabled = disabled || isLoading || isInCooldown;
 
   // 處理發送到Kindle
   const handleSendToKindle = async () => {
     if (!isAuthenticated) {
       // 未登入，顯示提示
-      toast({
-        title: "需要登入",
-        description: "請先登入以使用Send to Kindle功能",
-        variant: "destructive",
+      toast.error("請先登入以使用Send to Kindle功能", {
+        description: "需要登入",
+      });
+      return;
+    }
+
+    if (isInCooldown) {
+      toast.warning(`請等待 ${remainingSeconds} 秒後再重新發送`, {
+        description: "冷卻中",
       });
       return;
     }
@@ -86,7 +106,7 @@ export default function SendToKindleButton({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          epubJobId,
+          jobId: epubJobId,
           kindleEmail: user?.kindleEmail,
         }),
         credentials: "include",
@@ -94,10 +114,24 @@ export default function SendToKindleButton({
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // 檢查是否為冷卻錯誤
+        if (response.status === 400 && errorData.message?.includes("請等待")) {
+          handleServerCooldownError(errorData.message);
+          toast.error(errorData.message, {
+            description: "發送冷卻中",
+          });
+          setIsDialogOpen(false);
+          return;
+        }
+
         throw new Error(errorData.message || "發送失敗");
       }
 
       const data = await response.json();
+
+      // 發送成功，開始冷卻
+      startCooldown();
 
       // 保存交付ID，用於後續狀態查詢
       setDeliveryId(data.data.id);
@@ -110,18 +144,17 @@ export default function SendToKindleButton({
       startStatusPolling(data.data.id);
 
       // 顯示成功提示
-      toast({
-        title: "發送成功",
-        description: "EPUB已加入發送隊列，請稍後查看您的Kindle",
+      toast.success("EPUB已加入發送隊列，請稍後查看您的Kindle", {
+        description: "發送成功",
       });
     } catch (error) {
       console.error("發送到Kindle失敗:", error);
-      toast({
-        title: "發送失敗",
-        description:
-          error instanceof Error ? error.message : "發送EPUB到Kindle時發生錯誤",
-        variant: "destructive",
-      });
+      toast.error(
+        error instanceof Error ? error.message : "發送EPUB到Kindle時發生錯誤",
+        {
+          description: "發送失敗",
+        }
+      );
       // 關閉對話框
       setIsDialogOpen(false);
     } finally {
@@ -135,6 +168,9 @@ export default function SendToKindleButton({
     if (pollTimer !== null) {
       clearInterval(pollTimer);
     }
+
+    // 重置重試次數
+    setPollRetryCount(0);
 
     // 立即查詢一次狀態
     fetchDeliveryStatus(id);
@@ -162,6 +198,7 @@ export default function SendToKindleButton({
 
       setDeliveryStatus(data.data.status);
       setErrorMessage(data.data.errorMessage || null);
+      setPollRetryCount(0); // 重置重試次數
 
       // 如果狀態為已完成或失敗，停止輪詢
       if (data.data.status === "completed" || data.data.status === "failed") {
@@ -169,6 +206,23 @@ export default function SendToKindleButton({
       }
     } catch (error) {
       console.error("獲取交付狀態失敗:", error);
+
+      const newRetryCount = pollRetryCount + 1;
+      setPollRetryCount(newRetryCount);
+
+      // 連續失敗超過最大重試次數後停止輪詢
+      if (newRetryCount >= MAX_POLL_RETRIES) {
+        stopStatusPolling();
+        setErrorMessage("無法獲取最新狀態，請稍後重新檢查或聯繫支持。");
+        toast.error("無法獲取最新的傳送狀態，請稍後再試。", {
+          description: "狀態更新失敗",
+        });
+      } else {
+        // 顯示重試提示但不停止輪詢
+        console.warn(
+          `狀態查詢失敗，將重試 (${newRetryCount}/${MAX_POLL_RETRIES})`
+        );
+      }
     }
   };
 
@@ -189,58 +243,71 @@ export default function SendToKindleButton({
     };
   }, [pollTimer]);
 
-  // 設定Kindle郵箱後的回調
+  // 處理Kindle郵箱設定成功
   const handleEmailSetupSuccess = async () => {
-    // 先刷新Auth狀態以獲取最新的kindleEmail
+    // 刷新用戶資訊
     await refreshAuth();
-    // 然後切換到確認模式
-    setDialogMode("confirm");
+    // 關閉對話框
+    setIsDialogOpen(false);
+    // 顯示成功提示
+    toast.success("Kindle郵箱設定成功！", {
+      description: "現在可以發送EPUB到您的Kindle了",
+    });
   };
 
-  // 獲取狀態文本
+  // 獲取狀態文字
   const getStatusText = (status: DeliveryStatus | null) => {
     switch (status) {
       case "pending":
-        return "等待處理中...";
+        return "等待處理";
       case "processing":
-        return "正在發送到您的Kindle...";
+        return "發送中";
       case "completed":
-        return "已成功發送到您的Kindle！";
+        return "發送成功";
       case "failed":
         return "發送失敗";
       default:
-        return "準備發送...";
+        return "未知狀態";
     }
+  };
+
+  // 獲取按鈕文字
+  const getButtonText = () => {
+    if (isLoading) {
+      return "發送中...";
+    }
+    if (isInCooldown) {
+      return `重新發送 (${remainingSeconds}s)`;
+    }
+    return "發送到 Kindle";
   };
 
   return (
     <>
       <Button
         onClick={handleSendToKindle}
-        disabled={disabled || isLoading}
+        disabled={isButtonDisabled}
         variant="outline"
-        className="border-blue-600 text-blue-600 hover:bg-blue-50"
+        size="sm"
+        className={
+          isInCooldown
+            ? "border-gray-300 text-gray-500 cursor-not-allowed"
+            : "border-green-600 text-green-600 hover:bg-green-50"
+        }
       >
-        {isLoading ? "處理中..." : "發送到Kindle"}
+        {isInCooldown && <Clock className="mr-1 h-3 w-3" />}
+        {getButtonText()}
       </Button>
 
-      <Dialog
-        open={isDialogOpen}
-        onOpenChange={(open) => {
-          // 關閉對話框時停止輪詢
-          if (!open) {
-            stopStatusPolling();
-          }
-          setIsDialogOpen(open);
-        }}
-      >
+      {/* 對話框 */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
-          {dialogMode === "form" ? (
+          {dialogMode === "form" && (
             <>
               <DialogHeader>
-                <DialogTitle>設定Kindle電子郵件</DialogTitle>
+                <DialogTitle>設定 Kindle 電子郵件</DialogTitle>
                 <DialogDescription>
-                  請設定您的Kindle專屬郵箱以啟用Send to Kindle功能
+                  請先設定您的 Kindle 電子郵件地址，以便接收 EPUB 檔案。
                 </DialogDescription>
               </DialogHeader>
               <KindleEmailForm
@@ -248,82 +315,75 @@ export default function SendToKindleButton({
                 onSuccess={handleEmailSetupSuccess}
               />
             </>
-          ) : dialogMode === "confirm" ? (
+          )}
+
+          {dialogMode === "confirm" && (
             <>
               <DialogHeader>
-                <DialogTitle>確認發送到Kindle</DialogTitle>
+                <DialogTitle>確認發送到 Kindle</DialogTitle>
                 <DialogDescription>
-                  EPUB將發送到您的Kindle郵箱：{user?.kindleEmail}
+                  確定要將此 EPUB 檔案發送到您的 Kindle 嗎？
+                  <br />
+                  <span className="text-sm text-gray-500">
+                    發送地址：{user?.kindleEmail}
+                  </span>
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex justify-end gap-2 mt-4">
+              <div className="flex justify-end space-x-2 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
+                  disabled={isLoading}
                 >
                   取消
                 </Button>
-                <Button onClick={confirmSendToKindle} disabled={isLoading}>
+                <Button
+                  onClick={confirmSendToKindle}
+                  disabled={isLoading}
+                  className="bg-green-600 hover:bg-green-700"
+                >
                   {isLoading ? "發送中..." : "確認發送"}
                 </Button>
               </div>
             </>
-          ) : (
+          )}
+
+          {dialogMode === "status" && (
             <>
               <DialogHeader>
-                <DialogTitle>Kindle交付狀態</DialogTitle>
+                <DialogTitle>發送狀態</DialogTitle>
                 <DialogDescription>
-                  {getStatusText(deliveryStatus)}
+                  正在追蹤您的 EPUB 發送狀態...
                 </DialogDescription>
               </DialogHeader>
               <div className="py-4">
-                {deliveryStatus === "processing" ||
-                deliveryStatus === "pending" ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                ) : deliveryStatus === "completed" ? (
-                  <div className="text-center text-green-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-12 w-12 mx-auto"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <p className="mt-2">已成功發送到您的Kindle</p>
-                  </div>
-                ) : (
-                  <div className="text-center text-red-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-12 w-12 mx-auto"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                    <p className="mt-2">發送失敗</p>
-                    {errorMessage && (
-                      <p className="mt-1 text-sm">{errorMessage}</p>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      deliveryStatus === "completed"
+                        ? "bg-green-500"
+                        : deliveryStatus === "failed"
+                        ? "bg-red-500"
+                        : "bg-blue-500 animate-pulse"
+                    }`}
+                  />
+                  <span className="font-medium">
+                    {getStatusText(deliveryStatus)}
+                  </span>
+                </div>
+                {errorMessage && (
+                  <div className="mt-2 text-sm text-red-600">
+                    <div className="font-medium">錯誤詳情：</div>
+                    <div className="mt-1">{errorMessage}</div>
+                    {pollRetryCount > 0 && (
+                      <div className="mt-1 text-xs text-gray-500">
+                        狀態查詢重試次數：{pollRetryCount}/{MAX_POLL_RETRIES}
+                      </div>
                     )}
                   </div>
                 )}
               </div>
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-end">
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}

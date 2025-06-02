@@ -2,8 +2,8 @@
  * Kindle 交付狀態枚舉
  */
 export enum DeliveryStatus {
-  QUEUED = 'queued',
+  PENDING = 'pending',
   PROCESSING = 'processing',
-  SUCCESS = 'success',
+  COMPLETED = 'completed',
   FAILED = 'failed',
 }

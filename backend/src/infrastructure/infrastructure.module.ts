@@ -6,7 +6,7 @@ import { StorageModule } from './storage/storage.module.js';
 import { EpubGeneratorModule } from './epub-generator/epub-generator.module.js';
 import { QueueModule } from './queue/queue.module.js';
 import { AuthInfrastructureModule } from './auth/auth.infrastructure.module.js';
-
+import { EmailModule } from './email/email.module.js';
 /**
  * 基礎設施模組
  * 整合所有適配器實現，並提供給應用層使用
@@ -20,6 +20,7 @@ import { AuthInfrastructureModule } from './auth/auth.infrastructure.module.js';
     StorageModule, // 儲存模組
     QueueModule,
     AuthInfrastructureModule, // 認證基礎設施模組
+    EmailModule,
   ],
   exports: [
     EpubGeneratorModule,
@@ -29,6 +30,7 @@ import { AuthInfrastructureModule } from './auth/auth.infrastructure.module.js';
     StorageModule,
     QueueModule,
     AuthInfrastructureModule,
+    EmailModule,
   ],
 })
 export class InfrastructureModule {}

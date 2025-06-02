@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module.js';
 import { ConvertModule } from './convert/convert.module.js';
 import { PreviewModule } from './preview/preview.module.js';
 import { JobsModule } from './jobs/jobs.module.js';
+import { UserModule } from './user/user.module.js';
+import { KindleDeliveryModule } from './kindle-delivery/kindle-delivery.module.js';
 /**
  * 應用層模組
  * 整合所有子域模組，並依賴於基礎設施模組
@@ -17,6 +19,8 @@ import { JobsModule } from './jobs/jobs.module.js';
     ConvertModule,
     PreviewModule,
     JobsModule,
+    UserModule,
+    KindleDeliveryModule,
 
     // 基礎設施模組
     InfrastructureModule,
@@ -28,6 +32,8 @@ import { JobsModule } from './jobs/jobs.module.js';
     ConvertModule,
     PreviewModule,
     JobsModule,
+    UserModule,
+    KindleDeliveryModule,
   ],
 })
 export class ApplicationModule {}

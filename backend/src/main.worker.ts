@@ -1,10 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
-import * as dotenv from 'dotenv';
 import { WorkerModule } from './worker/worker.module.js';
 
 // 載入 Worker 專用環境變數
-dotenv.config({ path: '.env' });
+// dotenv.config({ path: '.env' }); // 由 WorkerModule 中的 ConfigModule.forRoot 處理
 
 async function bootstrap() {
   const logger = new Logger('WorkerBootstrap');

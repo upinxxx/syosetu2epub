@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common';
 import { NovelController } from './novel.controller.js';
 import { AuthController } from './auth.controller.js';
 import { KindleDeliveryController } from './kindle-delivery.controller.js';
+import { UserController } from '@/presentation/user.controller.js';
 import { PassportModule } from '@nestjs/passport';
 import { PreviewModule } from '@/application/preview/preview.module.js';
 import { ConvertModule } from '@/application/convert/convert.module.js';
 import { AuthModule } from '@/application/auth/auth.module.js';
 import { KindleDeliveryModule } from '@/application/kindle-delivery/kindle-delivery.module.js';
 import { JobsModule } from '@/application/jobs/jobs.module.js';
+import { UserModule } from '@/application/user/user.module.js';
 
 /**
  * HTTP 模組
@@ -21,6 +23,7 @@ import { JobsModule } from '@/application/jobs/jobs.module.js';
     AuthModule,
     KindleDeliveryModule,
     JobsModule,
+    UserModule,
 
     // Passport 認證框架
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -29,6 +32,7 @@ import { JobsModule } from '@/application/jobs/jobs.module.js';
     NovelController, // 小說相關控制器
     AuthController, // 認證相關控制器
     KindleDeliveryController, // Kindle 交付控制器
+    UserController, // 用戶相關控制器
   ],
   providers: [],
 })

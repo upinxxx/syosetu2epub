@@ -1,34 +1,30 @@
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/lib/auth";
-
-// Kindle郵箱驗證schema
-const kindleEmailSchema = z.object({
-  kindleEmail: z
-    .string()
-    .email("請輸入有效的電子郵件地址")
-    .refine(
-      (email) =>
-        email.endsWith("@kindle.com") || email.endsWith("@kindle.amazon.com"),
-      {
-        message: "必須是有效的Kindle郵箱 (@kindle.com 或 @kindle.amazon.com)",
-      }
-    ),
-});
-
-type KindleEmailFormData = z.infer<typeof kindleEmailSchema>;
+import { useAuth } from "@/lib/contexts";
+import axios from "@/lib/axios";
 
 interface KindleEmailFormProps {
   initialEmail?: string;
   onSuccess?: () => void;
 }
+
+// Kindle 郵箱驗證函數
+const validateKindleEmail = (email: string): string | null => {
+  if (!email.trim()) {
+    return "請輸入Kindle電子郵件地址";
+  }
+
+  const kindleEmailRegex = /^[^\s@]+@kindle(\.amazon)?\.com$/;
+  if (!kindleEmailRegex.test(email)) {
+    return "必須是有效的Kindle郵箱 (@kindle.com 或 @kindle.amazon.com)";
+  }
+
+  return null;
+};
 
 export default function KindleEmailForm({
   initialEmail = "",
@@ -36,74 +32,85 @@ export default function KindleEmailForm({
 }: KindleEmailFormProps) {
   const { user, refreshAuth } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [kindleEmail, setKindleEmail] = useState(
+    initialEmail || user?.kindleEmail || ""
+  );
+  const [error, setError] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<KindleEmailFormData>({
-    resolver: zodResolver(kindleEmailSchema),
-    defaultValues: {
-      kindleEmail: initialEmail || user?.kindleEmail || "",
-    },
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const onSubmit = async (data: KindleEmailFormData) => {
+    // 驗證輸入
+    const validationError = validateKindleEmail(kindleEmail);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setError(null);
+
     try {
       setIsSubmitting(true);
 
       // 呼叫API更新用戶的Kindle郵箱
-      const response = await fetch("/api/user/kindle-email", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ kindleEmail: data.kindleEmail }),
-        credentials: "include",
+      const response = await axios.put("/api/user/profile", {
+        kindleEmail: kindleEmail,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "更新Kindle郵箱失敗");
+      if (response.data) {
+        // 更新本地用戶狀態
+        await refreshAuth();
+
+        // 顯示成功提示
+        toast.success("您的Kindle郵箱已更新", {
+          description: "設定成功",
+        });
+
+        // 調用成功回調
+        if (onSuccess) {
+          onSuccess();
+        }
       }
-
-      // 更新本地用戶狀態
-      await refreshAuth();
-
-      // 顯示成功提示
-      toast({
-        title: "設定成功",
-        description: "您的Kindle郵箱已更新",
-      });
-
-      // 調用成功回調
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
+    } catch (error: any) {
       console.error("更新Kindle郵箱失敗:", error);
-      toast({
-        title: "設定失敗",
-        description: error.message || "更新Kindle郵箱時發生錯誤",
-        variant: "destructive",
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "更新Kindle郵箱時發生錯誤";
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        description: "設定失敗",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setKindleEmail(value);
+
+    // 清除錯誤信息（當用戶開始輸入時）
+    if (error && value.trim()) {
+      setError(null);
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="kindleEmail">Kindle 電子郵件</Label>
         <Input
           id="kindleEmail"
+          type="email"
           placeholder="your-kindle@kindle.com"
-          {...register("kindleEmail")}
+          value={kindleEmail}
+          onChange={handleInputChange}
+          disabled={isSubmitting}
         />
-        {errors.kindleEmail && (
+        {error && (
           <Alert variant="destructive" className="py-2 mt-1">
-            <AlertDescription>{errors.kindleEmail.message}</AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
         <p className="text-sm text-gray-500 mt-1">

@@ -11,6 +11,8 @@ import { ApplicationModule } from './application/application.module.js';
 import { HttpModule } from './presentation/http.module.js';
 import cookieParser from 'cookie-parser';
 import { Logger } from '@nestjs/common';
+import supabaseConfig from './config/supabase.config.js';
+import resendConfig from './config/resend.config.js';
 
 /**
  * 應用程式主模組
@@ -19,7 +21,10 @@ import { Logger } from '@nestjs/common';
 @Module({
   imports: [
     // 基礎配置模塊
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [supabaseConfig, resendConfig],
+    }),
 
     // 定時任務模塊
     ScheduleModule.forRoot(),

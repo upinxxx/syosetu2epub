@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 
@@ -14,7 +14,9 @@ export class ResendEmailAdapter implements EmailSenderPort {
   private readonly resend: Resend;
   private readonly fromEmail: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    @Inject(ConfigService) private readonly configService: ConfigService,
+  ) {
     const resendConfig = this.configService.get('resend');
     const apiKey = resendConfig?.apiKey;
 

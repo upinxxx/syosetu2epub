@@ -3,8 +3,8 @@ import path from 'path';
 
 const filesToCopy = [
   {
-    from: 'src/epub/templates/custom-toc.xhtml.ejs',
-    to: 'dist/epub/templates/custom-toc.xhtml.ejs',
+    from: 'src/infrastructure/epub-generator/templates/custom-toc.xhtml.ejs',
+    to: 'dist/infrastructure/epub-generator/templates/custom-toc.xhtml.ejs',
   },
   // 可以再加其他
 ];

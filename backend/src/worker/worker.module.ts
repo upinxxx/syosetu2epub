@@ -14,8 +14,8 @@ import { KindleDeliveryOrmEntity } from '../infrastructure/entities/kindle-deliv
 import { JobsModule } from '../application/jobs/jobs.module.js';
 import { SchedulerService } from './scheduler.service.js';
 import { ConvertModule } from '../application/convert/convert.module.js';
-import { KindleDeliveryModule } from '../application/kindle-delivery/kindle-delivery.module.js';
-
+import supabaseConfig from '../config/supabase.config.js';
+import resendConfig from '../config/resend.config.js';
 /**
  * Worker 模組 - 包含處理 EPUB 轉換和預覽任務所需的模組
  * 與 AppModule 不同，不包含 HTTP 控制器等 API 元件
@@ -26,6 +26,7 @@ import { KindleDeliveryModule } from '../application/kindle-delivery/kindle-deli
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      load: [supabaseConfig, resendConfig],
     }),
 
     // 排程模組 - 用於 Worker 的定時任務
@@ -55,10 +56,7 @@ import { KindleDeliveryModule } from '../application/kindle-delivery/kindle-deli
     // 優先導入 ConvertModule，確保 ConvertFacade 可用
     ConvertModule,
 
-    // 導入 KindleDeliveryModule，確保 KindleDeliveryFacade 可用
-    KindleDeliveryModule,
-
-    // 應用層模組 - 提供 ProcessJobUseCase
+    // 應用層模組 - 提供所有 Use Cases 和 Facades (包含 KindleDeliveryModule)
     ApplicationModule,
 
     // 隊列模組 - 提供 BullMQ 連接
