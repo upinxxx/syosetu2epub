@@ -1,0 +1,258 @@
+# Syosetu2EPUB 監控告警配置
+# 版本: 1.0.0
+# 用途: 定義系統監控的閾值和告警規則
+
+# 全域設定
+global:
+  # 應用名稱
+  app_name: 'Syosetu2EPUB'
+
+  # 監控間隔（秒）
+  check_interval: 60
+
+  # 通知間隔（分鐘）- 避免重複通知
+  notification_cooldown: 15
+
+# 健康檢查端點
+endpoints:
+  # 基本健康檢查
+  basic:
+    url: '/health/quick'
+    timeout: 5000
+    expected_status: 200
+
+  # 詳細健康檢查
+  detailed:
+    url: '/health'
+    timeout: 10000
+    expected_status: 200
+
+  # 數據一致性檢查
+  consistency:
+    url: '/health/consistency'
+    timeout: 20000
+    expected_status: 200
+
+  # 系統指標
+  metrics:
+    url: '/health/metrics'
+    timeout: 5000
+    expected_status: 200
+
+# 告警閾值設定
+thresholds:
+  # 回應時間（毫秒）
+  response_time:
+    warning: 3000 # 3 秒警告
+    critical: 5000 # 5 秒嚴重
+
+  # 記憶體使用率（%）
+  memory_usage:
+    warning: 80 # 80% 警告
+    critical: 90 # 90% 嚴重
+
+  # CPU 使用率（%）
+  cpu_usage:
+    warning: 70 # 70% 警告
+    critical: 85 # 85% 嚴重
+
+  # 數據一致性
+  data_consistency:
+    warning: 3 # 3 個不一致任務警告
+    critical: 10 # 10 個不一致任務嚴重
+
+  # 服務可用性
+  service_availability:
+    warning: 1 # 1 個服務異常警告
+    critical: 2 # 2 個服務異常嚴重
+
+  # 錯誤率（%）
+  error_rate:
+    warning: 5 # 5% 錯誤率警告
+    critical: 10 # 10% 錯誤率嚴重
+
+# 告警規則
+alert_rules:
+  # 應用程式無回應
+  - name: '應用程式無回應'
+    condition: 'response_code != 200'
+    severity: 'critical'
+    description: '應用程式無法回應健康檢查請求'
+    action: 'immediate_notification'
+
+  # 回應時間過長
+  - name: '回應時間過長'
+    condition: 'response_time > thresholds.response_time.warning'
+    severity: 'warning'
+    description: 'API 回應時間超過預期閾值'
+    action: 'delayed_notification'
+
+  # 記憶體使用率過高
+  - name: '記憶體使用率過高'
+    condition: 'memory_usage_percent > thresholds.memory_usage.warning'
+    severity: 'warning'
+    description: '系統記憶體使用率超過安全閾值'
+    action: 'delayed_notification'
+
+  # 系統狀態降級
+  - name: '系統狀態降級'
+    condition: "health_status == 'degraded'"
+    severity: 'warning'
+    description: '系統處於降級狀態，部分功能可能受影響'
+    action: 'delayed_notification'
+
+  # 系統狀態異常
+  - name: '系統狀態異常'
+    condition: "health_status == 'unhealthy'"
+    severity: 'critical'
+    description: '系統狀態異常，需要立即處理'
+    action: 'immediate_notification'
+
+  # 數據一致性問題
+  - name: '數據一致性問題'
+    condition: 'inconsistent_jobs > thresholds.data_consistency.warning'
+    severity: 'warning'
+    description: '檢測到數據一致性問題，建議檢查任務同步機制'
+    action: 'delayed_notification'
+
+  # 服務異常
+  - name: '關鍵服務異常'
+    condition: 'unhealthy_services > 0'
+    severity: 'critical'
+    description: '關鍵服務（Redis、Queue、Lock）出現異常'
+    action: 'immediate_notification'
+
+# 通知設定
+notifications:
+  # 電子郵件通知
+  email:
+    enabled: true
+    smtp_server: '${SMTP_SERVER}'
+    smtp_port: 587
+    username: '${SMTP_USERNAME}'
+    password: '${SMTP_PASSWORD}'
+    from: 'monitor@syosetu2epub.com'
+    to:
+      - 'admin@syosetu2epub.com'
+      - 'dev@syosetu2epub.com'
+
+  # Webhook 通知（適用於 Slack、Discord 等）
+  webhook:
+    enabled: true
+    url: '${WEBHOOK_URL}'
+    method: 'POST'
+    headers:
+      Content-Type: 'application/json'
+    timeout: 10000
+
+  # SMS 通知（僅關鍵告警）
+  sms:
+    enabled: false
+    provider: 'twilio'
+    account_sid: '${TWILIO_ACCOUNT_SID}'
+    auth_token: '${TWILIO_AUTH_TOKEN}'
+    from: '${TWILIO_PHONE_NUMBER}'
+    to:
+      - '+886912345678'
+
+# 監控工具整合設定
+integrations:
+  # Uptime Kuma
+  uptime_kuma:
+    enabled: true
+    endpoint: '${UPTIME_KUMA_ENDPOINT}'
+    push_url: '${UPTIME_KUMA_PUSH_URL}'
+
+  # Prometheus
+  prometheus:
+    enabled: true
+    metrics_endpoint: '/health/metrics'
+    scrape_interval: '30s'
+
+  # Grafana
+  grafana:
+    enabled: true
+    dashboard_url: '${GRAFANA_DASHBOARD_URL}'
+
+  # New Relic
+  new_relic:
+    enabled: false
+    license_key: '${NEW_RELIC_LICENSE_KEY}'
+
+  # DataDog
+  datadog:
+    enabled: false
+    api_key: '${DATADOG_API_KEY}'
+
+# 維護時段設定（在此期間不發送告警）
+maintenance_windows:
+  # 每日維護
+  daily:
+    enabled: false
+    start_time: '02:00'
+    end_time: '04:00'
+    timezone: 'Asia/Taipei'
+
+  # 週末維護
+  weekend:
+    enabled: false
+    days: ['Saturday', 'Sunday']
+    start_time: '01:00'
+    end_time: '06:00'
+    timezone: 'Asia/Taipei'
+
+# 自動修復設定
+auto_recovery:
+  # 啟用自動修復
+  enabled: true
+
+  # 修復動作
+  actions:
+    # 重啟服務
+    restart_service:
+      enabled: true
+      max_attempts: 3
+      cooldown: 300 # 5 分鐘
+
+    # 清理快取
+    clear_cache:
+      enabled: true
+      max_attempts: 1
+      cooldown: 600 # 10 分鐘
+
+    # 數據同步修復
+    data_sync_repair:
+      enabled: true
+      max_attempts: 2
+      cooldown: 1800 # 30 分鐘
+
+# 監控儀表板設定
+dashboard:
+  # 更新間隔（秒）
+  refresh_interval: 30
+
+  # 顯示項目
+  widgets:
+    - name: '系統狀態'
+      type: 'status'
+      source: '/health'
+
+    - name: '回應時間'
+      type: 'line_chart'
+      source: '/health/metrics'
+      metric: 'response_time'
+
+    - name: '記憶體使用率'
+      type: 'gauge'
+      source: '/health/metrics'
+      metric: 'memory_usage_percent'
+
+    - name: '數據一致性'
+      type: 'number'
+      source: '/health/consistency'
+      metric: 'inconsistent_jobs'
+
+    - name: '服務狀態'
+      type: 'service_grid'
+      source: '/health'
+      metric: 'services'

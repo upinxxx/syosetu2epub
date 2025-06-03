@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
+import { Queue, QueueEvents } from 'bullmq';
 import {
   QueuePort,
   JobData,
@@ -17,6 +17,7 @@ import { JobStatus } from '@/domain/enums/job-status.enum.js';
 export class QueueAdapter implements QueuePort {
   private readonly logger = new Logger(QueueAdapter.name);
   private readonly queues: Map<string, Queue>;
+  private readonly queueEvents: Map<string, QueueEvents>;
   private readonly DEFAULT_CACHE_EXPIRY = 86400; // 預設緩存過期時間：1 天（秒）
 
   constructor(
@@ -32,6 +33,166 @@ export class QueueAdapter implements QueuePort {
     this.queues.set('epub', epubQueue);
     this.queues.set('preview', previewQueue);
     this.queues.set('kindle-delivery', kindleDeliveryQueue);
+
+    // 初始化 QueueEvents 映射
+    this.queueEvents = new Map<string, QueueEvents>();
+
+    // 🔑 設置佇列事件監聽器以實現即時狀態同步
+    this.setupQueueEventListeners();
+  }
+
+  /**
+   * 🔑 設置佇列事件監聽器
+   * 實現佇列狀態變化的即時同步到緩存
+   * @private
+   */
+  private setupQueueEventListeners(): void {
+    // 為每個佇列設置事件監聽器
+    this.queues.forEach((queue, queueName) => {
+      this.logger.log(`設置 ${queueName} 佇列事件監聽器`);
+
+      try {
+        // 創建 QueueEvents 實例來監聽全局事件
+        const queueEvents = new QueueEvents(queueName, {
+          connection: queue.opts.connection,
+        });
+
+        this.queueEvents.set(queueName, queueEvents);
+
+        // 監聽任務完成事件
+        queueEvents.on('completed', async ({ jobId }) => {
+          try {
+            await this.syncJobStatusFromQueue(queueName, jobId);
+            this.logger.debug(`佇列事件：任務 ${jobId} 完成`);
+          } catch (error) {
+            this.logger.error(`處理任務完成事件失敗: ${error.message}`);
+          }
+        });
+
+        // 監聽任務失敗事件
+        queueEvents.on('failed', async ({ jobId, failedReason }) => {
+          try {
+            await this.syncJobStatusFromQueue(queueName, jobId);
+            this.logger.debug(`佇列事件：任務 ${jobId} 失敗 - ${failedReason}`);
+          } catch (error) {
+            this.logger.error(`處理任務失敗事件失敗: ${error.message}`);
+          }
+        });
+
+        // 監聽任務開始處理事件
+        queueEvents.on('active', async ({ jobId }) => {
+          try {
+            await this.syncJobStatusFromQueue(queueName, jobId);
+            this.logger.debug(`佇列事件：任務 ${jobId} 開始處理`);
+          } catch (error) {
+            this.logger.error(`處理任務開始事件失敗: ${error.message}`);
+          }
+        });
+
+        // 監聽任務停滯事件
+        queueEvents.on('stalled', async ({ jobId }) => {
+          try {
+            this.logger.warn(`佇列事件：任務 ${jobId} 停滯`);
+            await this.syncJobStatusFromQueue(queueName, jobId);
+          } catch (error) {
+            this.logger.error(`處理任務停滯事件失敗: ${error.message}`);
+          }
+        });
+
+        this.logger.log(`${queueName} 佇列事件監聽器設置完成`);
+      } catch (error) {
+        this.logger.error(
+          `設置 ${queueName} 佇列事件監聽器失敗: ${error.message}`,
+        );
+      }
+    });
+
+    this.logger.log('所有佇列事件監聽器設置完成');
+  }
+
+  /**
+   * 🔑 從佇列同步狀態到緩存
+   * 確保緩存狀態與佇列實際狀態保持一致
+   * @private
+   */
+  private async syncJobStatusFromQueue(
+    queueName: string,
+    jobId: string,
+    job?: any,
+  ): Promise<void> {
+    try {
+      if (!jobId) {
+        this.logger.warn('無效的 jobId，跳過同步');
+        return;
+      }
+
+      const queue = this.getQueue(queueName);
+      const jobInstance = job || (await queue.getJob(jobId));
+
+      if (!jobInstance) {
+        this.logger.warn(`無法找到任務 ${jobId}，跳過同步`);
+        return;
+      }
+
+      // 獲取任務狀態
+      const state = await jobInstance.getState();
+      const mappedStatus = this.mapBullMQStateToJobStatus(state);
+
+      // 保留原始任務數據中的 userId
+      const originalData = jobInstance.data;
+      const taskUserId = originalData?.userId || null;
+
+      // 構建同步的狀態數據
+      const statusData: Partial<JobStatusCache> = {
+        jobId,
+        status: mappedStatus,
+        updatedAt: new Date(),
+        userId: taskUserId, // 🔑 保持 userId 一致性
+        data: originalData,
+      };
+
+      // 根據狀態添加相應的時間戳
+      if (mappedStatus === JobStatus.PROCESSING && !statusData.startedAt) {
+        statusData.startedAt = new Date();
+      } else if (
+        (mappedStatus === JobStatus.COMPLETED ||
+          mappedStatus === JobStatus.FAILED) &&
+        !statusData.completedAt
+      ) {
+        statusData.completedAt = new Date();
+      }
+
+      // 更新緩存
+      await this.cacheJobStatus(queueName, jobId, statusData);
+
+      this.logger.debug(
+        `佇列同步完成 - 任務 ${jobId} 狀態: ${mappedStatus}, userId: ${taskUserId || 'anonymous'}`,
+      );
+    } catch (error) {
+      this.logger.error(`同步任務 ${jobId} 狀態失敗:`, error);
+    }
+  }
+
+  /**
+   * 🔑 將 BullMQ 狀態映射到 JobStatus 枚舉
+   * @private
+   */
+  private mapBullMQStateToJobStatus(state: string): JobStatus {
+    switch (state) {
+      case 'completed':
+        return JobStatus.COMPLETED;
+      case 'failed':
+        return JobStatus.FAILED;
+      case 'active':
+        return JobStatus.PROCESSING;
+      case 'waiting':
+      case 'delayed':
+      case 'prioritized':
+        return JobStatus.QUEUED;
+      default:
+        this.logger.warn(`未知的 BullMQ 狀態: ${state}，默認為 QUEUED`);
+        return JobStatus.QUEUED;
+    }
   }
 
   /**
@@ -70,12 +231,20 @@ export class QueueAdapter implements QueuePort {
       const jobId = job.id;
       this.logger.log(`任務已添加到 ${queueName} 隊列: ${jobId}`);
 
-      // 緩存初始任務狀態
+      // 🔑 緩存初始任務狀態 - 關鍵修復：確保 userId 被正確緩存
       if (jobId) {
+        // 從任務數據中提取 userId
+        const taskUserId = (data as any)?.userId || null;
+
+        this.logger.debug(
+          `緩存任務 ${jobId} 初始狀態 - userId: ${taskUserId || 'anonymous'}`,
+        );
+
         await this.cacheJobStatus(queueName, jobId.toString(), {
           jobId: jobId.toString(),
           status: JobStatus.QUEUED,
           updatedAt: new Date(),
+          userId: taskUserId, // 🔑 關鍵修復：確保 userId 被緩存
           data: data, // 存儲原始任務數據
         });
       }

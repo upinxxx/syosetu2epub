@@ -12,6 +12,12 @@ import {
   Minimize2,
   ChevronUp,
   ChevronDown,
+  Clock,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { Toast, ToastContainer } from "@/components/ui/toast";
 import { toast } from "sonner";
@@ -87,16 +93,40 @@ interface PreviewJobResponse {
   message?: string;
 }
 
-// 轉檔任務狀態類型
-type ConversionJobStatus = "queued" | "processing" | "completed" | "failed";
+// 轉檔任務狀態類型 - 增加更多狀態
+type ConversionJobStatus =
+  | "queued"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "retrying"
+  | "cancelled";
 
-// 轉檔任務響應介面
+// 轉檔任務響應介面 - 增加進度信息
 interface ConversionJobResponse {
   success: boolean;
   jobId?: string;
   status?: ConversionJobStatus;
   publicUrl?: string;
   message?: string;
+  progress?: number; // 0-100 的進度百分比
+  estimatedTimeRemaining?: number; // 預估剩餘時間（秒）
+  currentStep?: string; // 當前處理步驟
+}
+
+// 任務詳細信息介面
+interface JobDetails {
+  status: ConversionJobStatus;
+  title: string;
+  source: string;
+  publicUrl?: string;
+  progress?: number;
+  estimatedTimeRemaining?: number;
+  currentStep?: string;
+  startTime: Date;
+  lastUpdated: Date;
+  retryCount: number;
+  errorMessage?: string;
 }
 
 // 隨機生成柔和的明亮色彩
@@ -170,20 +200,18 @@ export default function Home() {
   const [previewStatus, setPreviewStatus] = useState<PreviewJobStatus | null>(
     null
   );
-  const [activeJobs, setActiveJobs] = useState<
-    Map<
-      string,
-      {
-        status: ConversionJobStatus;
-        title: string;
-        source: string;
-        publicUrl?: string;
-      }
-    >
-  >(new Map());
+  // 更新 activeJobs 的類型定義
+  const [activeJobs, setActiveJobs] = useState<Map<string, JobDetails>>(
+    new Map()
+  );
   const [previewColor, setPreviewColor] = useState(getRandomSoftColor());
   const [statusBarCollapsed, setStatusBarCollapsed] = useState(false);
   const [isRecentTasksModalOpen, setIsRecentTasksModalOpen] = useState(false);
+  // 新增狀態管理
+  const [pollingIntervals, setPollingIntervals] = useState<
+    Map<string, NodeJS.Timeout>
+  >(new Map());
+  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
 
   // 組件掛載時設置一個隨機顏色
   useEffect(() => {
@@ -263,6 +291,7 @@ export default function Home() {
 
     setIsLoading(true);
     setError("");
+
     try {
       console.log("發送請求獲取預覽:", { source, sourceId });
 
@@ -281,13 +310,16 @@ export default function Home() {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
+          timeout: 30000, // 30秒超時
         }
       );
 
       console.log("預覽響應:", response.data);
 
       if (!response.data.success) {
-        setError(response.data.message || "獲取小說預覽失敗");
+        const errorMsg = response.data.message || "獲取小說預覽失敗";
+        setError(errorMsg);
+        toast.error(errorMsg);
         setIsLoading(false);
         return;
       }
@@ -300,6 +332,7 @@ export default function Home() {
         setPreview(response.data.preview);
         setShowPreview(true);
         setIsLoading(false);
+        toast.success("小說預覽載入成功！");
         return;
       }
 
@@ -307,6 +340,7 @@ export default function Home() {
       if (response.data.jobId) {
         setPreviewJobId(response.data.jobId);
         setPreviewStatus("queued");
+        toast.info("正在處理預覽請求，請稍候...");
         // 開始輪詢任務狀態
         pollPreviewJob(response.data.jobId);
       } else if (response.data.novelId) {
@@ -318,6 +352,7 @@ export default function Home() {
               headers: {
                 Accept: "application/json",
               },
+              timeout: 15000, // 15秒超時
             }
           );
 
@@ -326,8 +361,11 @@ export default function Home() {
             setPreviewColor(getRandomSoftColor());
             setPreview(previewResponse.data.preview);
             setShowPreview(true);
+            toast.success("小說預覽載入成功！");
           } else {
-            setError("無法獲取小說預覽詳情");
+            const errorMsg = "無法獲取小說預覽詳情";
+            setError(errorMsg);
+            toast.error(errorMsg);
           }
         } catch (previewError: any) {
           console.error("獲取預覽詳情失敗:", previewError);
@@ -349,32 +387,49 @@ export default function Home() {
             setPreviewColor(getRandomSoftColor());
             setPreview(minimalPreview);
             setShowPreview(true);
+            toast.warning("預覽資訊不完整，但您仍可繼續轉換");
             console.log("已創建最小化預覽:", minimalPreview);
           } catch (e) {
-            setError("獲取小說預覽詳情失敗");
+            const errorMsg = "獲取小說預覽詳情失敗";
+            setError(errorMsg);
+            toast.error(errorMsg);
           }
         }
         setIsLoading(false);
       } else {
-        setError("獲取預覽任務 ID 失敗");
+        const errorMsg = "獲取預覽任務 ID 失敗";
+        setError(errorMsg);
+        toast.error(errorMsg);
         setIsLoading(false);
       }
     } catch (error: any) {
       console.error("獲取預覽失敗:", error);
 
-      // 更詳細的錯誤診斷
-      if (error.message.includes("Network Error")) {
-        console.error("網絡連接失敗，可能是後端服務未啟動或CORS問題");
-        setError("無法連接到伺服器，請確認伺服器是否啟動");
-      } else {
-        // 顯示更詳細的錯誤信息
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "獲取預覽過程發生錯誤，請稍後再試";
-        setError(errorMessage);
+      let errorMessage = "獲取預覽過程發生錯誤，請稍後再試";
+
+      // 更詳細的錯誤診斷和用戶友好的錯誤提示
+      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+        errorMessage = "請求超時，請檢查網路連線或稍後再試";
+      } else if (
+        error.message.includes("Network Error") ||
+        error.code === "ERR_NETWORK"
+      ) {
+        errorMessage = "網路連線失敗，請檢查網路狀態或聯繫管理員";
+      } else if (error.response?.status === 400) {
+        errorMessage =
+          error.response?.data?.message || "請求參數錯誤，請檢查輸入的網址";
+      } else if (error.response?.status === 404) {
+        errorMessage = "找不到指定的小說，請確認網址是否正確";
+      } else if (error.response?.status === 429) {
+        errorMessage = "請求過於頻繁，請稍後再試";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "伺服器暫時無法處理請求，請稍後再試";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
       }
 
+      setError(errorMessage);
+      toast.error(errorMessage);
       setIsLoading(false);
     }
   };
@@ -389,13 +444,16 @@ export default function Home() {
           headers: {
             Accept: "application/json",
           },
+          timeout: 10000, // 10秒超時
         }
       );
 
       console.log("預覽狀態響應:", response.data);
 
       if (!response.data.success) {
-        setError(response.data.message || "檢查預覽狀態失敗");
+        const errorMsg = response.data.message || "檢查預覽狀態失敗";
+        setError(errorMsg);
+        toast.error(errorMsg);
         setIsLoading(false);
         return;
       }
@@ -441,15 +499,20 @@ export default function Home() {
             setPreviewColor(getRandomSoftColor());
             setPreview(response.data.preview);
             setShowPreview(true);
+            toast.success("小說預覽載入成功！");
           } else {
             console.error("預覽數據不完整");
-            setError("預覽數據不完整");
+            const errorMsg = "預覽數據不完整";
+            setError(errorMsg);
+            toast.error(errorMsg);
           }
           setIsLoading(false);
           break;
 
         case "failed":
-          setError(response.data.message || "獲取預覽失敗");
+          const failureMsg = response.data.message || "獲取預覽失敗";
+          setError(failureMsg);
+          toast.error(failureMsg);
           setIsLoading(false);
           break;
 
@@ -461,76 +524,84 @@ export default function Home() {
           break;
 
         default:
-          setError("未知的預覽任務狀態");
+          const unknownMsg = "未知的預覽任務狀態";
+          setError(unknownMsg);
+          toast.error(unknownMsg);
           setIsLoading(false);
       }
     } catch (error: any) {
       console.error("輪詢預覽任務失敗:", error);
 
+      let errorMessage = "檢查預覽狀態時發生錯誤";
+      let shouldRetry = false;
+
       // 更詳細的錯誤診斷
-      if (error.message.includes("Network Error")) {
-        console.error("網絡連接失敗，可能是後端服務未啟動或CORS問題");
-        setError("無法連接到伺服器，請確認伺服器是否啟動");
+      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+        errorMessage = "檢查預覽狀態超時";
+        shouldRetry = true;
+      } else if (
+        error.message.includes("Network Error") ||
+        error.code === "ERR_NETWORK"
+      ) {
+        errorMessage = "網路連線失敗，無法檢查預覽狀態";
+        shouldRetry = true;
+      } else if (error.response?.status === 404) {
+        errorMessage = "找不到該預覽任務";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "伺服器暫時無法回應";
+        shouldRetry = true;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      setError(errorMessage);
+      toast.error(errorMessage);
+
+      if (shouldRetry) {
+        // 網路或超時錯誤時繼續重試，但延長間隔
+        console.log("將在5秒後重試檢查預覽狀態");
+        setTimeout(() => pollPreviewJob(jobId), 5000);
       } else {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "檢查預覽狀態時發生錯誤";
-        setError(errorMessage);
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     }
   };
 
-  // 處理確認轉換
-  const handleConfirmConversion = async () => {
-    if (!preview) return;
-
-    setConversionLoading(true);
-    try {
-      // 提交轉檔請求
-      const response = await axios.post<ConversionJobResponse>(
-        "/novels/convert",
-        {
-          novelId: preview.novelId,
-        }
-      );
-
-      if (!response.data.jobId) {
-        setError("提交轉檔任務失敗");
-        setConversionLoading(false);
-        return;
-      }
-
-      // 關閉預覽視窗
-      setShowPreview(false);
-      setConversionLoading(false);
-
-      // 添加到活動任務列表
-      if (response.data.jobId && preview) {
-        const jobId = response.data.jobId;
-        setActiveJobs((prev) => {
-          const newMap = new Map(prev);
-          newMap.set(jobId, {
-            status: "queued",
-            title: preview.title,
-            source: preview.source,
-          });
-          return newMap;
-        });
-
-        // 開始輪詢任務狀態
-        pollJobStatus(jobId, preview.title, preview.source);
-      }
-    } catch (error) {
-      console.error("提交轉檔任務失敗:", error);
-      setConversionLoading(false);
-      setError("提交轉檔過程發生錯誤，請稍後再試");
+  // 智能輪詢頻率計算
+  const getPollingInterval = (
+    status: ConversionJobStatus,
+    retryCount: number
+  ): number => {
+    switch (status) {
+      case "queued":
+        return 5000; // 排隊中，5秒檢查一次
+      case "processing":
+        return 3000; // 處理中，3秒檢查一次
+      case "retrying":
+        return Math.min(8000 + retryCount * 2000, 20000); // 重試中，逐漸增加間隔
+      case "completed":
+      case "failed":
+      case "cancelled":
+        return 0; // 終止狀態，停止輪詢
+      default:
+        return 5000;
     }
   };
 
-  // 輪詢任務狀態
+  // 清理輪詢定時器
+  const clearPollingInterval = (jobId: string) => {
+    const interval = pollingIntervals.get(jobId);
+    if (interval) {
+      clearTimeout(interval);
+      setPollingIntervals((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(jobId);
+        return newMap;
+      });
+    }
+  };
+
+  // 增強的輪詢任務狀態
   const pollJobStatus = async (
     jobId: string,
     title: string,
@@ -538,11 +609,17 @@ export default function Home() {
   ) => {
     try {
       const response = await axios.get<ConversionJobResponse>(
-        `/novels/convert/${jobId}/status`
+        `/novels/convert/${jobId}/status`,
+        {
+          timeout: 10000, // 10秒超時
+        }
       );
 
       if (!response.data.success) {
-        updateJobStatus(jobId, "failed", response.data.message);
+        const errorMsg = response.data.message || "檢查任務狀態失敗";
+        updateJobStatus(jobId, "failed", errorMsg);
+        toast.error(`任務失敗：${title} - ${errorMsg}`);
+        clearPollingInterval(jobId);
         return;
       }
 
@@ -566,6 +643,14 @@ export default function Home() {
         case "QUEUED":
           status = "queued";
           break;
+        case "retrying":
+        case "RETRYING":
+          status = "retrying";
+          break;
+        case "cancelled":
+        case "CANCELLED":
+          status = "cancelled";
+          break;
         default:
           console.warn(
             `未知的轉檔任務狀態: ${response.data.status}，默認為 failed`
@@ -577,50 +662,172 @@ export default function Home() {
       console.log(`轉檔任務 ${jobId} 狀態(轉換後): ${status}`);
 
       const publicUrl = response.data.publicUrl;
+      const progress = response.data.progress;
+      const estimatedTimeRemaining = response.data.estimatedTimeRemaining;
+      const currentStep = response.data.currentStep;
 
       // 更新任務狀態
-      updateJobStatus(jobId, status, undefined, publicUrl);
+      updateJobStatus(
+        jobId,
+        status,
+        undefined,
+        publicUrl,
+        progress,
+        estimatedTimeRemaining,
+        currentStep
+      );
 
       // 根據任務狀態處理
       switch (status) {
         case "completed":
           // 任務完成，停止輪詢
+          clearPollingInterval(jobId);
+          toast.success(`轉檔完成：${title}`, {
+            action: {
+              label: "下載",
+              onClick: () => {
+                if (publicUrl) {
+                  window.open(publicUrl, "_blank");
+                }
+              },
+            },
+          });
           break;
 
         case "failed":
-          // 任務失敗，停止輪詢
+        case "cancelled":
+          // 任務失敗或取消，停止輪詢
+          clearPollingInterval(jobId);
+          const failureMsg =
+            response.data.message ||
+            (status === "cancelled" ? "任務已取消" : "轉檔過程發生錯誤");
+          updateJobStatus(jobId, status, failureMsg);
+          toast.error(
+            `${
+              status === "cancelled" ? "任務取消" : "轉檔失敗"
+            }：${title} - ${failureMsg}`
+          );
           break;
 
         case "queued":
         case "processing":
-          // 繼續輪詢，設置延遲
-          setTimeout(() => pollJobStatus(jobId, title, source), 4000);
+        case "retrying":
+          // 繼續輪詢，使用智能間隔
+          const currentJob = activeJobs.get(jobId);
+          const retryCount = currentJob?.retryCount || 0;
+          const interval = getPollingInterval(status, retryCount);
+
+          if (interval > 0) {
+            const timeoutId = setTimeout(
+              () => pollJobStatus(jobId, title, source),
+              interval
+            );
+            setPollingIntervals((prev) => {
+              const newMap = new Map(prev);
+              newMap.set(jobId, timeoutId);
+              return newMap;
+            });
+          }
           break;
 
         default:
+          clearPollingInterval(jobId);
           updateJobStatus(jobId, "failed", "未知的任務狀態");
+          toast.error(`任務狀態異常：${title}`);
       }
-    } catch (error) {
+
+      // 更新最後同步時間
+      setLastSyncTime(new Date());
+    } catch (error: any) {
       console.error("輪詢任務狀態失敗:", error);
-      updateJobStatus(jobId, "failed", "檢查任務狀態時發生錯誤");
+
+      let errorMessage = "檢查任務狀態時發生錯誤";
+      let shouldRetry = false;
+      let retryDelay = 8000;
+
+      const currentJob = activeJobs.get(jobId);
+      const retryCount = (currentJob?.retryCount || 0) + 1;
+
+      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+        errorMessage = "檢查任務狀態超時";
+        shouldRetry = retryCount < 5; // 最多重試5次
+        retryDelay = Math.min(8000 + retryCount * 2000, 20000);
+      } else if (
+        error.message.includes("Network Error") ||
+        error.code === "ERR_NETWORK"
+      ) {
+        errorMessage = "網路連線失敗，無法檢查任務狀態";
+        shouldRetry = retryCount < 3; // 網路錯誤最多重試3次
+        retryDelay = Math.min(10000 + retryCount * 3000, 30000);
+      } else if (error.response?.status === 404) {
+        errorMessage = "找不到該轉檔任務";
+        shouldRetry = false;
+      } else if (error.response?.status >= 500) {
+        errorMessage = "伺服器暫時無法回應";
+        shouldRetry = retryCount < 4; // 伺服器錯誤最多重試4次
+        retryDelay = Math.min(8000 + retryCount * 2000, 25000);
+      }
+
+      if (shouldRetry) {
+        // 更新為重試狀態
+        updateJobStatus(
+          jobId,
+          "retrying",
+          `${errorMessage}，正在重試... (${retryCount}/5)`,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          retryCount
+        );
+
+        const timeoutId = setTimeout(
+          () => pollJobStatus(jobId, title, source),
+          retryDelay
+        );
+        setPollingIntervals((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(jobId, timeoutId);
+          return newMap;
+        });
+      } else {
+        clearPollingInterval(jobId);
+        updateJobStatus(jobId, "failed", errorMessage);
+        toast.error(`${title} - ${errorMessage}`);
+      }
     }
   };
 
-  // 更新任務狀態
+  // 增強的更新任務狀態函數
   const updateJobStatus = (
     jobId: string,
     status: ConversionJobStatus,
     errorMessage?: string,
-    publicUrl?: string
+    publicUrl?: string,
+    progress?: number,
+    estimatedTimeRemaining?: number,
+    currentStep?: string,
+    retryCount?: number
   ) => {
     setActiveJobs((prev) => {
       const newMap = new Map(prev);
-      const job = newMap.get(jobId);
-      if (job) {
+      const existingJob = newMap.get(jobId);
+
+      if (existingJob) {
         newMap.set(jobId, {
-          ...job,
+          ...existingJob,
           status,
-          publicUrl,
+          publicUrl: publicUrl || existingJob.publicUrl,
+          progress: progress !== undefined ? progress : existingJob.progress,
+          estimatedTimeRemaining:
+            estimatedTimeRemaining !== undefined
+              ? estimatedTimeRemaining
+              : existingJob.estimatedTimeRemaining,
+          currentStep: currentStep || existingJob.currentStep,
+          lastUpdated: new Date(),
+          retryCount:
+            retryCount !== undefined ? retryCount : existingJob.retryCount,
+          errorMessage: errorMessage || existingJob.errorMessage,
         });
       }
       return newMap;
@@ -637,34 +844,169 @@ export default function Home() {
   };
 
   // 獲取任務狀態顯示文本
-  const getStatusText = (status: ConversionJobStatus) => {
+  const getStatusText = (job: JobDetails) => {
+    const {
+      status,
+      progress,
+      currentStep,
+      estimatedTimeRemaining,
+      retryCount,
+    } = job;
+
     switch (status) {
       case "queued":
         return "排隊中...";
       case "processing":
-        return "轉檔處理中...";
+        if (currentStep) {
+          return `${currentStep}${
+            progress !== undefined ? ` (${progress}%)` : ""
+          }`;
+        }
+        return `轉檔處理中...${
+          progress !== undefined ? ` (${progress}%)` : ""
+        }`;
       case "completed":
         return "轉檔完成！";
       case "failed":
         return "轉檔失敗";
+      case "retrying":
+        return `重試中... (${retryCount}/5)`;
+      case "cancelled":
+        return "已取消";
       default:
         return "未知狀態";
     }
   };
 
-  // 獲取任務 Toast 變體
-  const getStatusVariant = (status: ConversionJobStatus) => {
+  // 獲取狀態圖示
+  const getStatusIcon = (status: ConversionJobStatus) => {
     switch (status) {
       case "queued":
-        return "info";
+        return <Clock size={14} className="text-blue-500" />;
       case "processing":
-        return "info";
+        return <Loader2 size={14} className="text-blue-500 animate-spin" />;
       case "completed":
-        return "success";
+        return <CheckCircle size={14} className="text-green-500" />;
       case "failed":
-        return "error";
+        return <XCircle size={14} className="text-red-500" />;
+      case "retrying":
+        return <RefreshCw size={14} className="text-orange-500 animate-spin" />;
+      case "cancelled":
+        return <AlertCircle size={14} className="text-gray-500" />;
       default:
-        return "default";
+        return <AlertCircle size={14} className="text-gray-500" />;
+    }
+  };
+
+  // 格式化時間顯示
+  const formatTimeRemaining = (seconds?: number): string => {
+    if (!seconds || seconds <= 0) return "";
+
+    if (seconds < 60) {
+      return `約 ${Math.ceil(seconds)} 秒`;
+    } else if (seconds < 3600) {
+      return `約 ${Math.ceil(seconds / 60)} 分鐘`;
+    } else {
+      return `約 ${Math.ceil(seconds / 3600)} 小時`;
+    }
+  };
+
+  // 進度條組件
+  const ProgressBar = ({ progress }: { progress?: number }) => {
+    if (progress === undefined) return null;
+
+    return (
+      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+        <div
+          className="bg-blue-500 h-1.5 rounded-full transition-all duration-300 ease-out"
+          style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
+        />
+      </div>
+    );
+  };
+
+  // 修改 handleConfirmConversion 函數以包含新的任務詳細信息
+  const handleConfirmConversion = async () => {
+    if (!preview) return;
+
+    setConversionLoading(true);
+
+    try {
+      const response = await axios.post<ConversionJobResponse>(
+        "/novels/convert",
+        {
+          novelId: preview.novelId,
+          source: preview.source,
+          sourceId: preview.sourceId,
+        },
+        {
+          timeout: 15000, // 15秒超時
+        }
+      );
+
+      if (!response.data.success || !response.data.jobId) {
+        throw new Error(response.data.message || "轉檔請求失敗");
+      }
+
+      const jobId = response.data.jobId;
+
+      // 創建新的任務詳細信息
+      const newJob: JobDetails = {
+        status: "queued",
+        title: preview.title,
+        source: preview.source,
+        startTime: new Date(),
+        lastUpdated: new Date(),
+        retryCount: 0,
+      };
+
+      // 添加到活動任務列表
+      setActiveJobs((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(jobId, newJob);
+        return newMap;
+      });
+
+      // 開始輪詢任務狀態
+      setTimeout(
+        () => pollJobStatus(jobId, preview.title, preview.source),
+        2000
+      );
+
+      toast.success("轉檔任務已開始", {
+        description: `正在處理：${preview.title}`,
+      });
+
+      // 關閉預覽
+      handleClosePreview();
+    } catch (error: any) {
+      console.error("轉檔請求失敗:", error);
+
+      let errorMessage = "轉檔請求失敗";
+
+      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+        errorMessage = "轉檔請求超時，請稍後再試";
+      } else if (
+        error.message.includes("Network Error") ||
+        error.code === "ERR_NETWORK"
+      ) {
+        errorMessage = "網路連線失敗，請檢查網路連線";
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || "請求參數錯誤";
+      } else if (error.response?.status === 401) {
+        errorMessage = "請先登入後再進行轉檔";
+      } else if (error.response?.status === 429) {
+        errorMessage = "請求過於頻繁，請稍後再試";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "伺服器暫時無法處理請求，請稍後再試";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setConversionLoading(false);
     }
   };
 
@@ -734,6 +1076,15 @@ export default function Home() {
       });
     }
   };
+
+  // 組件卸載時清理所有輪詢定時器
+  useEffect(() => {
+    return () => {
+      pollingIntervals.forEach((interval) => {
+        clearTimeout(interval);
+      });
+    };
+  }, [pollingIntervals]);
 
   return (
     <Layout>
@@ -977,8 +1328,8 @@ export default function Home() {
       {/* 任務狀態欄 */}
       {activeJobs.size > 0 && (
         <div
-          className={`fixed bottom-4 right-4 w-72 bg-white rounded-lg shadow-lg border border-sky-100 z-40 transition-all duration-300 overflow-hidden ${
-            statusBarCollapsed ? "h-12" : "max-h-80"
+          className={`fixed bottom-4 right-4 w-80 bg-white rounded-lg shadow-lg border border-sky-100 z-40 transition-all duration-300 overflow-hidden ${
+            statusBarCollapsed ? "h-12" : "max-h-96"
           }`}
         >
           <div
@@ -989,6 +1340,14 @@ export default function Home() {
               轉檔任務 ({activeJobs.size})
             </h3>
             <div className="flex items-center gap-2">
+              <span className="text-xs opacity-75">
+                {formatTimeRemaining(
+                  Math.floor(
+                    (new Date().getTime() - lastSyncTime.getTime()) / 1000
+                  )
+                )}{" "}
+                前更新
+              </span>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1006,7 +1365,7 @@ export default function Home() {
           </div>
           <div
             className={`overflow-y-auto ${
-              statusBarCollapsed ? "hidden" : "max-h-72"
+              statusBarCollapsed ? "hidden" : "max-h-80"
             }`}
           >
             {Array.from(activeJobs.entries()).map(([jobId, job]) => (
@@ -1014,34 +1373,64 @@ export default function Home() {
                 key={jobId}
                 className="p-3 border-b border-sky-50 hover:bg-sky-50 transition-colors"
               >
-                <div className="flex justify-between items-center">
-                  <div
-                    className="truncate font-medium text-sm mr-2"
-                    style={{ maxWidth: "160px" }}
-                  >
-                    {job.title}
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {getStatusIcon(job.status)}
+                    <div
+                      className="truncate font-medium text-sm"
+                      style={{ maxWidth: "180px" }}
+                      title={job.title}
+                    >
+                      {job.title}
+                    </div>
                   </div>
                   <button
                     onClick={() => removeJob(jobId)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
                   >
                     <X size={16} />
                   </button>
                 </div>
-                <div className="flex justify-between items-center mt-1">
-                  <span
-                    className={`text-xs ${
-                      job.status === "queued" || job.status === "processing"
-                        ? "text-sky-500"
-                        : job.status === "completed"
-                        ? "text-green-500"
-                        : "text-rose-500"
-                    }`}
-                  >
-                    {getStatusText(job.status)}
-                  </span>
+
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span
+                      className={`text-xs font-medium ${
+                        job.status === "queued" || job.status === "processing"
+                          ? "text-sky-600"
+                          : job.status === "completed"
+                          ? "text-green-600"
+                          : job.status === "retrying"
+                          ? "text-orange-600"
+                          : job.status === "cancelled"
+                          ? "text-gray-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {getStatusText(job)}
+                    </span>
+                    {job.estimatedTimeRemaining &&
+                      job.status === "processing" && (
+                        <span className="text-xs text-gray-500">
+                          {formatTimeRemaining(job.estimatedTimeRemaining)}
+                        </span>
+                      )}
+                  </div>
+
+                  {/* 進度條 */}
+                  <ProgressBar progress={job.progress} />
+
+                  {/* 錯誤信息 */}
+                  {job.errorMessage &&
+                    (job.status === "failed" || job.status === "retrying") && (
+                      <div className="text-xs text-red-500 bg-red-50 p-1 rounded mt-1">
+                        {job.errorMessage}
+                      </div>
+                    )}
+
+                  {/* 操作按鈕 */}
                   {job.status === "completed" && job.publicUrl && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 mt-2">
                       <a
                         href={job.publicUrl}
                         target="_blank"
@@ -1056,6 +1445,16 @@ export default function Home() {
                       )}
                     </div>
                   )}
+
+                  {/* 任務時間信息 */}
+                  <div className="text-xs text-gray-400 mt-1">
+                    開始時間：{job.startTime.toLocaleTimeString()}
+                    {job.lastUpdated.getTime() !== job.startTime.getTime() && (
+                      <span className="ml-2">
+                        更新：{job.lastUpdated.toLocaleTimeString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

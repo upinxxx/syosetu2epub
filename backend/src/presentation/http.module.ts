@@ -3,12 +3,13 @@ import { NovelController } from './novel.controller.js';
 import { AuthController } from './auth.controller.js';
 import { KindleDeliveryController } from './kindle-delivery.controller.js';
 import { UserController } from '@/presentation/user.controller.js';
+import { HealthController } from './health.controller.js';
 import { PassportModule } from '@nestjs/passport';
 import { PreviewModule } from '@/application/preview/preview.module.js';
 import { ConvertModule } from '@/application/convert/convert.module.js';
 import { AuthModule } from '@/application/auth/auth.module.js';
 import { KindleDeliveryModule } from '@/application/kindle-delivery/kindle-delivery.module.js';
-import { JobsModule } from '@/application/jobs/jobs.module.js';
+import { HealthModule } from '@/application/health/health.module.js';
 import { UserModule } from '@/application/user/user.module.js';
 
 /**
@@ -22,7 +23,7 @@ import { UserModule } from '@/application/user/user.module.js';
     ConvertModule,
     AuthModule,
     KindleDeliveryModule,
-    JobsModule,
+    HealthModule, // 健康檢查模組
     UserModule,
 
     // Passport 認證框架
@@ -33,6 +34,7 @@ import { UserModule } from '@/application/user/user.module.js';
     AuthController, // 認證相關控制器
     KindleDeliveryController, // Kindle 交付控制器
     UserController, // 用戶相關控制器
+    HealthController, // 健康檢查控制器
   ],
   providers: [],
 })

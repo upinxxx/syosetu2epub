@@ -54,11 +54,15 @@ export class EpubQueueProcessor extends WorkerHost {
         throw new Error('ConvertFacade.processJob 方法未定義');
       }
 
-      // 執行任務處理
-      this.logger.log(`開始處理任務 ${job.id}，調用 processJob 方法`);
+      // 🔑 執行任務處理 - 關鍵修復：確保傳遞完整的任務數據，包括 userId
+      this.logger.log(
+        `開始處理任務 ${job.id}，調用 processJob 方法 - userId: ${jobData.userId || 'anonymous'}`,
+      );
+
       await this.convertFacade.processJob({
         jobId: jobData.jobId,
         novelId: jobData.novelId,
+        userId: jobData.userId, // 🔑 關鍵修復：傳遞 userId
       });
 
       this.logger.log(`任務 ${job.id} 處理完成`);

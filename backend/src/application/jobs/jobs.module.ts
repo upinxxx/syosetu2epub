@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JobStatusSyncService } from './job-status-sync.service.js';
+import { DataConsistencyValidator } from './data-consistency-validator.service.js';
 import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js';
 
 /**
@@ -14,10 +15,14 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
   providers: [
     // 任務狀態同步服務
     JobStatusSyncService,
+    // 數據一致性驗證服務
+    DataConsistencyValidator,
   ],
   exports: [
     // 導出任務狀態同步服務，供排程器使用
     JobStatusSyncService,
+    // 導出數據一致性驗證服務
+    DataConsistencyValidator,
   ],
 })
 export class JobsModule {}
