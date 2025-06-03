@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 import { NovelController } from './novel.controller.js';
+import { ConversionController } from './conversion.controller.js';
 import { AuthController } from './auth.controller.js';
 import { KindleDeliveryController } from './kindle-delivery.controller.js';
 import { UserController } from '@/presentation/user.controller.js';
-import { HealthController } from './health.controller.js';
+import {
+  HealthController,
+  HealthMetricsController,
+} from './health.controller.js';
 import { PassportModule } from '@nestjs/passport';
 import { PreviewModule } from '@/application/preview/preview.module.js';
 import { ConvertModule } from '@/application/convert/convert.module.js';
@@ -30,11 +34,13 @@ import { UserModule } from '@/application/user/user.module.js';
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [
-    NovelController, // 小說相關控制器
+    NovelController, // 小說預覽相關控制器
+    ConversionController, // 轉檔相關控制器
     AuthController, // 認證相關控制器
     KindleDeliveryController, // Kindle 交付控制器
     UserController, // 用戶相關控制器
-    HealthController, // 健康檢查控制器
+    HealthController, // 健康檢查控制器 (無前綴)
+    HealthMetricsController, // 健康檢查指標控制器 (有前綴)
   ],
   providers: [],
 })

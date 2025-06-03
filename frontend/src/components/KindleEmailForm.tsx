@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/contexts";
-import axios from "@/lib/axios";
+import { apiClient } from "@/lib/api-client";
+import type { UpdateProfileDto } from "@/lib/api-client";
 import AmazonKindleSetupGuide from "./AmazonKindleSetupGuide";
 
 interface KindleEmailFormProps {
@@ -55,11 +56,13 @@ export default function KindleEmailForm({
       setIsSubmitting(true);
 
       // 呼叫API更新用戶的Kindle郵箱
-      const response = await axios.put("/api/user/profile", {
+      const requestData: UpdateProfileDto = {
         kindleEmail: kindleEmail,
-      });
+      };
 
-      if (response.data) {
+      const response = await apiClient.users.updateProfile(requestData);
+
+      if (response.success) {
         // 更新本地用戶狀態 - 使用強制刷新確保立即更新
         await refreshAuth(true);
 

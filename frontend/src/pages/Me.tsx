@@ -14,6 +14,7 @@ import RecentTasksList from "@/components/RecentTasksList";
 import { useAuth } from "@/lib/contexts";
 import { CheckCircle, XCircle, Settings, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { apiClient } from "@/lib/api-client";
 
 export default function Me() {
   const { user } = useAuth();
@@ -32,31 +33,21 @@ export default function Me() {
         description: "請稍候",
       });
 
-      const response = await fetch("/api/kindle/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jobId: jobId,
-          kindleEmail: user.kindleEmail,
-        }),
-        credentials: "include",
+      const response = await apiClient.kindle.send({
+        jobId: jobId,
+        kindleEmail: user.kindleEmail,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "發送失敗");
+      if (!response.success) {
+        throw new Error(response.message || "發送失敗");
       }
 
-      const data = await response.json();
-
-      if (data.success || data.data) {
+      if (response.success || response.data) {
         toast.success("EPUB 已加入 Kindle 發送隊列", {
           description: "請稍後查看您的 Kindle 設備",
         });
       } else {
-        throw new Error(data.message || "發送失敗");
+        throw new Error(response.message || "發送失敗");
       }
     } catch (error: any) {
       console.error("發送到 Kindle 失敗:", error);

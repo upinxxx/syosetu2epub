@@ -11,8 +11,8 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ className }) => {
     // 由於代理連接有問題，直接連接到後端
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-    // 重定向到 Google OAuth 登入頁面
-    window.location.href = `${apiUrl}/api/auth/google`;
+    // 重定向到 Google OAuth 登入頁面 (使用新的 API v1 路徑)
+    window.location.href = `${apiUrl}/api/v1/auth/google`;
   };
 
   return (

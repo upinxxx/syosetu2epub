@@ -11,7 +11,8 @@ import {
 import { useAuth } from "@/lib/contexts";
 import { useCooldown } from "@/lib/hooks/useCooldown";
 import KindleEmailForm from "./KindleEmailForm";
-import { Clock } from "lucide-react";
+import { Clock, Send, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 
 interface SendToKindleButtonProps {
   epubJobId: string;
@@ -100,48 +101,40 @@ export default function SendToKindleButton({
       setIsLoading(true);
 
       // 呼叫API發送EPUB到Kindle
-      const response = await fetch("/api/kindle/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jobId: epubJobId,
-          kindleEmail: user?.kindleEmail,
-        }),
-        credentials: "include",
+      const response = await apiClient.kindle.send({
+        jobId: epubJobId,
+        kindleEmail: user?.kindleEmail || "",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-
+      if (!response.success) {
         // 檢查是否為冷卻錯誤
-        if (response.status === 400 && errorData.message?.includes("請等待")) {
-          handleServerCooldownError(errorData.message);
-          toast.error(errorData.message, {
+        if (response.message?.includes("請等待")) {
+          handleServerCooldownError(response.message);
+          toast.error(response.message, {
             description: "發送冷卻中",
           });
           setIsDialogOpen(false);
           return;
         }
 
-        throw new Error(errorData.message || "發送失敗");
+        throw new Error(response.message || "發送失敗");
       }
-
-      const data = await response.json();
 
       // 發送成功，開始冷卻
       startCooldown();
 
       // 保存交付ID，用於後續狀態查詢
-      setDeliveryId(data.data.id);
-      setDeliveryStatus(data.data.status);
+      const deliveryId = response.data?.deliveryId;
+      if (deliveryId) {
+        setDeliveryId(deliveryId);
+        setDeliveryStatus("pending");
 
-      // 切換到狀態追蹤模式
-      setDialogMode("status");
+        // 切換到狀態追蹤模式
+        setDialogMode("status");
 
-      // 開始輪詢狀態
-      startStatusPolling(data.data.id);
+        // 開始輪詢狀態
+        startStatusPolling(deliveryId);
+      }
 
       // 顯示成功提示
       toast.success("EPUB已加入發送隊列，請稍後查看您的Kindle", {
@@ -186,23 +179,22 @@ export default function SendToKindleButton({
   // 查詢交付狀態
   const fetchDeliveryStatus = async (id: string) => {
     try {
-      const response = await fetch(`/api/kindle/delivery-status/${id}`, {
-        credentials: "include",
-      });
+      const response = await apiClient.kindle.getStatus(id);
 
-      if (!response.ok) {
+      if (!response.success) {
         throw new Error("獲取交付狀態失敗");
       }
 
-      const data = (await response.json()) as DeliveryStatusResponse;
+      const delivery = response.data?.delivery;
+      if (delivery) {
+        setDeliveryStatus(delivery.status);
+        setErrorMessage(delivery.errorMessage || null);
+        setPollRetryCount(0); // 重置重試次數
 
-      setDeliveryStatus(data.data.status);
-      setErrorMessage(data.data.errorMessage || null);
-      setPollRetryCount(0); // 重置重試次數
-
-      // 如果狀態為已完成或失敗，停止輪詢
-      if (data.data.status === "completed" || data.data.status === "failed") {
-        stopStatusPolling();
+        // 如果狀態為已完成或失敗，停止輪詢
+        if (delivery.status === "completed" || delivery.status === "failed") {
+          stopStatusPolling();
+        }
       }
     } catch (error) {
       console.error("獲取交付狀態失敗:", error);

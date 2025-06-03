@@ -30,6 +30,12 @@ import { QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
       {
         name: 'kindle-delivery',
       },
+      {
+        name: 'health',
+      },
+      {
+        name: 'conversion',
+      },
     ),
   ],
   providers: [

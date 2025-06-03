@@ -5,6 +5,9 @@ import { GetPreviewJobStatusUseCase } from './use-cases/get-preview-job-status.u
 import { PreviewNovelUseCase } from './use-cases/preview-novel.use-case.js';
 import { ProcessPreviewUseCase } from './use-cases/process-preview-job.use-case.js';
 import { PreviewFacade } from './preview.facade.js';
+import { PreviewCacheService } from './services/preview-cache.service.js';
+import { PreviewCacheAdapter } from '@/infrastructure/services/preview-cache.adapter.js';
+import { PREVIEW_CACHE_TOKEN } from '@/domain/ports/services/preview-cache.port.js';
 import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js';
 
 /**
@@ -16,6 +19,16 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
     InfrastructureModule,
   ],
   providers: [
+    // 預覽緩存服務
+    {
+      provide: PreviewCacheService,
+      useClass: PreviewCacheService,
+    },
+    // 預覽緩存適配器
+    {
+      provide: PREVIEW_CACHE_TOKEN,
+      useClass: PreviewCacheAdapter,
+    },
     // 預覽相關用例
     {
       provide: AddPreviewJobUseCase,
@@ -44,8 +57,9 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
     },
   ],
   exports: [
-    // 僅導出 Facade
+    // 僅導出 Facade 和緩存服務
     PreviewFacade,
+    PreviewCacheService,
   ],
 })
 export class PreviewModule {}

@@ -10,6 +10,7 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
 
 /**
  * 轉換相關模組
+ * 遵循六角架構原則：僅輸出 Facade，隱藏内部 Use Case 實現
  */
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
     InfrastructureModule,
   ],
   providers: [
-    // 轉換相關用例
+    // 轉換相關用例 (內部實現，不對外暴露)
     {
       provide: SubmitEpubJobUseCase,
       useClass: SubmitEpubJobUseCase,
@@ -42,17 +43,16 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
       provide: GetUserJobHistoryUseCase,
       useClass: GetUserJobHistoryUseCase,
     },
-    // Facade
+    // 統一門面（唯一對外介面）
     {
       provide: ConvertFacade,
       useClass: ConvertFacade,
     },
   ],
   exports: [
-    // 僅導出 Facade
+    // 僅導出 Facade - 遵循六角架構原則
+    // 所有轉換相關功能都通過 ConvertFacade 統一提供
     ConvertFacade,
-    // 導出用戶任務歷史查詢用例供其他模組使用
-    GetUserJobHistoryUseCase,
   ],
 })
 export class ConvertModule {}

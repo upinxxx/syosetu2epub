@@ -13,7 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import axios from "@/lib/axios";
+import { apiClient } from "@/lib/api-client";
 import { AxiosError } from "axios";
 import { useAuth } from "@/lib/contexts";
 import { useCooldown } from "@/lib/hooks/useCooldown";
@@ -68,27 +68,22 @@ export default function RecentTasksList({
     try {
       console.log(`開始獲取用戶 ${user.id} 的最近任務`);
 
-      const response = await axios.get(
-        `/api/user/recent-jobs?days=${DEFAULT_DAYS}`,
-        {
-          timeout: 10000,
-          headers: {
-            Accept: "application/json",
-          },
-        }
-      );
+      const response = await apiClient.users.getRecentJobs(DEFAULT_DAYS);
 
-      console.log("最近任務 API 響應:", response.data);
+      console.log("最近任務 API 響應:", response);
 
-      if (response.data.success && Array.isArray(response.data.jobs)) {
-        setTasks(response.data.jobs);
-        console.log(`成功載入 ${response.data.jobs.length} 筆最近任務`);
+      // 處理統一回應格式：{ success: true, data: { success: true, jobs: [...] }, timestamp }
+      const jobsData = response.data?.jobs || response.data || [];
 
-        if (response.data.jobs.length === 0) {
+      if (response.success && Array.isArray(jobsData)) {
+        setTasks(jobsData);
+        console.log(`成功載入 ${jobsData.length} 筆最近任務`);
+
+        if (jobsData.length === 0) {
           console.log("用戶暫無最近任務");
         }
       } else {
-        console.warn("API 響應格式異常:", response.data);
+        console.warn("API 響應格式異常:", response);
         setTasks([]);
         setError("響應格式異常");
       }

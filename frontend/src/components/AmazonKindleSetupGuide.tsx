@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ExternalLink, CheckCircle, Clock } from "lucide-react";
-import axios from "@/lib/axios";
+import { apiClient } from "@/lib/api-client";
 
 interface AmazonKindleSetupGuideProps {
   onComplete: () => void;
@@ -23,8 +23,10 @@ export default function AmazonKindleSetupGuide({
   useEffect(() => {
     const fetchSenderEmail = async () => {
       try {
-        const response = await axios.get("/api/user/sender-email");
-        setSenderEmail(response.data.senderEmail);
+        const response = await apiClient.users.getSenderEmail();
+        setSenderEmail(
+          response.data?.senderEmail || "noreply@kindle.syosetu2epub.online"
+        );
       } catch (error) {
         console.error("獲取寄件人郵箱失敗:", error);
         setSenderEmail("noreply@kindle.syosetu2epub.online");

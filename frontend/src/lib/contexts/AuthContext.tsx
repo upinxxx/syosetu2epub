@@ -7,7 +7,8 @@ import React, {
   useCallback,
 } from "react";
 import type { ReactNode } from "react";
-import axios from "@/lib/axios";
+import { apiClient } from "@/lib/api-client";
+import type { UserProfile } from "@/lib/api-client";
 import { isAxiosError, AxiosError } from "axios";
 
 interface User {
@@ -90,10 +91,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return;
         }
 
-        const response = await axios.get("/api/auth/status");
+        const response = await apiClient.auth.me();
 
         console.log("認證狀態響應:", response.data);
-        if (response.data.isAuthenticated) {
+        if (response.success && response.data?.isAuthenticated) {
           setUser(response.data.user);
           setIsAuthenticated(true);
         } else {
@@ -124,7 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
-      await axios.post("/api/auth/logout", {});
+      await apiClient.auth.logout();
       setUser(null);
       setIsAuthenticated(false);
       // 重置認證檢查時間並清除快取

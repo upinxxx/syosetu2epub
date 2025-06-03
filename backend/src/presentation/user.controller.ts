@@ -12,19 +12,28 @@ import { AuthGuard } from '@nestjs/passport';
 import { UserFacade } from '@/application/user/user.facade.js';
 import { UpdateProfileDto } from '@/application/user/dto/update-profile.dto.js';
 import { ConfigService } from '@nestjs/config';
-import { GetUserJobHistoryUseCase } from '@/application/convert/use-cases/get-user-job-history.use-case.js';
+import { ConvertFacade } from '@/application/convert/convert.facade.js';
 
-@Controller('api/user')
+/**
+ * 用戶 Controller
+ * 處理與用戶相關的 HTTP 請求
+ * 遵循六角架構：僅依賴 Facade，無直接業務邏輯
+ */
+@Controller('users')
 export class UserController {
   constructor(
     @Inject(UserFacade)
     private readonly userFacade: UserFacade,
     @Inject(ConfigService)
     private readonly configService: ConfigService,
-    @Inject(GetUserJobHistoryUseCase)
-    private readonly getUserJobHistoryUseCase: GetUserJobHistoryUseCase,
+    @Inject(ConvertFacade)
+    private readonly convertFacade: ConvertFacade,
   ) {}
 
+  /**
+   * 獲取用戶資料
+   * GET /api/v1/users/profile
+   */
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   async getProfile(@Request() req) {
@@ -41,6 +50,10 @@ export class UserController {
     };
   }
 
+  /**
+   * 更新用戶資料
+   * PUT /api/v1/users/profile
+   */
   @Put('profile')
   @UseGuards(AuthGuard('jwt'))
   async updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
@@ -56,6 +69,10 @@ export class UserController {
     };
   }
 
+  /**
+   * 獲取發送郵箱
+   * GET /api/v1/users/sender-email
+   */
   @Get('sender-email')
   async getSenderEmail() {
     const resendConfig = this.configService.get('resend');
@@ -67,6 +84,10 @@ export class UserController {
     };
   }
 
+  /**
+   * 獲取任務歷史
+   * GET /api/v1/users/job-history
+   */
   @Get('job-history')
   @UseGuards(AuthGuard('jwt'))
   async getJobHistory(
@@ -75,17 +96,18 @@ export class UserController {
     @Query('limit') limit: number = 10,
   ) {
     const userId = req.user.sub;
-    return this.getUserJobHistoryUseCase.execute(userId, page, limit);
+    return this.convertFacade.getUserJobHistory(userId, page, limit);
   }
 
+  /**
+   * 獲取最近任務
+   * GET /api/v1/users/recent-jobs
+   */
   @Get('recent-jobs')
   @UseGuards(AuthGuard('jwt'))
   async getRecentJobs(@Request() req, @Query('days') days: number = 7) {
     const userId = req.user.sub;
-    const jobs = await this.getUserJobHistoryUseCase.getRecentJobs(
-      userId,
-      days,
-    );
+    const jobs = await this.convertFacade.getUserRecentJobs(userId, days);
 
     return {
       success: true,

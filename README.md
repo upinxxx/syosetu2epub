@@ -1,128 +1,139 @@
 # Syosetu2EPUB
 
-## 專案簡介
+## 📖 專案簡介
 
 Syosetu2EPUB 是一個全棧應用程式，允許使用者輸入小說網站的 URL（初始支援日本小說網站如「小説家になろう」和「カクヨム」等），自動抓取內容並轉換為 EPUB 電子書格式，最後提供下載連結。系統支援非同步處理，會將轉換任務加入佇列並在背景處理，完成後提供下載連結。
 
-主要功能：
+### 🌟 主要功能
 
-- 從網路小說網站抓取內容
-- 生成格式優美的 EPUB 電子書
-- 提供小說預覽功能
-- 使用佇列系統處理耗時任務
-- 任務完成後提供下載連結
-- 支援直接轉寄 EPUB 到 Kindle 閱讀器（僅會員功能）
-- 使用 Google 帳號登入
+- 📚 從網路小說網站抓取內容
+- 📖 生成格式優美的 EPUB 電子書
+- 👀 提供小說預覽功能
+- ⚡ 使用佇列系統處理耗時任務
+- 📥 任務完成後提供下載連結
+- 📱 支援直接轉寄 EPUB 到 Kindle 閱讀器（僅會員功能）
+- 🔐 使用 Google 帳號登入
+- 🏗️ 遵循六角架構設計原則
+- 🔄 統一的 API v1 規範
 
-## 專案架構
+## 🏛️ 專案架構
 
-## 專案架構（更新後）
+本專案採用 **六角架構（Hexagonal / Ports & Adapters）**，並在 Application 層導入 **子域 + Facade** 模式，確保清晰的依賴關係和高度可測試性。
 
-本專案仍採用 **六角架構（Hexagonal / Ports & Adapters）**，但在 _Application_ 層進一步導入 **子域 + Facade** 的做法，並新增 **Jobs** 子域以集中背景同步邏輯。整體層次及重要資料夾說明如下：
+### 🔄 API v1 統一規範
+
+- **API 前綴**: `/api/v1/` (除健康檢查端點外)
+- **統一回應格式**: 所有 API 都遵循 `{ success: boolean, data: T, timestamp: string }` 格式
+- **錯誤處理**: 統一的錯誤代碼和訊息格式
+- **監控**: 內建 API 請求監控和統計
+- **認證**: JWT Token 通過 HTTP-Only Cookie 傳遞
+
+### 📁 後端架構
 
 ```
-src/
-├─ domain/                        # 核心：純商務實體與 Port 介面
+backend/src/
+├─ domain/                        # 🎯 核心：純商務實體與 Port 介面
 │  ├─ entities/
 │  └─ ports/
 │
-├─ application/                   # 應用層：子域 + Facade + Use‑Cases
+├─ application/                   # 🔧 應用層：子域 + Facade + Use‑Cases
 │  ├─ auth/
 │  │   ├─ auth.module.ts
 │  │   ├─ auth.facade.ts          # 統一入口，內部呼叫 Use‑Cases
 │  │   └─ use-cases/
-│  │       ├─ generate-token.use-case.ts
-│  │       ├─ get-current-user.use-case.ts
-│  │       └─ validate-or-create-user.use-case.ts
 │  │
 │  ├─ convert/
 │  │   ├─ convert.module.ts
-│  │   ├─ convert.facade.ts
+│  │   ├─ convert.facade.ts       # 轉檔功能統一門面
 │  │   └─ use-cases/
-│  │       ├─ submit-convert-job.use-case.ts
-│  │       ├─ get-convert-job-status.use-case.ts
-│  │       ├─ generate-epub.use-case.ts
-│  │       └─ download-link.use-case.ts
+│  │
+│  ├─ preview/
+│  │   ├─ preview.module.ts
+│  │   ├─ preview.facade.ts       # 預覽功能統一門面
+│  │   └─ use-cases/
 │  │
 │  ├─ kindle-delivery/
 │  │   ├─ kindle-delivery.module.ts
 │  │   ├─ kindle-delivery.facade.ts
-│  │   ├─ kindle-delivery.processor.ts  # Kindle 交付佇列處理器
 │  │   └─ use-cases/
-│  │       ├─ send-to-kindle.use-case.ts
-│  │       └─ get-delivery-history.query.ts
 │  │
-│  ├─ preview/
-│  │   ├─ preview.module.ts
-│  │   ├─ preview.facade.ts
-│  │   └─ use-cases/
-│  │       ├─ add-preview-job.use-case.ts
-│  │       ├─ get-preview-job-status.use-case.ts
-│  │       └─ preview-novel.use-case.ts
-│  │
-│  └─ jobs/                       # 跨子域背景同步
-│      ├─ jobs.module.ts
-│      └─ services/
-│          └─ job-status-sync.service.ts
+│  └─ health/
+│      ├─ health.module.ts
+│      ├─ health.facade.ts        # 健康檢查統一門面
+│      └─ use-cases/
 │
-├─ infrastructure/                # 具體適配器 (DB / Queue / Mail / Storage …)
+├─ infrastructure/                # 🔌 具體適配器 (DB / Queue / Mail / Storage)
 │  ├─ crawler/
 │  ├─ email/
 │  ├─ queue/                      # BullMQ 連線與封裝
 │  ├─ storage/
 │  └─ repositories/
 │
-├─ presentation/                  # HTTP 入站介面 (Controllers)
-│  ├─ http/                       # REST / GraphQL Controller
-│  │   └─ controllers/
+├─ presentation/                  # 🌐 HTTP 入站介面 (Controllers)
+│  ├─ auth.controller.ts          # 認證相關 API
+│  ├─ user.controller.ts          # 用戶相關 API
+│  ├─ novel.controller.ts         # 小說相關 API
+│  ├─ conversion.controller.ts    # 轉檔相關 API
+│  ├─ kindle-delivery.controller.ts # Kindle 相關 API
+│  └─ health.controller.ts        # 健康檢查 API
 │
-├─ worker/                        # 背景任務處理進程 (BullMQ Processors)
-│  ├─ epub-queue.processor.ts
-│  ├─ preview-queue.processor.ts
-│  └─ worker.module.ts            # 整合 Worker 相關的模組與 Processor
+├─ shared/                        # 🛠️ 共享組件
+│  ├─ interceptors/
+│  │   └─ response-format.interceptor.ts  # 統一回應格式
+│  └─ middleware/
+│      └─ api-monitoring.middleware.ts    # API 監控
 │
-└─ config/                         # TypeORM 等組態
+└─ worker/                        # ⚙️ 背景任務處理進程
+   ├─ epub-queue.processor.ts
+   └─ preview-queue.processor.ts
 ```
 
-### 重要改動摘要
-
-| 區域                            | 說明                                                                                                                                                                                                              |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Application → 子域 + Facade** | 每個子域（auth、convert、preview、kindle‑delivery）暴露一支 `*Facade`，Controller / Worker 只依賴 Facade，內部再呼叫多支 Use‑Cases，保持單一職責且易測。                                                          |
-| **Jobs 子域**                   | 新增 `job-status-sync.service.ts` 負責定時比對佇列與資料庫狀態，統一背景同步流程。                                                                                                                                |
-| **Worker**                      | 大部分的 BullMQ Processor 放在 `src/worker/` 目錄下 (例如 `epub-queue.processor.ts`, `preview-queue.processor.ts`)。這些 Processor 與 HTTP Controller 同樣作為「Ingress Adapter」的角色，處理來自佇列的異步任務。 |
-| **Infrastructure**              | 仍維持對外系統整合（PostgreSQL、Supabase、SES、Redis…），但所有實作僅依賴 Domain Port。                                                                                                                           |
-
-> 這樣的結構讓 **核心業務 (Domain + Use‑Cases)** 與 **框架 / 第三方套件** 解耦；同時 Facade 提供簡潔 API 供多種 Adapter 共用，背景同步與長流程也有專屬模組管理。
-
-前端結構：
+### 🎨 前端架構
 
 ```
-src/
-├─ components/             # UI元件
-├─ pages/                  # 頁面元件
-├─ lib/                    # 通用庫和工具函數
-└─ assets/                 # 靜態資源
+frontend/src/
+├─ components/             # 🧩 UI元件
+├─ pages/                  # 📄 頁面元件
+├─ lib/                    # 🔧 通用庫和工具函數
+│  ├─ api-client.ts       # 統一 API 客戶端
+│  └─ contexts/           # React Context
+└─ assets/                # 🖼️ 靜態資源
 ```
 
-## 技術棧
+### 🔄 依賴流向
 
-### 後端
+```
+Presentation → Application → Domain
+Infrastructure → Domain (僅 Port 介面)
+```
+
+**重要原則**：
+
+- ✅ Controllers 僅依賴 Facade
+- ✅ Facade 編排 Use Cases
+- ✅ Use Cases 包含純業務邏輯
+- ✅ Infrastructure 實作 Domain Ports
+
+## 🛠️ 技術棧
+
+### 後端技術
 
 - **框架**: NestJS + TypeScript
 - **數據庫**: PostgreSQL + TypeORM
-- **佇列系統**: BullMQ + Upstash Redis(可能使用 GCP 自架 Redis)
+- **佇列系統**: BullMQ + Upstash Redis
 - **存儲服務**: Supabase Storage
 - **電子書生成**: 自定義 EPUB 生成器
-- **認證**: Google OAuth
-- **部署環境**: GCP(300 美金試用，短期部屬)+Docker
+- **認證**: Google OAuth + JWT
+- **郵件服務**: Resend
+- **部署環境**: GCP + Docker
 
-### 前端
+### 前端技術
 
 - **框架**: React + TypeScript
 - **構建工具**: Vite
 - **UI 庫**: Tailwind CSS + Shadcn UI
 - **狀態管理**: React Context API
+- **HTTP 客戶端**: 統一 API Client
 - **部署環境**: Vercel
 
 ### 開發工具
@@ -133,112 +144,175 @@ src/
 - **代碼質量**: ESLint, Prettier
 - **模組系統**: ESM
 
-## 功能狀態
+## 📊 功能狀態
 
-### 已完成功能
+### ✅ 已完成功能
 
-- ✅ 小說 URL 預覽功能
-- ✅ 遊客轉換 EPUB 功能
-- ✅ EPUB 轉換佇列系統
-- ✅ EPUB 檔案生成與存儲
-- ✅ 使用 Google 帳號登入(Google OAuth)
-- ✅ 會員專屬功能：將 EPUB 直接轉寄至 Kindle
+- ✅ **API v1 統一規範**: 統一前綴、回應格式、錯誤處理
+- ✅ **六角架構重構**: 清晰的層級分離和依賴管理
+- ✅ **API 監控**: 請求統計、錯誤率、回應時間監控
+- ✅ **小說 URL 預覽功能**: 支援 Narou 和 Kakuyomu
+- ✅ **EPUB 轉換功能**: 遊客和會員都可使用
+- ✅ **佇列系統**: BullMQ 處理非同步任務
+- ✅ **Google OAuth 登入**: 安全的用戶認證
+- ✅ **Kindle 交付功能**: 直接發送到 Kindle 設備
+- ✅ **用戶任務歷史**: 完整的任務追蹤記錄
+- ✅ **統一 API 客戶端**: 前端統一的 API 調用
 
-### 進行中/未完成功能
+### 🔄 進行中功能
 
-- ✅ 用戶任務歷史記錄
-- ✅ 每日轉寄配額管理
 - 🔄 多語言支援
 - 🔄 添加更多小說網站支援
 - 🔄 API 限流與安全性強化
+- 🔄 性能優化和快取策略
 
-## 功能更新
+## 🚀 API v1 端點總覽
 
-### 使用者功能
+### 🏥 健康檢查 (無前綴)
 
-- 新增 `kindleEmail` 欄位，用於存儲使用者的 Kindle 電子郵件地址
-- 移除 `role` 欄位，不再區分使用者角色
-- 新增 API 端點：`GET/PUT /api/user/profile` 用於獲取和更新使用者個人資料
+- `GET /health` - 基本健康檢查 + API 統計
+- `GET /health/quick` - 快速健康檢查
+- `GET /api/v1/health/metrics` - 詳細系統指標 (需認證)
 
-### EPUB 轉換功能
+### 🔐 認證相關
 
-- 新增 `userId` 欄位到 EPUB 任務，記錄誰創建了轉換任務
-- 匿名用戶仍可使用轉換功能，此時 `userId` 為 `null`
+- `GET /api/v1/auth/google` - Google OAuth 登入
+- `GET /api/v1/auth/google/callback` - OAuth 回調
+- `GET /api/v1/auth/me` - 獲取當前用戶
+- `POST /api/v1/auth/logout` - 用戶登出
 
-### Kindle 發送功能
+### 👤 用戶相關
 
-- 新增 Kindle 交付功能，可將 EPUB 檔案發送到指定的 Kindle 電子郵件地址
-- 使用 Resend.com 郵件服務發送電子郵件，支援 EPUB 附件
-- 每日發送配額限制（每位用戶 3 次/日）
-- 支援 `@kindle.com` 和 `@kindle.amazon.com` 格式的 Kindle 郵箱
-- 新增 API 端點：
-  - `POST /api/kindle/send` 發送 EPUB 到 Kindle
-  - `GET /api/kindle/history` 獲取發送歷史記錄
+- `GET /api/v1/users/profile` - 獲取用戶資料
+- `PUT /api/v1/users/profile` - 更新用戶資料
+- `GET /api/v1/users/job-history` - 獲取任務歷史
+- `GET /api/v1/users/recent-jobs` - 獲取最近任務
 
-### Send to Kindle 使用流程
+### 📚 小說相關
 
-1. 會員在「會員中心」頁面設定 Kindle 專屬郵箱（格式必須是 `xxx@kindle.com` 或 `xxx@kindle.amazon.com`）
-2. 在轉換完成的 EPUB 任務頁面，點擊「發送到 Kindle」按鈕
-3. 系統會將 EPUB 檔案從 Supabase Storage 下載，並通過 Resend 郵件服務發送到指定的 Kindle 郵箱
-4. 發送狀態可在「會員中心」的「Kindle 交付歷史」中查看
+- `POST /api/v1/novels/preview` - 預覽小說
+- `GET /api/v1/novels/preview/:jobId` - 獲取預覽狀態
+- `GET /api/v1/novels/:id/preview` - 根據 ID 獲取預覽
 
-### Kindle 電子郵件設定注意事項
+### 🔄 轉檔相關
 
-1. 請確保您在 Amazon 帳戶中已將 `noreply@kindle.syosetu2epub.online` 加入到「已核准的電子郵件清單」中
-2. 某些地區的 Kindle 可能需要支付「個人文件傳送費用」，請參考 Amazon 官方說明
+- `POST /api/v1/conversions` - 提交轉檔任務
+- `GET /api/v1/conversions/:jobId` - 獲取轉檔狀態
+- `GET /api/v1/conversions/:jobId/file` - 獲取下載連結
 
-## 本地開發設定
+### 📱 Kindle 相關
 
-### 環境變數設定
+- `POST /api/v1/kindle/deliveries` - 發送到 Kindle
+- `GET /api/v1/kindle/deliveries/:id` - 獲取交付狀態
+- `GET /api/v1/kindle/deliveries` - 獲取交付歷史
 
-1. 後端環境變數 (backend/.env)：
+## 🔧 本地開發設定
+
+### 📋 環境需求
+
+- Node.js 18+
+- pnpm 8+
+- PostgreSQL 14+
+- Redis 6+
+
+### 🚀 快速開始
+
+1. **克隆專案**
+
+```bash
+git clone https://github.com/your-username/syosetu2epub.git
+cd syosetu2epub
+```
+
+2. **安裝依賴**
+
+```bash
+# 後端
+cd backend
+pnpm install
+
+# 前端
+cd ../frontend
+pnpm install
+```
+
+3. **設定環境變數**
+
+後端環境變數 (`backend/.env`):
 
 ```env
 # 資料庫設定
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
-DB_PASSWORD=postgres
+DB_PASSWORD=your_password
 DB_DATABASE=syosetu2epub
 
-# Resend 郵件服務設定
-RESEND_API_KEY=your_resend_api_key
-RESEND_FROM_EMAIL=noreply@kindle.syosetu2epub.online
+# Redis 設定
+REDIS_URL=redis://localhost:6379
 
-# JWT 認證
-JWT_SECRET=your_jwt_secret_key_here
-
-# Google OAuth 設定
+# Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
 
-# 前端 URL
-FRONTEND_URL=http://localhost:5173
+# JWT 設定
+JWT_SECRET=your_jwt_secret
+
+# Supabase 設定
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Resend 設定
+RESEND_API_KEY=your_resend_api_key
 ```
 
-2. 前端環境變數 (frontend/.env)：
+前端環境變數 (`frontend/.env`):
 
+```env
+VITE_API_BASE=http://localhost:3000
 ```
-VITE_API_URL=http://localhost:3000
-```
 
-### 本地開發與測試
+4. **啟動服務**
 
-啟動開發環境：
+```bash
+# 啟動後端 (在 backend 目錄)
+pnpm run start:dev
 
-```powershell
-# 啟動資料庫
-cd backend
-pnpm run db:up
-
-# 執行資料庫遷移
-pnpm run migrate:run
-
-# 啟動後端服務
-pnpm run dev
-
-# 在另一個終端啟動前端
-cd frontend
+# 啟動前端 (在 frontend 目錄)
 pnpm run dev
 ```
+
+5. **訪問應用**
+
+- 前端: http://localhost:5173
+- 後端 API: http://localhost:3000
+- 健康檢查: http://localhost:3000/health
+
+## 📚 文檔
+
+- [API 文檔](./API.md) - 完整的 API v1 規範
+- [任務計畫](./docs/task.md) - 開發任務追蹤
+- [架構說明](./docs/architecture.md) - 詳細的架構設計
+
+## 🤝 貢獻指南
+
+1. Fork 專案
+2. 創建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 提交變更 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 開啟 Pull Request
+
+## 📄 授權
+
+本專案採用 MIT 授權 - 詳見 [LICENSE](LICENSE) 文件
+
+## 📞 聯絡方式
+
+- 專案連結: [https://github.com/your-username/syosetu2epub](https://github.com/your-username/syosetu2epub)
+- 問題回報: [Issues](https://github.com/your-username/syosetu2epub/issues)
+
+---
+
+**版本**: v1.0.0  
+**最後更新**: 2024-12-21  
+**維護者**: Syosetu2EPUB 開發團隊

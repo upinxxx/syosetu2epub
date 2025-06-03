@@ -4,7 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
-import axios from "@/lib/axios";
+import { apiClient } from "@/lib/api-client";
+import type {
+  PreviewNovelDto,
+  ConvertNovelDto,
+  PreviewResponse,
+  ConversionResponse,
+  ConversionStatusResponse,
+  SendToKindleDto,
+  KindleDeliveryResponse,
+  NovelPreview,
+} from "@/lib/api-client";
 import { useAuth } from "@/lib/contexts";
 import {
   X,
@@ -18,9 +28,22 @@ import {
   XCircle,
   AlertCircle,
   RefreshCw,
+  Download,
+  ExternalLink,
+  History,
+  Send,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Toast, ToastContainer } from "@/components/ui/toast";
 import { toast } from "sonner";
+import {
+  handleError,
+  validateApiResponse,
+  withRetry,
+  ErrorType,
+} from "@/lib/error-handler";
+import { debug } from "@/lib/debug.js";
 import SendToKindleButton from "@/components/SendToKindleButton";
 import RecentTasksModal from "@/components/RecentTasksModal";
 
@@ -70,15 +93,7 @@ const SITE_COLORS = {
   },
 };
 
-// 預覽小說介面
-interface NovelPreview {
-  novelId: string;
-  title: string;
-  author: string;
-  description: string;
-  source: string;
-  sourceId: string;
-}
+// 預覽小說介面 - 移除重複定義，使用從 api-client 導入的類型
 
 // 預覽任務狀態類型
 type PreviewJobStatus = "queued" | "processing" | "completed" | "failed";
@@ -86,6 +101,7 @@ type PreviewJobStatus = "queued" | "processing" | "completed" | "failed";
 // 預覽任務響應介面
 interface PreviewJobResponse {
   success: boolean;
+  cached?: boolean;
   jobId?: string;
   novelId?: string;
   preview?: NovelPreview;
@@ -213,9 +229,203 @@ export default function Home() {
   >(new Map());
   const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
 
+  // 🆕 預覽任務專用的智能輪詢頻率計算
+  const getPreviewPollingInterval = (
+    status: PreviewJobStatus,
+    retryCount: number = 0
+  ): number => {
+    switch (status) {
+      case "queued":
+        return 1500; // 排隊中，1.5秒檢查一次（比轉檔更頻繁）
+      case "processing":
+        return 1000; // 處理中，1秒檢查一次（預覽處理較快）
+      case "completed":
+      case "failed":
+        return 0; // 終止狀態，停止輪詢
+      default:
+        return 1500;
+    }
+  };
+
+  // 🆕 預覽任務輪詢狀態管理
+  const [previewPollingInterval, setPreviewPollingInterval] =
+    useState<NodeJS.Timeout | null>(null);
+  const [previewRetryCount, setPreviewRetryCount] = useState(0);
+
+  // 🆕 清理預覽輪詢定時器
+  const clearPreviewPolling = () => {
+    if (previewPollingInterval) {
+      clearTimeout(previewPollingInterval);
+      setPreviewPollingInterval(null);
+    }
+    setPreviewRetryCount(0);
+  };
+
+  // 🆕 優化的預覽任務輪詢函數
+  const pollPreviewJob = async (jobId: string, retryCount: number = 0) => {
+    try {
+      console.log(`🔄 輪詢預覽任務狀態: ${jobId} (重試次數: ${retryCount})`);
+      const response = await apiClient.novels.getPreviewStatus(jobId, {
+        skipCache: true,
+      });
+
+      console.log("📡 API 原始響應:", response);
+      console.log("📊 響應結構分析:", {
+        hasSuccess: "success" in response,
+        successValue: response.success,
+        hasData: "data" in response,
+        dataKeys: response.data ? Object.keys(response.data) : "no data",
+        dataStatus: response.data?.status,
+        dataPreview: response.data?.preview ? "has preview" : "no preview",
+      });
+
+      if (!response.success) {
+        const errorMsg = response.message || "檢查預覽狀態失敗";
+        console.error("❌ API 響應失敗:", errorMsg);
+        setError(errorMsg);
+        toast.error(errorMsg);
+        setIsLoading(false);
+        clearPreviewPolling();
+        return;
+      }
+
+      // 獲取狀態並轉換為前端使用的狀態類型
+      let status: PreviewJobStatus;
+
+      // 將後端返回的狀態映射到前端狀態
+      const rawStatus = response.data?.status;
+      console.log("🔍 原始狀態值:", rawStatus, typeof rawStatus);
+
+      switch (String(rawStatus)) {
+        case "completed":
+        case "COMPLETED":
+          status = "completed";
+          break;
+        case "failed":
+        case "FAILED":
+          status = "failed";
+          break;
+        case "processing":
+        case "PROCESSING":
+          status = "processing";
+          break;
+        case "queued":
+        case "QUEUED":
+          status = "queued";
+          break;
+        default:
+          console.warn(`⚠️ 未知的任務狀態: ${rawStatus}，默認為 queued`);
+          status = "queued";
+      }
+
+      setPreviewStatus(status);
+      console.log("📈 狀態轉換:", {
+        原始狀態: rawStatus,
+        轉換後狀態: status,
+        是否有預覽數據: !!response.data?.preview,
+      });
+
+      // 根據任務狀態處理
+      switch (status) {
+        case "completed":
+          clearPreviewPolling();
+          if (response.data?.preview) {
+            console.log("設置預覽數據:", response.data.preview);
+            // 每次顯示預覽時重新生成隨機顏色
+            setPreviewColor(getRandomSoftColor());
+            setPreview(response.data.preview);
+            setShowPreview(true);
+            toast.success("小說預覽載入成功！");
+          } else {
+            console.error("預覽數據不完整");
+            const errorMsg = "預覽數據不完整";
+            setError(errorMsg);
+            toast.error(errorMsg);
+          }
+          setIsLoading(false);
+          break;
+
+        case "failed":
+          clearPreviewPolling();
+          const failureMsg = response.message || "獲取預覽失敗";
+          setError(failureMsg);
+          toast.error(failureMsg);
+          setIsLoading(false);
+          break;
+
+        case "processing":
+        case "queued":
+          // 🆕 使用智能輪詢間隔
+          const interval = getPreviewPollingInterval(status, retryCount);
+          console.log(`任務仍在處理中，將在${interval}ms後再次輪詢`);
+
+          const timeoutId = setTimeout(() => {
+            pollPreviewJob(jobId, retryCount);
+          }, interval);
+          setPreviewPollingInterval(timeoutId);
+          break;
+
+        default:
+          clearPreviewPolling();
+          const unknownMsg = "未知的預覽任務狀態";
+          setError(unknownMsg);
+          toast.error(unknownMsg);
+          setIsLoading(false);
+      }
+
+      // 重置重試計數器（成功請求後）
+      setPreviewRetryCount(0);
+    } catch (error: any) {
+      console.error("輪詢預覽任務失敗:", error);
+
+      const standardError = handleError(error, {
+        context: "檢查預覽狀態",
+        showToast: false, // 避免過多通知
+      });
+
+      // 根據錯誤類型決定是否重試
+      const shouldRetry = standardError.shouldRetry && retryCount < 6;
+      const retryDelay = standardError.retryDelay || 3000;
+
+      if (shouldRetry) {
+        const newRetryCount = retryCount + 1;
+        setPreviewRetryCount(newRetryCount);
+        console.log(
+          `預覽輪詢將在${retryDelay}ms後重試 (第${newRetryCount}次重試)`
+        );
+
+        const timeoutId = setTimeout(() => {
+          pollPreviewJob(jobId, newRetryCount);
+        }, retryDelay);
+        setPreviewPollingInterval(timeoutId);
+
+        // 只在前幾次重試時顯示錯誤提示，避免過多通知
+        if (newRetryCount <= 2) {
+          toast.warning(`${standardError.userMessage}，正在重試...`);
+        }
+      } else {
+        clearPreviewPolling();
+        setError(standardError.userMessage);
+        toast.error(standardError.userMessage);
+        setIsLoading(false);
+      }
+    }
+  };
+
   // 組件掛載時設置一個隨機顏色
   useEffect(() => {
     setPreviewColor(getRandomSoftColor());
+  }, []);
+
+  // 🆕 組件清理時清理所有輪詢
+  useEffect(() => {
+    return () => {
+      clearPreviewPolling();
+      // 清理轉檔任務輪詢
+      pollingIntervals.forEach((interval) => {
+        clearTimeout(interval);
+      });
+    };
   }, []);
 
   // 驗證輸入的網址或 ID
@@ -285,286 +495,138 @@ export default function Home() {
   // 處理下載請求
   const handleDownload = async () => {
     if (!source || !sourceId) {
-      setError("請輸入正確的網址或作品 ID");
+      const errorMsg = "請輸入正確的網址或作品 ID";
+      debug.warn("PREVIEW_REQUEST", "預覽請求參數無效", {
+        source,
+        sourceId,
+        errorMessage: errorMsg,
+      });
+      setError(errorMsg);
       return;
     }
 
     setIsLoading(true);
     setError("");
 
-    try {
-      console.log("發送請求獲取預覽:", { source, sourceId });
+    debug.info("PREVIEW_REQUEST", "開始請求小說預覽", {
+      source,
+      sourceId,
+      timestamp: new Date().toISOString(),
+    });
 
+    try {
       // 確保請求數據格式正確
-      const requestData = {
+      const requestData: PreviewNovelDto = {
         source,
         sourceId,
       };
 
-      // 提交預覽請求
-      const response = await axios.post<PreviewJobResponse>(
-        "/novels/preview",
+      debug.debug("PREVIEW_REQUEST", "發送預覽請求", {
         requestData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          timeout: 30000, // 30秒超時
-        }
+        endpoint: "/api/v1/novels/preview",
+      });
+
+      // 提交預覽請求
+      const response = await apiClient.novels.preview(requestData);
+
+      debug.debug("PREVIEW_RESPONSE", "收到預覽響應", {
+        response,
+        responseStructure: Object.keys(response || {}),
+        hasCachedData: !!(response?.data?.cached || (response as any)?.cached),
+        hasPreviewData: !!(
+          response?.data?.preview || (response as any)?.preview
+        ),
+        hasJobId: !!(response?.data?.jobId || (response as any)?.jobId),
+      });
+
+      // 使用統一響應驗證
+      const validation = validateApiResponse<PreviewResponse>(
+        response,
+        "獲取小說預覽"
       );
-
-      console.log("預覽響應:", response.data);
-
-      if (!response.data.success) {
-        const errorMsg = response.data.message || "獲取小說預覽失敗";
-        setError(errorMsg);
-        toast.error(errorMsg);
+      if (!validation.isValid) {
+        debug.warn("PREVIEW_VALIDATION", "預覽響應驗證失敗", {
+          validationError: validation.error,
+          response,
+        });
+        if (validation.error) {
+          setError(validation.error.userMessage);
+        }
         setIsLoading(false);
         return;
       }
 
-      // 如果後端直接返回預覽數據（同步模式）
-      if (response.data.preview) {
-        console.log("設置預覽數據:", response.data.preview);
-        // 每次顯示預覽時重新生成隨機顏色
+      const responseData = validation.data!;
+
+      // 🆕 統一處理：優先處理緩存結果
+      if (responseData.cached && responseData.preview) {
+        // 緩存命中，立即顯示
+        debug.info("PREVIEW_CACHE_HIT", "緩存命中，立即顯示預覽", {
+          novelId: responseData.preview.novelId,
+          title: responseData.preview.title,
+          author: responseData.preview.author,
+          source: responseData.preview.source,
+        });
+
         setPreviewColor(getRandomSoftColor());
-        setPreview(response.data.preview);
+        setPreview(responseData.preview);
         setShowPreview(true);
         setIsLoading(false);
-        toast.success("小說預覽載入成功！");
+        toast.success("小說預覽載入成功！（來自緩存）");
         return;
       }
 
-      // 如果後端返回任務ID（非同步模式）
-      if (response.data.jobId) {
-        setPreviewJobId(response.data.jobId);
+      // 🆕 非緩存結果，開始輪詢
+      if (responseData.jobId) {
+        debug.info("PREVIEW_JOB_CREATED", "創建預覽任務，開始輪詢", {
+          jobId: responseData.jobId,
+          source,
+          sourceId,
+        });
+
+        setPreviewJobId(responseData.jobId);
         setPreviewStatus("queued");
         toast.info("正在處理預覽請求，請稍候...");
-        // 開始輪詢任務狀態
-        pollPreviewJob(response.data.jobId);
-      } else if (response.data.novelId) {
-        console.log("後端返回了novelId，但沒有jobId，將直接獲取預覽數據");
-        try {
-          const previewResponse = await axios.get<PreviewJobResponse>(
-            `/novels/preview/${response.data.novelId}`,
-            {
-              headers: {
-                Accept: "application/json",
-              },
-              timeout: 15000, // 15秒超時
-            }
-          );
-
-          if (previewResponse.data.success && previewResponse.data.preview) {
-            console.log("成功獲取預覽數據:", previewResponse.data.preview);
-            setPreviewColor(getRandomSoftColor());
-            setPreview(previewResponse.data.preview);
-            setShowPreview(true);
-            toast.success("小說預覽載入成功！");
-          } else {
-            const errorMsg = "無法獲取小說預覽詳情";
-            setError(errorMsg);
-            toast.error(errorMsg);
-          }
-        } catch (previewError: any) {
-          console.error("獲取預覽詳情失敗:", previewError);
-
-          // 嘗試使用最小化的資訊創建預覽
-          // 即使無法獲取完整預覽，也可以展示基本資訊並允許用戶繼續
-          try {
-            const minimalPreview: NovelPreview = {
-              novelId: response.data.novelId,
-              title: `${
-                source === "narou" ? "小說家になろう" : "カクヨム"
-              }小說`,
-              author: "作者資訊獲取失敗",
-              description: "無法獲取完整小說資訊，但您仍可繼續轉換流程。",
-              source: source,
-              sourceId: sourceId,
-            };
-
-            setPreviewColor(getRandomSoftColor());
-            setPreview(minimalPreview);
-            setShowPreview(true);
-            toast.warning("預覽資訊不完整，但您仍可繼續轉換");
-            console.log("已創建最小化預覽:", minimalPreview);
-          } catch (e) {
-            const errorMsg = "獲取小說預覽詳情失敗";
-            setError(errorMsg);
-            toast.error(errorMsg);
-          }
-        }
-        setIsLoading(false);
+        // 🆕 使用新的輪詢機制
+        pollPreviewJob(responseData.jobId, 0);
       } else {
+        // 處理舊格式回應（向後相容）
         const errorMsg = "獲取預覽任務 ID 失敗";
+        debug.error("PREVIEW_REQUEST", "響應中缺少 jobId", {
+          responseData,
+          errorMessage: errorMsg,
+        });
         setError(errorMsg);
         toast.error(errorMsg);
         setIsLoading(false);
       }
     } catch (error: any) {
-      console.error("獲取預覽失敗:", error);
-
-      let errorMessage = "獲取預覽過程發生錯誤，請稍後再試";
-
-      // 更詳細的錯誤診斷和用戶友好的錯誤提示
-      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
-        errorMessage = "請求超時，請檢查網路連線或稍後再試";
-      } else if (
-        error.message.includes("Network Error") ||
-        error.code === "ERR_NETWORK"
-      ) {
-        errorMessage = "網路連線失敗，請檢查網路狀態或聯繫管理員";
-      } else if (error.response?.status === 400) {
-        errorMessage =
-          error.response?.data?.message || "請求參數錯誤，請檢查輸入的網址";
-      } else if (error.response?.status === 404) {
-        errorMessage = "找不到指定的小說，請確認網址是否正確";
-      } else if (error.response?.status === 429) {
-        errorMessage = "請求過於頻繁，請稍後再試";
-      } else if (error.response?.status >= 500) {
-        errorMessage = "伺服器暫時無法處理請求，請稍後再試";
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      setError(errorMessage);
-      toast.error(errorMessage);
-      setIsLoading(false);
+      debug.error("PREVIEW_REQUEST", "獲取預覽失敗", {
+        error,
+        errorType: error?.constructor?.name,
+        errorCode: error?.code,
+        errorStatus: error?.response?.status,
+        source,
+        sourceId,
+      });
+      handlePreviewError(error);
     }
   };
 
-  // 輪詢預覽任務狀態
-  const pollPreviewJob = async (jobId: string) => {
-    try {
-      console.log("輪詢預覽任務狀態:", jobId);
-      const response = await axios.get<PreviewJobResponse>(
-        `/novels/preview-status/${jobId}`,
-        {
-          headers: {
-            Accept: "application/json",
-          },
-          timeout: 10000, // 10秒超時
-        }
-      );
+  // 🆕 簡化的錯誤處理函數 - 使用統一錯誤處理工具
+  const handlePreviewError = (error: any) => {
+    debug.error("PREVIEW_ERROR", "預覽請求錯誤處理", {
+      error,
+      context: "獲取小說預覽",
+    });
 
-      console.log("預覽狀態響應:", response.data);
+    const standardError = handleError(error, {
+      context: "獲取小說預覽",
+      showToast: true,
+    });
 
-      if (!response.data.success) {
-        const errorMsg = response.data.message || "檢查預覽狀態失敗";
-        setError(errorMsg);
-        toast.error(errorMsg);
-        setIsLoading(false);
-        return;
-      }
-
-      // 獲取狀態並轉換為前端使用的狀態類型
-      let status: PreviewJobStatus;
-
-      // 將後端返回的狀態映射到前端狀態
-      switch (String(response.data.status)) {
-        case "completed":
-        case "COMPLETED":
-          status = "completed";
-          break;
-        case "failed":
-        case "FAILED":
-          status = "failed";
-          break;
-        case "processing":
-        case "PROCESSING":
-          status = "processing";
-          break;
-        case "queued":
-        case "QUEUED":
-          status = "queued";
-          break;
-        default:
-          console.warn(
-            `未知的任務狀態: ${response.data.status}，默認為 queued`
-          );
-          status = "queued";
-      }
-
-      setPreviewStatus(status);
-      console.log("預覽任務狀態(原始):", response.data.status);
-      console.log("預覽任務狀態(轉換後):", status);
-
-      // 根據任務狀態處理
-      switch (status) {
-        case "completed":
-          if (response.data.preview) {
-            console.log("設置預覽數據:", response.data.preview);
-            // 每次顯示預覽時重新生成隨機顏色
-            setPreviewColor(getRandomSoftColor());
-            setPreview(response.data.preview);
-            setShowPreview(true);
-            toast.success("小說預覽載入成功！");
-          } else {
-            console.error("預覽數據不完整");
-            const errorMsg = "預覽數據不完整";
-            setError(errorMsg);
-            toast.error(errorMsg);
-          }
-          setIsLoading(false);
-          break;
-
-        case "failed":
-          const failureMsg = response.data.message || "獲取預覽失敗";
-          setError(failureMsg);
-          toast.error(failureMsg);
-          setIsLoading(false);
-          break;
-
-        case "processing":
-        case "queued":
-          // 繼續輪詢，設置延遲以避免過於頻繁的請求
-          console.log("任務仍在處理中，將在2秒後再次輪詢");
-          setTimeout(() => pollPreviewJob(jobId), 2000);
-          break;
-
-        default:
-          const unknownMsg = "未知的預覽任務狀態";
-          setError(unknownMsg);
-          toast.error(unknownMsg);
-          setIsLoading(false);
-      }
-    } catch (error: any) {
-      console.error("輪詢預覽任務失敗:", error);
-
-      let errorMessage = "檢查預覽狀態時發生錯誤";
-      let shouldRetry = false;
-
-      // 更詳細的錯誤診斷
-      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
-        errorMessage = "檢查預覽狀態超時";
-        shouldRetry = true;
-      } else if (
-        error.message.includes("Network Error") ||
-        error.code === "ERR_NETWORK"
-      ) {
-        errorMessage = "網路連線失敗，無法檢查預覽狀態";
-        shouldRetry = true;
-      } else if (error.response?.status === 404) {
-        errorMessage = "找不到該預覽任務";
-      } else if (error.response?.status >= 500) {
-        errorMessage = "伺服器暫時無法回應";
-        shouldRetry = true;
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      setError(errorMessage);
-      toast.error(errorMessage);
-
-      if (shouldRetry) {
-        // 網路或超時錯誤時繼續重試，但延長間隔
-        console.log("將在5秒後重試檢查預覽狀態");
-        setTimeout(() => pollPreviewJob(jobId), 5000);
-      } else {
-        setIsLoading(false);
-      }
-    }
+    setError(standardError.userMessage);
+    setIsLoading(false);
   };
 
   // 智能輪詢頻率計算
@@ -608,25 +670,84 @@ export default function Home() {
     source: string
   ) => {
     try {
-      const response = await axios.get<ConversionJobResponse>(
-        `/novels/convert/${jobId}/status`,
-        {
-          timeout: 10000, // 10秒超時
-        }
-      );
+      debug.info("JOB_POLLING", `開始檢查轉檔任務狀態: ${jobId}`, {
+        jobId,
+        title,
+        source,
+      });
 
-      if (!response.data.success) {
-        const errorMsg = response.data.message || "檢查任務狀態失敗";
+      const response = await apiClient.conversions.getStatus(jobId, {
+        skipCache: true,
+      });
+
+      // 記錄完整響應數據和格式驗證
+      debug.debug("JOB_POLLING", `轉檔任務 ${jobId} API 響應`, {
+        jobId,
+        response,
+        responseStructure: Object.keys(response || {}),
+      });
+
+      // 驗證響應格式
+      const {
+        isValid,
+        data: validatedData,
+        error: validationError,
+      } = validateApiResponse(response, "轉檔狀態查詢");
+
+      if (!isValid || !response.success) {
+        const errorMsg =
+          validationError?.userMessage ||
+          response.message ||
+          "檢查任務狀態失敗";
+
+        debug.warn("JOB_POLLING", `任務狀態查詢失敗: ${jobId}`, {
+          jobId,
+          error: errorMsg,
+          validationError,
+          response,
+        });
+
         updateJobStatus(jobId, "failed", errorMsg);
         toast.error(`任務失敗：${title} - ${errorMsg}`);
         clearPollingInterval(jobId);
         return;
       }
 
+      // 正確解析狀態：從 ApiResponse 包裝中提取數據
+      // response 的結構是 ApiResponse<ConversionStatusResponse>
+      // 如果有 data 字段，使用 response.data，否則使用 response 本身（向後兼容）
+      let statusSource: any;
+
+      if ("data" in response && response.data) {
+        // 新的統一格式：{ success: true, data: ConversionStatusResponse }
+        statusSource = response.data;
+        debug.verbose("JOB_POLLING", `使用統一格式響應: ${jobId}`, {
+          statusSource,
+        });
+      } else {
+        // 直接返回的格式：ConversionStatusResponse（包含 success 字段）
+        statusSource = response;
+        debug.verbose("JOB_POLLING", `使用直接格式響應: ${jobId}`, {
+          statusSource,
+        });
+      }
+
       // 將後端返回的狀態映射到前端狀態
       let status: ConversionJobStatus;
 
-      switch (String(response.data.status)) {
+      const rawStatus = statusSource?.status;
+
+      debug.debug("JOB_POLLING", `轉檔任務狀態解析: ${jobId}`, {
+        jobId,
+        rawStatus,
+        statusSource: {
+          ...statusSource,
+          // 不記錄可能的敏感信息
+          publicUrl: statusSource?.publicUrl ? "[URL]" : undefined,
+        },
+      });
+
+      switch (String(rawStatus)) {
         case "completed":
         case "COMPLETED":
           status = "completed";
@@ -652,19 +773,27 @@ export default function Home() {
           status = "cancelled";
           break;
         default:
-          console.warn(
-            `未知的轉檔任務狀態: ${response.data.status}，默認為 failed`
-          );
+          debug.warn("JOB_POLLING", `未知的轉檔任務狀態: ${jobId}`, {
+            jobId,
+            rawStatus,
+            fallbackStatus: "failed",
+          });
           status = "failed";
       }
 
-      console.log(`轉檔任務 ${jobId} 狀態(原始): ${response.data.status}`);
-      console.log(`轉檔任務 ${jobId} 狀態(轉換後): ${status}`);
+      debug.info("JOB_POLLING", `轉檔任務狀態轉換: ${jobId}`, {
+        jobId,
+        rawStatus,
+        finalStatus: status,
+        hasPublicUrl: !!statusSource?.publicUrl,
+        progress: statusSource?.progress,
+        currentStep: statusSource?.currentStep,
+      });
 
-      const publicUrl = response.data.publicUrl;
-      const progress = response.data.progress;
-      const estimatedTimeRemaining = response.data.estimatedTimeRemaining;
-      const currentStep = response.data.currentStep;
+      const publicUrl = statusSource?.publicUrl;
+      const progress = statusSource?.progress;
+      const estimatedTimeRemaining = statusSource?.estimatedTimeRemaining;
+      const currentStep = statusSource?.currentStep;
 
       // 更新任務狀態
       updateJobStatus(
@@ -682,11 +811,20 @@ export default function Home() {
         case "completed":
           // 任務完成，停止輪詢
           clearPollingInterval(jobId);
+          debug.info("JOB_COMPLETED", `轉檔任務完成: ${jobId}`, {
+            jobId,
+            title,
+            hasDownloadUrl: !!publicUrl,
+          });
           toast.success(`轉檔完成：${title}`, {
             action: {
               label: "下載",
               onClick: () => {
                 if (publicUrl) {
+                  debug.info("JOB_DOWNLOAD", `開始下載: ${jobId}`, {
+                    jobId,
+                    title,
+                  });
                   window.open(publicUrl, "_blank");
                 }
               },
@@ -699,8 +837,16 @@ export default function Home() {
           // 任務失敗或取消，停止輪詢
           clearPollingInterval(jobId);
           const failureMsg =
-            response.data.message ||
+            statusSource?.message ||
             (status === "cancelled" ? "任務已取消" : "轉檔過程發生錯誤");
+
+          debug.warn("JOB_FAILED", `轉檔任務失敗或取消: ${jobId}`, {
+            jobId,
+            title,
+            status,
+            errorMessage: failureMsg,
+          });
+
           updateJobStatus(jobId, status, failureMsg);
           toast.error(
             `${
@@ -717,6 +863,15 @@ export default function Home() {
           const retryCount = currentJob?.retryCount || 0;
           const interval = getPollingInterval(status, retryCount);
 
+          debug.verbose("JOB_POLLING", `繼續輪詢任務: ${jobId}`, {
+            jobId,
+            status,
+            retryCount,
+            nextPollInterval: interval,
+            currentStep,
+            progress,
+          });
+
           if (interval > 0) {
             const timeoutId = setTimeout(
               () => pollJobStatus(jobId, title, source),
@@ -732,6 +887,11 @@ export default function Home() {
 
         default:
           clearPollingInterval(jobId);
+          debug.error("JOB_POLLING", `任務狀態異常: ${jobId}`, {
+            jobId,
+            status,
+            title,
+          });
           updateJobStatus(jobId, "failed", "未知的任務狀態");
           toast.error(`任務狀態異常：${title}`);
       }
@@ -739,41 +899,42 @@ export default function Home() {
       // 更新最後同步時間
       setLastSyncTime(new Date());
     } catch (error: any) {
-      console.error("輪詢任務狀態失敗:", error);
+      debug.error("JOB_POLLING", `輪詢任務狀態失敗: ${jobId}`, {
+        jobId,
+        title,
+        error,
+        errorType: error?.constructor?.name,
+        errorCode: error?.code,
+        errorStatus: error?.response?.status,
+      });
 
-      let errorMessage = "檢查任務狀態時發生錯誤";
-      let shouldRetry = false;
-      let retryDelay = 8000;
+      const standardError = handleError(error, {
+        context: "檢查轉檔狀態",
+        showToast: false, // 避免過多通知
+      });
 
       const currentJob = activeJobs.get(jobId);
       const retryCount = (currentJob?.retryCount || 0) + 1;
 
-      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
-        errorMessage = "檢查任務狀態超時";
-        shouldRetry = retryCount < 5; // 最多重試5次
-        retryDelay = Math.min(8000 + retryCount * 2000, 20000);
-      } else if (
-        error.message.includes("Network Error") ||
-        error.code === "ERR_NETWORK"
-      ) {
-        errorMessage = "網路連線失敗，無法檢查任務狀態";
-        shouldRetry = retryCount < 3; // 網路錯誤最多重試3次
-        retryDelay = Math.min(10000 + retryCount * 3000, 30000);
-      } else if (error.response?.status === 404) {
-        errorMessage = "找不到該轉檔任務";
-        shouldRetry = false;
-      } else if (error.response?.status >= 500) {
-        errorMessage = "伺服器暫時無法回應";
-        shouldRetry = retryCount < 4; // 伺服器錯誤最多重試4次
-        retryDelay = Math.min(8000 + retryCount * 2000, 25000);
-      }
+      // 根據錯誤類型和重試次數決定是否重試
+      const shouldRetry = standardError.shouldRetry && retryCount < 5;
+      const retryDelay = standardError.retryDelay || 8000;
+
+      debug.info("JOB_POLLING", `決定重試策略: ${jobId}`, {
+        jobId,
+        retryCount,
+        maxRetries: 5,
+        shouldRetry,
+        retryDelay,
+        errorType: standardError.type,
+      });
 
       if (shouldRetry) {
         // 更新為重試狀態
         updateJobStatus(
           jobId,
           "retrying",
-          `${errorMessage}，正在重試... (${retryCount}/5)`,
+          `${standardError.userMessage}，正在重試... (${retryCount}/5)`,
           undefined,
           undefined,
           undefined,
@@ -792,8 +953,8 @@ export default function Home() {
         });
       } else {
         clearPollingInterval(jobId);
-        updateJobStatus(jobId, "failed", errorMessage);
-        toast.error(`${title} - ${errorMessage}`);
+        updateJobStatus(jobId, "failed", standardError.userMessage);
+        toast.error(`${title} - ${standardError.userMessage}`);
       }
     }
   };
@@ -932,20 +1093,15 @@ export default function Home() {
     setConversionLoading(true);
 
     try {
-      const response = await axios.post<ConversionJobResponse>(
-        "/novels/convert",
-        {
-          novelId: preview.novelId,
-          source: preview.source,
-          sourceId: preview.sourceId,
-        },
-        {
-          timeout: 15000, // 15秒超時
-        }
-      );
+      const requestData: ConvertNovelDto = {
+        novelId: preview.novelId,
+        includeCover: true,
+      };
 
-      if (!response.data.success || !response.data.jobId) {
-        throw new Error(response.data.message || "轉檔請求失敗");
+      const response = await apiClient.conversions.create(requestData);
+
+      if (!response.success || !response.data?.jobId) {
+        throw new Error(response.message || "轉檔請求失敗");
       }
 
       const jobId = response.data.jobId;
@@ -1014,6 +1170,9 @@ export default function Home() {
   const handleClosePreview = () => {
     setShowPreview(false);
     setPreview(null);
+    setError("");
+    // 🆕 關閉預覽時清理輪詢
+    clearPreviewPolling();
   };
 
   // 切換狀態欄收合/展開
@@ -1042,31 +1201,19 @@ export default function Home() {
         description: "請稍候",
       });
 
-      const response = await fetch("/api/kindle/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jobId: jobId,
-          kindleEmail: user.kindleEmail,
-        }),
-        credentials: "include",
-      });
+      const requestData: SendToKindleDto = {
+        jobId: jobId,
+        kindleEmail: user.kindleEmail,
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "發送失敗");
-      }
+      const response = await apiClient.kindle.send(requestData);
 
-      const data = await response.json();
-
-      if (data.success || data.data) {
+      if (response.success) {
         toast.success("EPUB 已加入 Kindle 發送隊列", {
           description: "請稍後查看您的 Kindle 設備",
         });
       } else {
-        throw new Error(data.message || "發送失敗");
+        throw new Error(response.message || "發送失敗");
       }
     } catch (error: any) {
       console.error("發送到 Kindle 失敗:", error);
@@ -1076,15 +1223,6 @@ export default function Home() {
       });
     }
   };
-
-  // 組件卸載時清理所有輪詢定時器
-  useEffect(() => {
-    return () => {
-      pollingIntervals.forEach((interval) => {
-        clearTimeout(interval);
-      });
-    };
-  }, [pollingIntervals]);
 
   return (
     <Layout>
@@ -1437,7 +1575,7 @@ export default function Home() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs bg-sky-500 hover:bg-sky-600 text-white px-2 py-1 rounded-full transition-colors"
                       >
-                        <DownloadCloud size={12} /> 下載
+                        <Download size={12} /> 下載
                       </a>
                       {/* 只對已登入且有 kindleEmail 的用戶顯示 Send to Kindle 按鈕 */}
                       {isAuthenticated && user?.kindleEmail && (

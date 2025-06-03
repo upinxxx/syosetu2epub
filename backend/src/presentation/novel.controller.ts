@@ -6,98 +6,84 @@ import {
   Get,
   Param,
   Logger,
-  HttpStatus,
-  HttpCode,
-  Res,
-  Request,
-  UseGuards,
   Inject,
 } from '@nestjs/common';
 import { PreviewNovelDto } from '../shared/dto/preview-novel.dto.js';
-import { ConvertNovelDto } from '../shared/dto/convert-novel.dto.js';
-import { Response } from 'express';
-import { AuthGuard } from '@nestjs/passport';
 import { PreviewFacade } from '@/application/preview/preview.facade.js';
-import { ConvertFacade } from '@/application/convert/convert.facade.js';
 
 /**
  * 小說 Controller
- * 處理與小說相關的 HTTP 請求
+ * 處理與小說預覽相關的 HTTP 請求
+ * 遵循六角架構：僅依賴 PreviewFacade，無直接業務邏輯
  */
 @Controller('novels')
 export class NovelController {
   private readonly logger = new Logger(NovelController.name);
 
   constructor(
-    @Inject(ConvertFacade) private readonly convertFacade: ConvertFacade,
     @Inject(PreviewFacade) private readonly previewFacade: PreviewFacade,
   ) {}
 
   /**
-   * 提交小說轉換任務
-   */
-  @Post('convert')
-  @UseGuards(AuthGuard(['jwt', 'anonymous']))
-  async convert(@Body() dto: ConvertNovelDto, @Request() req) {
-    this.logger.log(`提交小說轉換任務: ${JSON.stringify(dto)}`);
-    // 將 req.user 傳遞給 Facade，讓應用層處理用戶身份邏輯
-    return this.convertFacade.submitJob(dto.novelId, req.user);
-  }
-
-  /**
-   * 添加預覽任務
+   * 提交小說預覽任務
+   * POST /api/v1/novels/preview
    */
   @Post('preview')
   async preview(@Body() dto: PreviewNovelDto) {
     this.logger.log(`預覽請求: ${JSON.stringify(dto)}`);
 
-    // 使用 previewNovelFromUrl 方法
-    const result = await this.previewFacade.getPreviewBySource(
+    // 使用統一的緩存預覽方法
+    const result = await this.previewFacade.getPreviewWithCache(
       dto.source,
       dto.sourceId,
     );
 
-    // 返回結果
+    // 包裝成統一的 API 回應格式
     return {
-      success: true,
-      novelId: result.novelId,
-      message: `成功取得小說預覽資料`,
+      success: result.success,
+      data: {
+        cached: result.cached,
+        preview: result.preview,
+        jobId: result.jobId,
+      },
+      message: result.message,
+      timestamp: result.timestamp,
     };
   }
 
   /**
    * 獲取預覽任務狀態
+   * GET /api/v1/novels/preview/:jobId
    */
-  @Get('preview-status/:jobId')
-  async previewStatus(@Param('jobId') id: string) {
-    return this.previewFacade.getJobStatus(id);
+  @Get('preview/:jobId')
+  async getPreviewStatus(@Param('jobId') jobId: string) {
+    this.logger.log(`獲取預覽狀態: ${jobId}`);
+    const result = await this.previewFacade.getJobStatus(jobId);
+
+    // 包裝成統一的 API 回應格式
+    return {
+      success: result.success || true,
+      data: result,
+      message: result.message || '預覽狀態獲取成功',
+      timestamp: new Date().toISOString(),
+    };
   }
 
   /**
    * 根據小說 ID 獲取預覽
+   * GET /api/v1/novels/:id/preview
    */
-  @Get('preview/:id')
-  async previewById(@Param('id') id: string) {
-    return this.previewFacade.getPreviewById(id);
-  }
+  @Get(':id/preview')
+  async getPreviewById(@Param('id') id: string) {
+    this.logger.log(`根據 ID 獲取預覽: ${id}`);
+    const result = await this.previewFacade.getPreviewById(id);
 
-  /**
-   * 查詢任務狀態
-   */
-  @Get('convert/:jobId/status')
-  async convertStatus(@Param('jobId') id: string) {
-    return this.convertFacade.getJobStatus(id);
-  }
-
-  /**
-   * 獲取轉換結果下載連結
-   */
-  @Get('convert/:jobId/file')
-  @HttpCode(HttpStatus.OK)
-  async download(
-    @Param('jobId') id: string,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    return this.convertFacade.getDownloadUrl(id);
+    // 包裝成統一的 API 回應格式
+    return {
+      success: result.success || true,
+      data: result,
+      message: result.message || '預覽獲取成功',
+      timestamp: new Date().toISOString(),
+    };
   }
 }

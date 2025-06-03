@@ -17,7 +17,12 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleProfile } from '../domain/ports/auth.port.js';
 import { AuthFacade } from '@/application/auth/auth.facade.js';
 
-@Controller('api/auth')
+/**
+ * 認證 Controller
+ * 處理與用戶認證相關的 HTTP 請求
+ * 遵循六角架構：僅依賴 AuthFacade，無直接業務邏輯
+ */
+@Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
@@ -26,6 +31,10 @@ export class AuthController {
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {}
 
+  /**
+   * Google OAuth 登入
+   * GET /api/v1/auth/google
+   */
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleAuth() {
@@ -34,13 +43,13 @@ export class AuthController {
     return;
   }
 
+  /**
+   * Google OAuth 回調
+   * GET /api/v1/auth/google/callback
+   */
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  @Redirect()
-  async googleAuthCallback(
-    @Req() req: any,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async googleAuthCallback(@Req() req: any, @Res() res: Response) {
     try {
       this.logger.log('收到 Google OAuth 回調');
 
@@ -66,20 +75,31 @@ export class AuthController {
       const frontendUrl =
         this.configService.get<string>('FRONTEND_URL') ||
         'http://localhost:5173';
-      this.logger.log(`重定向到: ${frontendUrl}/oauth/success`);
-      return { url: `${frontendUrl}/oauth/success` };
+      const redirectUrl = `${frontendUrl}/oauth/success`;
+
+      this.logger.log(`重定向到: ${redirectUrl}`);
+
+      // 使用手動重定向，確保更好的控制
+      res.redirect(302, redirectUrl);
     } catch (error) {
       this.logger.error('OAuth 回調處理失敗', error.stack);
       const frontendUrl =
         this.configService.get<string>('FRONTEND_URL') ||
         'http://localhost:5173';
-      return { url: `${frontendUrl}/oauth/error` };
+      const errorUrl = `${frontendUrl}/oauth/error`;
+
+      this.logger.log(`重定向到錯誤頁面: ${errorUrl}`);
+      res.redirect(302, errorUrl);
     }
   }
 
-  @Get('status')
+  /**
+   * 獲取當前用戶資訊
+   * GET /api/v1/auth/me
+   */
+  @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  async getAuthStatus(@Req() req: any) {
+  async getCurrentUser(@Req() req: any) {
     try {
       this.logger.log('檢查認證狀態');
       // req.user 是由 JwtStrategy 提供的當前登入用戶
@@ -105,6 +125,10 @@ export class AuthController {
     }
   }
 
+  /**
+   * 用戶登出
+   * POST /api/v1/auth/logout
+   */
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
     this.logger.log('處理登出請求');

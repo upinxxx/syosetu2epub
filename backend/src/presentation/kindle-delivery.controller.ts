@@ -18,14 +18,23 @@ interface SendToKindleDto {
   kindleEmail: string;
 }
 
-@Controller('api/kindle')
+/**
+ * Kindle 交付 Controller
+ * 處理與 Kindle 交付相關的 HTTP 請求
+ * 遵循六角架構：僅依賴 KindleDeliveryFacade，無直接業務邏輯
+ */
+@Controller('kindle')
 export class KindleDeliveryController {
   constructor(
     @Inject(KindleDeliveryFacade)
     private readonly kindleDeliveryFacade: KindleDeliveryFacade,
   ) {}
 
-  @Post('send')
+  /**
+   * 發送到 Kindle
+   * POST /api/v1/kindle/deliveries
+   */
+  @Post('deliveries')
   @UseGuards(AuthGuard('jwt'))
   async sendToKindle(@Body() dto: SendToKindleDto, @Request() req) {
     if (!dto.jobId) {
@@ -47,7 +56,11 @@ export class KindleDeliveryController {
     return this.kindleDeliveryFacade.formatSendResponse(delivery);
   }
 
-  @Get('delivery-status/:id')
+  /**
+   * 獲取交付狀態
+   * GET /api/v1/kindle/deliveries/:id
+   */
+  @Get('deliveries/:id')
   @UseGuards(AuthGuard('jwt'))
   async getDeliveryStatus(@Param('id') deliveryId: string, @Request() req) {
     const userId = req.user.sub;
@@ -60,7 +73,11 @@ export class KindleDeliveryController {
     return this.kindleDeliveryFacade.formatStatusResponse(delivery);
   }
 
-  @Get('history')
+  /**
+   * 獲取交付歷史
+   * GET /api/v1/kindle/deliveries
+   */
+  @Get('deliveries')
   @UseGuards(AuthGuard('jwt'))
   async getDeliveryHistory(
     @Request() req,
