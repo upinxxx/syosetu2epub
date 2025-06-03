@@ -23,7 +23,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   logout: () => Promise<void>;
-  refreshAuth: () => Promise<void>;
+  refreshAuth: (force?: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,72 +48,79 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return document.cookie.includes("is_logged_in=true");
   }, []);
 
-  const refreshAuth = useCallback(async () => {
-    // 如果已經在進行認證檢查，則跳過
-    if (isRefreshing.current) {
-      console.log("已有認證檢查進行中，跳過重複請求");
-      return;
-    }
-
-    setIsLoading(true);
-
-    // 檢查是否在快取有效期內
-    const now = Date.now();
-    const timeSinceLastCheck = now - lastAuthCheck.current;
-
-    if (timeSinceLastCheck < AUTH_CACHE_TTL && lastAuthCheck.current > 0) {
-      console.log("使用快取的認證狀態，跳過 API 請求");
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      isRefreshing.current = true;
-      console.log("開始檢查認證狀態...");
-
-      // 首先檢查可見 cookie
-      const hasVisibleCookie = checkVisibleCookie();
-      console.log("可見 Cookie 檢查結果:", hasVisibleCookie);
-
-      if (!hasVisibleCookie) {
-        console.log("未檢測到登入 cookie，無需發送 API 請求");
-        setUser(null);
-        setIsAuthenticated(false);
-        lastAuthCheck.current = now;
-        setIsLoading(false);
-        isRefreshing.current = false;
+  const refreshAuth = useCallback(
+    async (force: boolean = false) => {
+      // 如果已經在進行認證檢查，則跳過
+      if (isRefreshing.current) {
+        console.log("已有認證檢查進行中，跳過重複請求");
         return;
       }
 
-      const response = await axios.get("/api/auth/status");
+      setIsLoading(true);
 
-      console.log("認證狀態響應:", response.data);
-      if (response.data.isAuthenticated) {
-        setUser(response.data.user);
-        setIsAuthenticated(true);
-      } else {
+      // 檢查是否在快取有效期內（除非強制刷新）
+      const now = Date.now();
+      const timeSinceLastCheck = now - lastAuthCheck.current;
+
+      if (
+        !force &&
+        timeSinceLastCheck < AUTH_CACHE_TTL &&
+        lastAuthCheck.current > 0
+      ) {
+        console.log("使用快取的認證狀態，跳過 API 請求");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        isRefreshing.current = true;
+        console.log(`開始檢查認證狀態...${force ? " (強制刷新)" : ""}`);
+
+        // 首先檢查可見 cookie
+        const hasVisibleCookie = checkVisibleCookie();
+        console.log("可見 Cookie 檢查結果:", hasVisibleCookie);
+
+        if (!hasVisibleCookie) {
+          console.log("未檢測到登入 cookie，無需發送 API 請求");
+          setUser(null);
+          setIsAuthenticated(false);
+          lastAuthCheck.current = now;
+          setIsLoading(false);
+          isRefreshing.current = false;
+          return;
+        }
+
+        const response = await axios.get("/api/auth/status");
+
+        console.log("認證狀態響應:", response.data);
+        if (response.data.isAuthenticated) {
+          setUser(response.data.user);
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+
+        // 更新最後檢查時間
+        lastAuthCheck.current = now;
+      } catch (error) {
+        console.error("驗證狀態檢查失敗", error);
+        if (isAxiosError(error)) {
+          console.error("錯誤詳情:", {
+            status: error.response?.status,
+            data: error.response?.data,
+            headers: error.response?.headers,
+          });
+        }
         setUser(null);
         setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+        isRefreshing.current = false;
       }
-
-      // 更新最後檢查時間
-      lastAuthCheck.current = now;
-    } catch (error) {
-      console.error("驗證狀態檢查失敗", error);
-      if (isAxiosError(error)) {
-        console.error("錯誤詳情:", {
-          status: error.response?.status,
-          data: error.response?.data,
-          headers: error.response?.headers,
-        });
-      }
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-      isRefreshing.current = false;
-    }
-  }, [checkVisibleCookie]);
+    },
+    [checkVisibleCookie]
+  );
 
   const logout = useCallback(async () => {
     try {

@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository as TypeOrmRepository, LessThan, Not, In } from 'typeorm';
+import {
+  Repository as TypeOrmRepository,
+  LessThan,
+  Not,
+  In,
+  MoreThan,
+} from 'typeorm';
 import {
   EpubJobRepository,
   PagedResult,
@@ -99,31 +105,110 @@ export class EpubJobRepositoryTypeORM implements EpubJobRepository {
 
   /**
    * 根據用戶 ID 分頁查詢 EPUB 任務
-   * 尚未添加會員功能 先註解
    */
-  // async findPagedByUserId(
-  //   userId: string,
-  //   options: PaginationOptions,
-  // ): Promise<PagedResult<EpubJob>> {
-  //   const [entities, total] = await this.repository.findAndCount({
-  //     where: { userId },
-  //     skip: (options.page - 1) * options.limit,
-  //     take: options.limit,
-  //     order: {
-  //       [options.sortBy || 'createdAt']: options.sortDirection || 'DESC',
-  //     },
-  //   });
+  async findByUserIdPaginated(
+    userId: string,
+    page: number,
+    limit: number,
+  ): Promise<PagedResult<EpubJob>> {
+    // 參數驗證
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('用戶ID不能為空');
+    }
 
-  //   const items = EpubJobMapper.toDomainList(entities);
+    if (page < 1) page = 1;
+    if (limit < 1 || limit > 100) limit = 10;
 
-  //   return {
-  //     items,
-  //     total,
-  //     page: options.page,
-  //     limit: options.limit,
-  //     hasMore: options.page * options.limit < total,
-  //   };
-  // }
+    const trimmedUserId = userId.trim();
+
+    try {
+      console.log(
+        `[EpubJobRepository] 查詢用戶 ${trimmedUserId} 的任務，頁數: ${page}, 限制: ${limit}`,
+      );
+
+      const [entities, total] = await this.repository.findAndCount({
+        where: { userId: trimmedUserId },
+        skip: (page - 1) * limit,
+        take: limit,
+        order: {
+          createdAt: 'DESC',
+        },
+        relations: ['novel'],
+      });
+
+      console.log(
+        `[EpubJobRepository] 查詢結果：找到 ${entities.length} 筆記錄，總計 ${total} 筆`,
+      );
+
+      const items = EpubJobMapper.toDomainList(entities);
+
+      return {
+        items,
+        total,
+        page,
+        limit,
+        hasMore: page * limit < total,
+      };
+    } catch (error) {
+      console.error(
+        `[EpubJobRepository] 查詢用戶 ${trimmedUserId} 的任務失敗:`,
+        error,
+      );
+      throw new Error(`查詢用戶 ${trimmedUserId} 的任務失敗: ${error.message}`);
+    }
+  }
+
+  /**
+   * 查詢用戶最近指定天數內的任務
+   */
+  async findRecentByUserId(
+    userId: string,
+    withinDays: number,
+  ): Promise<EpubJob[]> {
+    // 參數驗證
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('用戶ID不能為空');
+    }
+
+    if (withinDays < 1 || withinDays > 365) {
+      withinDays = 7;
+    }
+
+    const trimmedUserId = userId.trim();
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - withinDays);
+
+    try {
+      console.log(
+        `[EpubJobRepository] 查詢用戶 ${trimmedUserId} 最近 ${withinDays} 天的任務，截止日期: ${cutoffDate.toISOString()}`,
+      );
+
+      const entities = await this.repository.find({
+        where: {
+          userId: trimmedUserId,
+          createdAt: MoreThan(cutoffDate),
+        },
+        order: {
+          createdAt: 'DESC',
+        },
+        relations: ['novel'],
+      });
+
+      console.log(
+        `[EpubJobRepository] 查詢結果：找到 ${entities.length} 筆最近任務`,
+      );
+
+      return EpubJobMapper.toDomainList(entities);
+    } catch (error) {
+      console.error(
+        `[EpubJobRepository] 查詢用戶 ${trimmedUserId} 最近任務失敗:`,
+        error,
+      );
+      throw new Error(
+        `查詢用戶 ${trimmedUserId} 最近任務失敗: ${error.message}`,
+      );
+    }
+  }
 
   /**
    * 查詢最近的活躍任務

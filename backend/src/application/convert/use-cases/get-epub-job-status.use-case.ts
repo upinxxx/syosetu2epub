@@ -1,11 +1,10 @@
-import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Logger } from '@nestjs/common';
 import {
-  EPUB_JOB_REPOSITORY_TOKEN,
   EpubJobRepository,
+  EPUB_JOB_REPOSITORY_TOKEN,
 } from '@/domain/ports/repository/index.js';
-import { JobStatusResponseDto } from '../../../shared/dto/job-status.dto.js';
-import { QueuePort } from '@/domain/ports/queue.port.js';
-import { QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
+import { JobStatusResponseDto } from '@/shared/dto/job-status.dto.js';
+import { EpubJob } from '@/domain/entities/epub-job.entity.js';
 
 /**
  * 獲取 EPUB 轉換任務狀態 UseCase
@@ -17,116 +16,99 @@ export class GetEpubJobStatusUseCase {
   constructor(
     @Inject(EPUB_JOB_REPOSITORY_TOKEN)
     private readonly epubJobRepository: EpubJobRepository,
-    @Inject(QUEUE_PORT_TOKEN)
-    private readonly queueAdapter: QueuePort,
   ) {}
 
   /**
-   * 獲取任務狀態
+   * 獲取 EPUB 任務狀態
+   * @param jobId 任務ID
+   * @returns 任務狀態信息
    */
   async execute(jobId: string): Promise<JobStatusResponseDto> {
-    this.logger.log(`獲取任務 ${jobId} 的狀態`);
+    this.logger.log(`查詢任務狀態請求 - 任務ID: ${jobId}`);
 
-    // 首先嘗試從 Redis 緩存中獲取任務狀態
-    const cachedStatus = await this.queueAdapter.getCachedJobStatus(
-      'epub',
-      jobId,
-    );
+    // 嚴格的參數驗證
+    if (!jobId || typeof jobId !== 'string' || jobId.trim() === '') {
+      const errorMsg = `無效的任務ID: ${jobId}`;
+      this.logger.error(errorMsg);
+      throw new Error('任務ID不能為空');
+    }
 
-    if (cachedStatus) {
-      this.logger.log(
-        `從緩存獲取到任務 ${jobId} 的狀態: ${cachedStatus.status}`,
-      );
+    const trimmedJobId = jobId.trim();
 
-      // 如果緩存中有任務狀態，但需要檢查數據庫中的最新狀態
-      // 特別是對於長時間運行的任務，緩存可能不是最新的
-      if (
-        cachedStatus.status === 'queued' ||
-        cachedStatus.status === 'processing'
-      ) {
-        this.logger.log(`任務 ${jobId} 處於活動狀態，檢查數據庫獲取最新狀態`);
+    // 檢查任務ID格式（UUID格式）
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(trimmedJobId)) {
+      const errorMsg = `任務ID格式不正確: ${trimmedJobId}`;
+      this.logger.error(errorMsg);
+      throw new Error('任務ID格式不正確');
+    }
 
-        try {
-          // 從數據庫查詢最新狀態
-          const job = await this.epubJobRepository.findById(jobId);
+    try {
+      this.logger.debug(`開始查詢任務 ${trimmedJobId} 的狀態`);
 
-          if (job && job.status !== cachedStatus.status) {
-            this.logger.log(
-              `任務 ${jobId} 狀態已更新：${cachedStatus.status} -> ${job.status}`,
-            );
+      const job = await this.epubJobRepository.findById(trimmedJobId);
 
-            // 更新緩存
-            await this.queueAdapter.cacheJobStatus('epub', jobId, {
-              jobId: job.id,
-              status: job.status,
-              startedAt: job.startedAt,
-              completedAt: job.completedAt,
-              publicUrl: job.publicUrl,
-              errorMessage: job.errorMessage,
-              updatedAt: new Date(),
-            });
-
-            // 返回數據庫中的最新狀態
-            return {
-              success: true,
-              jobId: job.id,
-              status: job.status,
-              createdAt: job.createdAt,
-              startedAt: job.startedAt,
-              completedAt: job.completedAt,
-              publicUrl: job.publicUrl,
-              errorMessage: job.errorMessage,
-              message: `任務 ${jobId} 狀態查詢成功 (已更新)`,
-            };
-          }
-        } catch (error) {
-          this.logger.warn(`檢查數據庫狀態時發生錯誤: ${error.message}`);
-          // 發生錯誤時繼續使用緩存數據
-        }
+      if (!job) {
+        this.logger.warn(`找不到任務: ${trimmedJobId}`);
+        throw new NotFoundException(`找不到 ID 為 ${trimmedJobId} 的任務`);
       }
 
-      // 從緩存構建回應
-      return {
-        success: true,
-        jobId: cachedStatus.jobId,
-        status: cachedStatus.status as any, // 轉換為 JobStatus 枚舉
-        createdAt: new Date(cachedStatus.updatedAt), // 使用更新時間作為創建時間（如果沒有真實的創建時間）
-        startedAt: cachedStatus.startedAt,
-        completedAt: cachedStatus.completedAt,
-        publicUrl: cachedStatus.publicUrl,
-        errorMessage: cachedStatus.errorMessage,
-        message: `任務 ${jobId} 狀態查詢成功 (from cache)`,
-      };
+      this.logger.log(
+        `成功獲取任務 ${trimmedJobId} 狀態: ${job.status}` +
+          `${job.novel ? `, 小說: ${job.novel.title}` : ''}`,
+      );
+
+      return this.mapToResponseDto(job);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.logger.error(`查詢任務 ${trimmedJobId} 狀態失敗`, error.stack);
+
+      // 記錄詳細的錯誤信息
+      if (error instanceof Error) {
+        this.logger.error(`錯誤詳情: ${error.message}`);
+      }
+
+      throw new Error(`查詢任務狀態失敗: ${error.message}`);
     }
+  }
 
-    // 如果緩存中沒有，則從數據庫查詢
-    this.logger.log(`緩存中未找到任務 ${jobId} 的狀態，從數據庫查詢`);
-    const job = await this.epubJobRepository.findById(jobId);
-    if (!job) {
-      throw new NotFoundException(`找不到 ID 為 ${jobId} 的任務`);
-    }
-
-    // 查詢後更新緩存
-    await this.queueAdapter.cacheJobStatus('epub', jobId, {
-      jobId: job.id,
-      status: job.status,
-      startedAt: job.startedAt,
-      completedAt: job.completedAt,
-      publicUrl: job.publicUrl,
-      errorMessage: job.errorMessage,
-      updatedAt: new Date(),
-    });
-
+  /**
+   * 將領域實體映射為回應 DTO
+   */
+  private mapToResponseDto(job: EpubJob): JobStatusResponseDto {
     return {
       success: true,
       jobId: job.id,
+      novelId: job.novelId,
       status: job.status,
       createdAt: job.createdAt,
       startedAt: job.startedAt,
       completedAt: job.completedAt,
       publicUrl: job.publicUrl,
       errorMessage: job.errorMessage,
-      message: `任務 ${jobId} 狀態查詢成功`,
+      message: this.getStatusMessage(job.status),
     };
+  }
+
+  /**
+   * 根據任務狀態獲取相應的消息
+   */
+  private getStatusMessage(status: string): string {
+    switch (status) {
+      case 'QUEUED':
+        return '任務已排隊，等待處理';
+      case 'PROCESSING':
+        return '任務正在處理中';
+      case 'COMPLETED':
+        return '任務已完成';
+      case 'FAILED':
+        return '任務處理失敗';
+      default:
+        return '任務狀態未知';
+    }
   }
 }

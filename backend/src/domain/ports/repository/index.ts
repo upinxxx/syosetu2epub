@@ -58,6 +58,12 @@ export interface EpubJobRepository
   findLatestByNovelId(novelId: string): Promise<EpubJob | null>;
   findByStatus(statuses: JobStatus[]): Promise<EpubJob[]>;
   findRecentActiveJobs(since: Date): Promise<EpubJob[]>;
+  findByUserIdPaginated(
+    userId: string,
+    page: number,
+    limit: number,
+  ): Promise<PagedResult<EpubJob>>;
+  findRecentByUserId(userId: string, withinDays: number): Promise<EpubJob[]>;
   updateStatus(id: string, status: JobStatus): Promise<EpubJob>;
   updateDownloadUrl(id: string, publicUrl: string): Promise<EpubJob>;
 }

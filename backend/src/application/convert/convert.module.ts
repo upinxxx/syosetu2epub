@@ -4,6 +4,7 @@ import { ProcessEpubJobUseCase } from './use-cases/process-epub-job.use-case.js'
 import { GetEpubJobStatusUseCase } from './use-cases/get-epub-job-status.use-case.js';
 import { GetDownloadLinkUseCase } from './use-cases/get-download-link.use-case.js';
 import { GenerateEpubUseCase } from './use-cases/generate-epub.use-case.js';
+import { GetUserJobHistoryUseCase } from './use-cases/get-user-job-history.use-case.js';
 import { ConvertFacade } from './convert.facade.js';
 import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js';
 
@@ -37,6 +38,10 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
       provide: GenerateEpubUseCase,
       useClass: GenerateEpubUseCase,
     },
+    {
+      provide: GetUserJobHistoryUseCase,
+      useClass: GetUserJobHistoryUseCase,
+    },
     // Facade
     {
       provide: ConvertFacade,
@@ -46,6 +51,8 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
   exports: [
     // 僅導出 Facade
     ConvertFacade,
+    // 導出用戶任務歷史查詢用例供其他模組使用
+    GetUserJobHistoryUseCase,
   ],
 })
 export class ConvertModule {}
