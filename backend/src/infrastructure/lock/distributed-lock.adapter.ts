@@ -1,40 +1,21 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { LockPort } from '@/domain/ports/lock.port.js';
 import { Redis } from 'ioredis';
-import { ConfigService } from '@nestjs/config';
 
 /**
  * 基於 Redis 的分佈式鎖適配器
  * 實現分佈式鎖機制，確保並發操作的原子性
+ * 使用統一的 Redis 服務
  */
 @Injectable()
 export class DistributedLockAdapter implements LockPort {
   private readonly logger = new Logger(DistributedLockAdapter.name);
-  private readonly redis: Redis;
   private readonly lockPrefix = 'syosetu2epub:lock:';
   private readonly defaultTtlMs = 30000; // 預設 30 秒
   private readonly defaultTimeoutMs = 5000; // 預設等待 5 秒
 
-  constructor(
-    @Inject(ConfigService) private readonly configService: ConfigService,
-  ) {
-    // 創建 Redis 連接
-    this.redis = new Redis({
-      host: this.configService.get('UPSTASH_REDIS_HOST'),
-      port: this.configService.get('UPSTASH_REDIS_PORT'),
-      username: this.configService.get('UPSTASH_REDIS_USERNAME'),
-      password: this.configService.get('UPSTASH_REDIS_PASSWORD'),
-      tls: {},
-      maxRetriesPerRequest: 3,
-    });
-
-    this.redis.on('error', (err) => {
-      this.logger.error(`Redis 連接錯誤: ${err.message}`);
-    });
-
-    this.redis.on('connect', () => {
-      this.logger.log('Redis 分佈式鎖連接成功');
-    });
+  constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {
+    this.logger.log('分佈式鎖適配器已初始化（使用統一 Redis 服務）');
   }
 
   /**

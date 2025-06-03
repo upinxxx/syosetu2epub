@@ -9,35 +9,16 @@ import {
 
 /**
  * 預覽緩存適配器
- * Infrastructure Layer 實作，使用 Redis 提供緩存功能
+ * Infrastructure Layer 實作，使用統一的 Redis 服務提供緩存功能
  */
 @Injectable()
 export class PreviewCacheAdapter implements PreviewCachePort {
   private readonly logger = new Logger(PreviewCacheAdapter.name);
-  private readonly redis: Redis;
   private readonly CACHE_KEY_PREFIX = 'preview:cache:';
   private readonly STATS_KEY_PREFIX = 'preview:stats:';
 
-  constructor(
-    @Inject(ConfigService) private readonly configService: ConfigService,
-  ) {
-    // 創建 Redis 連接
-    this.redis = new Redis({
-      host: this.configService.get('UPSTASH_REDIS_HOST'),
-      port: this.configService.get('UPSTASH_REDIS_PORT'),
-      username: this.configService.get('UPSTASH_REDIS_USERNAME'),
-      password: this.configService.get('UPSTASH_REDIS_PASSWORD'),
-      tls: {},
-      maxRetriesPerRequest: 3,
-    });
-
-    this.redis.on('error', (err) => {
-      this.logger.error(`Redis 預覽緩存連接錯誤: ${err.message}`);
-    });
-
-    this.redis.on('connect', () => {
-      this.logger.log('Redis 預覽緩存連接成功');
-    });
+  constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {
+    this.logger.log('預覽緩存適配器已初始化（使用統一 Redis 服務）');
   }
 
   /**

@@ -463,8 +463,9 @@ export class PreviewFacade {
    * 驗證 Narou ID 格式
    */
   private isValidNarouId(id: string): boolean {
-    // Narou ID 格式: n1234a (n + 數字 + 字母)
-    const narouIdRegex = /^n\d+[a-z]$/i;
+    // Narou ID 格式: n + 數字 + 一個或多個字母
+    // 例如: n1234a, n7612kn, n123456abc
+    const narouIdRegex = /^n\d+[a-z]+$/i;
     return narouIdRegex.test(id);
   }
 

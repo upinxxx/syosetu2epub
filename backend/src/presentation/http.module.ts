@@ -4,6 +4,7 @@ import { ConversionController } from './conversion.controller.js';
 import { AuthController } from './auth.controller.js';
 import { KindleDeliveryController } from './kindle-delivery.controller.js';
 import { UserController } from '@/presentation/user.controller.js';
+import { HealthController as RedisHealthController } from './http/controllers/health.controller.js';
 import {
   HealthController,
   HealthMetricsController,
@@ -41,6 +42,7 @@ import { UserModule } from '@/application/user/user.module.js';
     UserController, // 用戶相關控制器
     HealthController, // 健康檢查控制器 (無前綴)
     HealthMetricsController, // 健康檢查指標控制器 (有前綴)
+    RedisHealthController, // Redis 健康檢查控制器
   ],
   providers: [],
 })

@@ -9,6 +9,7 @@ import { PreviewCacheService } from './services/preview-cache.service.js';
 import { PreviewCacheAdapter } from '@/infrastructure/services/preview-cache.adapter.js';
 import { PREVIEW_CACHE_TOKEN } from '@/domain/ports/services/preview-cache.port.js';
 import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js';
+import { RedisModule } from '@/infrastructure/redis/redis.module.js';
 
 /**
  * 預覽相關模組
@@ -17,6 +18,8 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js'
   imports: [
     // 引入基礎設施模組
     InfrastructureModule,
+    // 引入 Redis 模組以供 PreviewCacheAdapter 使用
+    RedisModule,
   ],
   providers: [
     // 預覽緩存服務

@@ -37,10 +37,10 @@ export class AddPreviewJobUseCase {
         sourceId,
       };
 
-      // 添加任務到佇列
-      await this.queueService.addJob('preview', jobData, {
-        jobId,
-        removeOnComplete: true,
+      // 添加任務到佇列（不在 options 中指定 jobId）
+      const actualJobId = await this.queueService.addJob('preview', jobData, {
+        removeOnComplete: 5,
+        removeOnFail: 3,
         attempts: 3,
         backoff: {
           type: 'exponential',
@@ -48,8 +48,8 @@ export class AddPreviewJobUseCase {
         },
       });
 
-      this.logger.log(`預覽任務已添加到佇列：${jobId}`);
-      return jobId;
+      this.logger.log(`預覽任務已添加到佇列：${actualJobId}`);
+      return actualJobId;
     } catch (error) {
       this.logger.error(`添加預覽任務失敗：${error.message}`, error.stack);
       throw error;

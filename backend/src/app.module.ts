@@ -16,6 +16,7 @@ import { InfrastructureModule } from './infrastructure/infrastructure.module.js'
 import { ApplicationModule } from './application/application.module.js';
 import { HttpModule } from './presentation/http.module.js';
 import { SharedModule } from './shared/shared.module.js';
+import { RedisModule } from './infrastructure/redis/redis.module.js';
 import { ResponseFormatInterceptor } from './shared/interceptors/response-format.interceptor.js';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor.js';
 import { PerformanceMonitoringInterceptor } from './shared/interceptors/performance-monitoring.interceptor.js';
@@ -40,6 +41,9 @@ import resendConfig from './config/resend.config.js';
 
     // 定時任務模塊
     ScheduleModule.forRoot(),
+
+    // 全域 Redis 服務模組
+    RedisModule,
 
     // 數據庫配置
     TypeOrmModule.forRootAsync({

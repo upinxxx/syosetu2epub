@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { RedisModule } from '@/infrastructure/redis/redis.module.js';
 import { DistributedLockAdapter } from './distributed-lock.adapter.js';
 import { LOCK_PORT_TOKEN } from '@/domain/ports/lock.port.js';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, RedisModule],
   providers: [
     DistributedLockAdapter,
     {
