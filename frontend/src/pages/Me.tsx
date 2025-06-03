@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import {
@@ -11,30 +10,61 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import KindleEmailForm from "@/components/KindleEmailForm";
+import RecentTasksList from "@/components/RecentTasksList";
 import { useAuth } from "@/lib/contexts";
 import { CheckCircle, XCircle, Settings, Mail } from "lucide-react";
-
-// 用戶資料介面
-interface UserStats {
-  totalJobs: number;
-  completedJobs: number;
-  dailyQuota: number;
-  usedQuota: number;
-  membershipType: "free" | "premium";
-  membershipExpiry?: string;
-}
+import { toast } from "sonner";
 
 export default function Me() {
   const { user } = useAuth();
   const [isKindleEmailDialogOpen, setIsKindleEmailDialogOpen] = useState(false);
 
-  // TODO: 實作 API 呼叫獲取用戶資料
-  const userStats: UserStats = {
-    totalJobs: 25,
-    completedJobs: 20,
-    dailyQuota: 10,
-    usedQuota: 3,
-    membershipType: "free",
+  const handleSendToKindle = async (jobId: string) => {
+    if (!user?.kindleEmail) {
+      toast.error("請先設定 Kindle 電子郵件", {
+        description: "請先設定您的 Kindle 郵箱",
+      });
+      return;
+    }
+
+    try {
+      toast.info("正在發送到 Kindle...", {
+        description: "請稍候",
+      });
+
+      const response = await fetch("/api/kindle/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jobId: jobId,
+          kindleEmail: user.kindleEmail,
+        }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "發送失敗");
+      }
+
+      const data = await response.json();
+
+      if (data.success || data.data) {
+        toast.success("EPUB 已加入 Kindle 發送隊列", {
+          description: "請稍後查看您的 Kindle 設備",
+        });
+      } else {
+        throw new Error(data.message || "發送失敗");
+      }
+    } catch (error: any) {
+      console.error("發送到 Kindle 失敗:", error);
+      const errorMessage = error.message || "發送到 Kindle 時發生錯誤";
+      toast.error(errorMessage, {
+        description: "發送失敗",
+      });
+    }
   };
 
   return (
@@ -42,65 +72,9 @@ export default function Me() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-8 text-gray-800">會員中心</h1>
 
-        {/* 用戶狀態概覽 */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
-          <Card className="bg-white border border-gray-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">今日配額</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress
-                value={(userStats.usedQuota / userStats.dailyQuota) * 100}
-                className="mb-2 bg-gray-200"
-              />
-              <p className="text-sm text-gray-600">
-                已使用 {userStats.usedQuota} / {userStats.dailyQuota} 次
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* 最近任務列表 */}
         <section className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">最近任務</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
-              asChild
-            >
-              <Link to="/jobs/1">查看全部</Link>
-            </Button>
-          </div>
-          <Card className="bg-white border border-gray-200">
-            <CardContent className="p-0">
-              <div className="divide-y border-gray-200">
-                {/* TODO: 實作 API 呼叫獲取最近任務列表 */}
-                {[1, 2, 3].map((_, index) => (
-                  <div
-                    key={index}
-                    className="p-4 flex items-center justify-between"
-                  >
-                    <div>
-                      <h3 className="font-medium text-gray-800">
-                        範例小說標題 {index + 1}
-                      </h3>
-                      <p className="text-sm text-gray-500">處理中...</p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      asChild
-                    >
-                      <Link to={`/jobs/${index + 1}`}>查看詳情</Link>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <RecentTasksList onSendToKindle={handleSendToKindle} />
         </section>
 
         {/* 會員設定 */}
@@ -178,7 +152,7 @@ export default function Me() {
         open={isKindleEmailDialogOpen}
         onOpenChange={setIsKindleEmailDialogOpen}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Mail className="h-5 w-5 text-blue-600" />

@@ -14,7 +14,9 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Toast, ToastContainer } from "@/components/ui/toast";
+import { toast } from "sonner";
 import SendToKindleButton from "@/components/SendToKindleButton";
+import RecentTasksModal from "@/components/RecentTasksModal";
 
 // 功能特點資料
 const features = [
@@ -181,6 +183,7 @@ export default function Home() {
   >(new Map());
   const [previewColor, setPreviewColor] = useState(getRandomSoftColor());
   const [statusBarCollapsed, setStatusBarCollapsed] = useState(false);
+  const [isRecentTasksModalOpen, setIsRecentTasksModalOpen] = useState(false);
 
   // 組件掛載時設置一個隨機顏色
   useEffect(() => {
@@ -676,6 +679,62 @@ export default function Home() {
     setStatusBarCollapsed(!statusBarCollapsed);
   };
 
+  // 處理Send to Kindle (供RecentTasksModal使用)
+  const handleSendToKindleFromModal = async (jobId: string) => {
+    if (!isAuthenticated) {
+      toast.error("請先登入以使用Send to Kindle功能", {
+        description: "需要登入",
+      });
+      return;
+    }
+
+    if (!user?.kindleEmail) {
+      toast.error("請先設定 Kindle 電子郵件", {
+        description: "請到會員中心設定您的 Kindle 郵箱",
+      });
+      return;
+    }
+
+    try {
+      toast.info("正在發送到 Kindle...", {
+        description: "請稍候",
+      });
+
+      const response = await fetch("/api/kindle/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jobId: jobId,
+          kindleEmail: user.kindleEmail,
+        }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "發送失敗");
+      }
+
+      const data = await response.json();
+
+      if (data.success || data.data) {
+        toast.success("EPUB 已加入 Kindle 發送隊列", {
+          description: "請稍後查看您的 Kindle 設備",
+        });
+      } else {
+        throw new Error(data.message || "發送失敗");
+      }
+    } catch (error: any) {
+      console.error("發送到 Kindle 失敗:", error);
+      const errorMessage = error.message || "發送到 Kindle 時發生錯誤";
+      toast.error(errorMessage, {
+        description: "發送失敗",
+      });
+    }
+  };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -866,11 +925,11 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
-                asChild
+                onClick={() => setIsRecentTasksModalOpen(true)}
                 variant="default"
                 className="bg-sky-500 hover:bg-sky-600"
               >
-                <Link to="/orders">我的轉換記錄</Link>
+                我的轉換記錄
               </Button>
               <Button
                 asChild
@@ -1003,6 +1062,13 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* 最近任務彈窗 */}
+      <RecentTasksModal
+        isOpen={isRecentTasksModalOpen}
+        onOpenChange={setIsRecentTasksModalOpen}
+        onSendToKindle={handleSendToKindleFromModal}
+      />
     </Layout>
   );
 }

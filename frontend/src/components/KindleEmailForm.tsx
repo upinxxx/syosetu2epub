@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/contexts";
 import axios from "@/lib/axios";
+import AmazonKindleSetupGuide from "./AmazonKindleSetupGuide";
 
 interface KindleEmailFormProps {
   initialEmail?: string;
@@ -36,6 +37,7 @@ export default function KindleEmailForm({
     initialEmail || user?.kindleEmail || ""
   );
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<"email" | "guide" | "complete">("email");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,17 +60,24 @@ export default function KindleEmailForm({
       });
 
       if (response.data) {
-        // 更新本地用戶狀態
-        await refreshAuth();
+        // 更新本地用戶狀態 - 使用強制刷新確保立即更新
+        await refreshAuth(true);
 
         // 顯示成功提示
         toast.success("您的Kindle郵箱已更新", {
           description: "設定成功",
         });
 
-        // 調用成功回調
-        if (onSuccess) {
-          onSuccess();
+        // 如果是首次設定，顯示設定指南
+        if (!initialEmail && !user?.kindleEmail) {
+          setStep("guide");
+          // 即使跳轉到指南，也要觸發頁面刷新
+          // 但不關閉對話框，讓用戶完成指南流程
+        } else {
+          // 調用成功回調（修改情況）
+          if (onSuccess) {
+            onSuccess();
+          }
         }
       }
     } catch (error: any) {
@@ -96,6 +105,49 @@ export default function KindleEmailForm({
     }
   };
 
+  const handleSetupGuideComplete = () => {
+    setStep("complete");
+    toast.success("Amazon Kindle 設定完成！", {
+      description: "您現在可以直接將 EPUB 發送到 Kindle 了",
+    });
+
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
+
+  const handleSetupGuideCancel = () => {
+    setStep("email");
+  };
+
+  // 顯示設定指南
+  if (step === "guide") {
+    return (
+      <AmazonKindleSetupGuide
+        onComplete={handleSetupGuideComplete}
+        onCancel={handleSetupGuideCancel}
+      />
+    );
+  }
+
+  // 顯示完成狀態
+  if (step === "complete") {
+    return (
+      <div className="text-center space-y-4">
+        <div className="text-green-600 text-lg font-semibold">
+          ✅ 設定完成！
+        </div>
+        <p className="text-gray-600">
+          您的 Kindle 電子郵件已設定完成，並且已完成 Amazon 認可寄件者設定。
+        </p>
+        <Button onClick={onSuccess} className="bg-green-600 hover:bg-green-700">
+          完成
+        </Button>
+      </div>
+    );
+  }
+
+  // 顯示郵箱設定表單
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -119,7 +171,15 @@ export default function KindleEmailForm({
         </p>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end space-x-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setStep("guide")}
+          disabled={isSubmitting}
+        >
+          查看設定指南
+        </Button>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "儲存中..." : "儲存設定"}
         </Button>

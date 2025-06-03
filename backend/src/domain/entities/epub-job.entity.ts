@@ -12,7 +12,7 @@ export class EpubJob implements Entity<EpubJob> {
   private _id: string;
   private _novelId: string;
   private _novel?: Novel;
-  private _userId?: string | null;
+  private _userId: string | null;
   private _user?: User;
   private _status: JobStatus;
   private _publicUrl?: string;
@@ -37,7 +37,7 @@ export class EpubJob implements Entity<EpubJob> {
     this._id = id;
     this._novelId = novelId;
     this._novel = novel;
-    this._userId = userId;
+    this._userId = userId === undefined ? null : userId;
     this._user = user;
     this._status = status;
     this._publicUrl = publicUrl;
@@ -72,7 +72,7 @@ export class EpubJob implements Entity<EpubJob> {
       JobStatus.QUEUED,
       new Date(),
       novel,
-      userId,
+      userId === undefined ? null : userId,
       user,
     );
   }
@@ -111,7 +111,7 @@ export class EpubJob implements Entity<EpubJob> {
       status,
       createdAt,
       novel,
-      userId,
+      userId === undefined ? null : userId,
       user,
       publicUrl,
       errorMessage,
@@ -257,7 +257,7 @@ export class EpubJob implements Entity<EpubJob> {
     return this._novel;
   }
 
-  get userId(): string | null | undefined {
+  get userId(): string | null {
     return this._userId;
   }
 

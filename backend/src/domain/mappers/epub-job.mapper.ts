@@ -21,12 +21,8 @@ export class EpubJobMapper {
     ormEntity.novelId = domainEntity.novelId;
     ormEntity.status = domainEntity.status;
 
-    // 重要：確保 userId 為 null 而不是 undefined
-    // 只有當 userId 是有效的字符串時才設置，否則設為 null
-    ormEntity.userId =
-      domainEntity.userId && domainEntity.userId.trim() !== ''
-        ? domainEntity.userId
-        : null;
+    // 統一處理：領域實體的 userId 已經是 string | null，直接賦值
+    ormEntity.userId = domainEntity.userId;
 
     // 處理可選屬性
     if (domainEntity.publicUrl) {
@@ -73,7 +69,8 @@ export class EpubJobMapper {
       status: ormEntity.status as JobStatus,
       createdAt: ormEntity.createdAt,
       novel,
-      userId: ormEntity.userId || undefined,
+      // 統一處理：ORM 的 userId 是 string | null，直接傳遞
+      userId: ormEntity.userId,
       user,
       publicUrl: ormEntity.publicUrl,
       errorMessage: ormEntity.errorMessage,
