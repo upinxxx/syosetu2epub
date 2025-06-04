@@ -1,11 +1,11 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
 import {
   PreviewCachePort,
   PreviewData,
-} from '@/domain/ports/services/preview-cache.port.js';
+} from '@/domain/ports/cache/preview-cache.port.js';
 
 /**
  * 預覽緩存適配器
@@ -240,16 +240,6 @@ export class PreviewCacheAdapter implements PreviewCachePort {
     } catch (error) {
       // 統計錯誤不應影響主流程
       this.logger.debug(`記錄緩存統計失敗: ${error.message}`);
-    }
-  }
-
-  /**
-   * 清理資源
-   */
-  async onModuleDestroy() {
-    if (this.redis) {
-      await this.redis.disconnect();
-      this.logger.log('Redis 預覽緩存連接已關閉');
     }
   }
 }

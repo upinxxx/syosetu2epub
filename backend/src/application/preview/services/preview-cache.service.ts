@@ -5,7 +5,7 @@ import {
   PreviewData,
   PreviewCacheStats,
   PREVIEW_CACHE_TOKEN,
-} from '@/domain/ports/services/preview-cache.port.js';
+} from '@/domain/ports/cache/preview-cache.port.js';
 
 // 🆕 擴展的緩存統計介面
 interface ExtendedCacheStats extends PreviewCacheStats {

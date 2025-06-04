@@ -1,26 +1,33 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { OAuth2Client } from 'google-auth-library';
 import {
   ExternalAuthProvider,
   GoogleProfile,
 } from '../../domain/ports/auth.port.js';
-import { ConfigService } from '@nestjs/config';
-import { OAuth2Client } from 'google-auth-library';
 
 /**
- * 谷歌認證適配器 - 實現出站埠接口
+ * Google 認證適配器
+ * 實現領域層定義的外部認證提供者介面
  */
 @Injectable()
 export class GoogleAuthAdapter implements ExternalAuthProvider {
-  private oauth2Client: OAuth2Client;
+  private readonly logger = new Logger(GoogleAuthAdapter.name);
+  private readonly oauth2Client: OAuth2Client;
 
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
-    this.oauth2Client = new OAuth2Client(
-      this.configService.get('GOOGLE_CLIENT_ID'),
-      this.configService.get('GOOGLE_CLIENT_SECRET'),
-      this.configService.get('GOOGLE_CALLBACK_URL'),
-    );
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
+
+    if (!clientId || !clientSecret) {
+      throw new Error(
+        'Google OAuth configuration not found in environment variables',
+      );
+    }
+
+    this.oauth2Client = new OAuth2Client(clientId, clientSecret);
   }
 
   /**

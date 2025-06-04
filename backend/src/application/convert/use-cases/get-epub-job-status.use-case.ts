@@ -154,6 +154,18 @@ export class GetEpubJobStatusUseCase {
       this.logger.debug(
         `任務 ${dbJob.id} 狀態不一致 - 資料庫: ${dbJob.status}, 佇列: ${queueStatus}`,
       );
+
+      // 當使用佇列狀態時，嘗試從緩存獲取詳細信息
+      if (cachedStatus) {
+        finalPublicUrl = cachedStatus.publicUrl || finalPublicUrl;
+        finalErrorMessage = cachedStatus.errorMessage || finalErrorMessage;
+        finalStartedAt = cachedStatus.startedAt || finalStartedAt;
+        finalCompletedAt = cachedStatus.completedAt || finalCompletedAt;
+
+        this.logger.debug(
+          `任務 ${dbJob.id} 從緩存補充詳細信息 - publicUrl: ${finalPublicUrl ? '存在' : '無'}`,
+        );
+      }
     } else if (cachedStatus && cachedStatus.status !== dbJob.status) {
       // 緩存狀態次之
       finalStatus = cachedStatus.status as JobStatus;
@@ -204,13 +216,39 @@ export class GetEpubJobStatusUseCase {
     mergedInfo: any,
   ): Promise<void> {
     try {
+      // 如果狀態是 completed 但沒有 publicUrl，嘗試從緩存獲取
+      let finalPublicUrl = mergedInfo.finalPublicUrl || dbJob.publicUrl;
+
+      if (mergedInfo.finalStatus === JobStatus.COMPLETED && !finalPublicUrl) {
+        this.logger.warn(
+          `任務 ${dbJob.id} 標記為完成但缺少 publicUrl，嘗試從緩存獲取`,
+        );
+
+        const cachedStatus = await this.queueAdapter.getCachedJobStatus(
+          'epub',
+          dbJob.id,
+        );
+
+        if (cachedStatus?.publicUrl) {
+          finalPublicUrl = cachedStatus.publicUrl;
+          this.logger.log(
+            `從緩存為任務 ${dbJob.id} 獲取到 publicUrl: ${finalPublicUrl}`,
+          );
+        } else {
+          this.logger.error(
+            `任務 ${dbJob.id} 已完成但無法獲取 publicUrl，跳過同步`,
+          );
+          return;
+        }
+      }
+
       // 建立更新後的任務實體
       const updatedJob = EpubJob.reconstitute({
         id: dbJob.id,
         novelId: dbJob.novelId,
         status: mergedInfo.finalStatus,
         createdAt: dbJob.createdAt,
-        publicUrl: mergedInfo.finalPublicUrl || dbJob.publicUrl,
+        publicUrl: finalPublicUrl,
         errorMessage: mergedInfo.finalErrorMessage || dbJob.errorMessage,
         startedAt: mergedInfo.finalStartedAt || dbJob.startedAt,
         completedAt: mergedInfo.finalCompletedAt || dbJob.completedAt,
@@ -221,7 +259,8 @@ export class GetEpubJobStatusUseCase {
 
       this.logger.log(
         `已同步任務 ${dbJob.id} 狀態到資料庫 - ` +
-          `${dbJob.status} → ${mergedInfo.finalStatus} (來源: ${mergedInfo.dataSource})`,
+          `${dbJob.status} → ${mergedInfo.finalStatus} (來源: ${mergedInfo.dataSource})` +
+          (finalPublicUrl ? `, publicUrl: ${finalPublicUrl}` : ''),
       );
     } catch (error) {
       this.logger.error(

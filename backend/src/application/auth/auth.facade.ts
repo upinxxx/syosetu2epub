@@ -7,6 +7,32 @@ import { ValidateOrCreateUserUseCase } from './use-cases/validate-or-create-user
 import { GoogleProfile } from '@/domain/ports/auth.port.js';
 import { User } from '@/domain/entities/user.entity.js';
 
+/**
+ * Cookie 配置介面
+ */
+export interface CookieConfig {
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: 'lax' | 'strict' | 'none';
+  maxAge: number;
+  path: string;
+  domain?: string;
+}
+
+/**
+ * 認證回應介面
+ */
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    displayName: string;
+    kindleEmail?: string;
+  };
+  cookieConfig: CookieConfig;
+}
+
 @Injectable()
 export class AuthFacade {
   constructor(
@@ -35,12 +61,22 @@ export class AuthFacade {
   /**
    * 創建認證回應，包含 Token 生成和 Cookie 設定
    * @param user 用戶實體
-   * @param res Express Response 物件
-   * @returns 包含 token 和 user 的回應物件
+   * @param res Express Response 對象
+   * @returns 包含 token、user 和 cookie 配置的回應物件
    */
-  createAuthResponse(user: User, res: Response) {
+  createAuthResponse(user: User, res: Response): AuthResponse {
     const token = this.generateToken.execute(user);
-    this.setCookies(res, token);
+    const cookieConfig = this.getCookieConfig();
+
+    // 實際設置 Cookie
+    res.cookie('auth_token', token, cookieConfig);
+
+    // 設置一個可見的登入狀態 Cookie 供前端檢查
+    res.cookie('is_logged_in', 'true', {
+      ...cookieConfig,
+      httpOnly: false, // 讓前端可以讀取
+    });
+
     return {
       token,
       user: {
@@ -49,82 +85,60 @@ export class AuthFacade {
         displayName: user.displayName,
         kindleEmail: user.kindleEmail,
       },
+      cookieConfig,
     };
   }
 
   /**
    * 清除認證回應，包含 Cookie 清除
-   * @param res Express Response 物件
-   * @returns 成功回應物件
+   * @param res Express Response 對象
+   * @returns 包含成功標識的回應物件
    */
-  clearAuthResponse(res: Response) {
-    this.clearCookies(res);
+  clearAuthResponse(res: Response): { success: boolean } {
+    const cookieConfig = this.getCookieConfig();
+
+    // 清除認證相關的 Cookie
+    res.clearCookie('auth_token', cookieConfig);
+    res.clearCookie('is_logged_in', {
+      ...cookieConfig,
+      httpOnly: false,
+    });
+
     return { success: true };
   }
 
   /**
-   * 設置認證 Cookie
-   * @param res Express Response 物件
-   * @param token JWT Token
+   * 創建登出回應，包含 Cookie 清除配置
+   * @returns 包含成功標識和 cookie 清除配置的回應物件
    */
-  private setCookies(res: Response, token: string): void {
-    // 開發環境下不指定 domain，使用瀏覽器默認值
+  createLogoutResponse(): { success: boolean; cookieConfig: CookieConfig } {
+    return {
+      success: true,
+      cookieConfig: this.getCookieConfig(),
+    };
+  }
+
+  /**
+   * 獲取 Cookie 配置
+   * @returns Cookie 配置物件
+   */
+  getCookieConfig(): CookieConfig {
     const isProduction =
       this.configService.get<string>('NODE_ENV') === 'production';
 
-    // 獲取前端使用的協議 (開發環境通常是 http，生產環境是 https)
-    const protocol = isProduction ? 'https' : 'http';
-
-    // 開發環境下，前端通過 Vite 代理與後端通信，所以實際上是同源請求
-    // 此時 cookie 應該使用 SameSite=Lax 或 Strict，而不是 None
-    // 同時，由於是 http，不應該設置 secure
-    const cookieOptions: any = {
+    const cookieConfig: CookieConfig = {
       httpOnly: true,
-      secure: isProduction, // 生產環境使用 HTTPS，所以 secure 為 true
-      sameSite: 'lax', // 大多數情況下 'lax' 就足夠了
+      secure: isProduction,
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
       path: '/',
     };
 
     // 只有在生產環境才設置 domain
     if (isProduction) {
-      cookieOptions.domain = this.configService.get<string>('COOKIE_DOMAIN');
+      cookieConfig.domain = this.configService.get<string>('COOKIE_DOMAIN');
     }
 
-    res.cookie('auth_token', token, cookieOptions);
-
-    // 設置一個非 httpOnly 的 cookie，以便前端檢測登入狀態
-    res.cookie('is_logged_in', 'true', {
-      ...cookieOptions,
-      httpOnly: false,
-    });
-  }
-
-  /**
-   * 清除認證 Cookie
-   * @param res Express Response 物件
-   */
-  private clearCookies(res: Response): void {
-    // 開發環境下不指定 domain，使用瀏覽器默認值
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
-
-    const cookieOptions: any = {
-      httpOnly: true,
-      secure: isProduction, // 生產環境使用 HTTPS，所以 secure 為 true
-      sameSite: 'lax', // 大多數情況下 'lax' 就足夠了
-      path: '/',
-    };
-
-    // 只有在生產環境才設置 domain
-    if (isProduction) {
-      cookieOptions.domain = this.configService.get<string>('COOKIE_DOMAIN');
-    }
-
-    res.clearCookie('auth_token', cookieOptions);
-    res.clearCookie('is_logged_in', {
-      ...cookieOptions,
-      httpOnly: false,
-    });
+    return cookieConfig;
   }
 }

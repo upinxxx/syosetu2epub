@@ -8,15 +8,16 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Loader2, Home, CheckCircle } from "lucide-react";
+import { useAuth } from "../lib/auth";
 
 /**
  * OAuth 登入成功頁面
- * 簡化版本：僅顯示成功信息，然後自動重定向到首頁
- * 不執行額外的認證檢查或 API 調用，避免循環問題
+ * 登入成功後，刷新認證狀態並自動重定向到首頁
  */
 const OAuthSuccess: React.FC = () => {
   const [countdown, setCountdown] = useState(3);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const { refreshAuth } = useAuth();
 
   const handleGoHome = () => {
     console.log("用戶點擊立即跳轉按鈕");
@@ -30,11 +31,25 @@ const OAuthSuccess: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("OAuth 成功頁面已載入，準備重定向...");
+    console.log("OAuth 成功頁面已載入，準備刷新認證狀態...");
     console.log("當前 URL:", window.location.href);
     console.log("Cookie 狀態:", document.cookie);
 
-    // 只設置一個簡單的倒數計時，然後直接跳轉
+    // 先刷新認證狀態，確保登入狀態被正確檢測
+    const refreshAndRedirect = async () => {
+      try {
+        // 強制刷新認證狀態
+        await refreshAuth(true);
+        console.log("認證狀態已刷新");
+      } catch (error) {
+        console.error("刷新認證狀態失敗:", error);
+      }
+    };
+
+    // 立即執行認證狀態刷新
+    refreshAndRedirect();
+
+    // 設置倒數計時，然後跳轉
     const timer = setInterval(() => {
       setCountdown((prev) => {
         console.log("倒數計時:", prev);
@@ -61,45 +76,56 @@ const OAuthSuccess: React.FC = () => {
       console.log("OAuth 成功頁面清理，取消計時器");
       clearInterval(timer);
     };
-  }, []);
+  }, [refreshAuth]);
 
   return (
-    <div className="container flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="h-16 w-16 text-green-500" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+      <Card className="w-full max-w-md mx-4 text-center">
+        <CardHeader>
+          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <CardTitle className="text-2xl text-green-600">登入成功！</CardTitle>
-          <CardDescription>您已成功使用 Google 帳號登入</CardDescription>
+          <CardTitle className="text-2xl font-bold text-green-700">
+            登入成功！
+          </CardTitle>
+          <CardDescription className="text-gray-600">
+            歡迎回到 Syosetu2EPUB
+          </CardDescription>
         </CardHeader>
-        <CardContent className="text-center">
-          <div className="flex flex-col items-center gap-4">
+        <CardContent className="space-y-6">
+          <div className="text-center">
+            {isRedirecting ? (
+              <div className="flex items-center justify-center space-x-2 text-blue-600">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>正在跳轉到首頁...</span>
+              </div>
+            ) : (
+              <p className="text-gray-600">
+                將在{" "}
+                <span className="font-bold text-blue-600">{countdown}</span>{" "}
+                秒後自動跳轉到首頁
+              </p>
+            )}
+          </div>
+
+          <Button
+            onClick={handleGoHome}
+            disabled={isRedirecting}
+            className="w-full"
+            variant="default"
+          >
             {isRedirecting ? (
               <>
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p>正在跳轉到首頁...</p>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                跳轉中...
               </>
             ) : (
               <>
-                <div className="text-4xl font-bold text-primary">
-                  {countdown}
-                </div>
-                <p>秒後自動返回首頁</p>
+                <Home className="w-4 h-4 mr-2" />
+                立即前往首頁
               </>
             )}
-
-            {!isRedirecting && (
-              <Button
-                onClick={handleGoHome}
-                className="bg-sky-500 hover:bg-sky-600 text-white font-medium"
-                disabled={isRedirecting}
-              >
-                <Home className="w-4 h-4 mr-2" />
-                點此立即跳轉至首頁
-              </Button>
-            )}
-          </div>
+          </Button>
         </CardContent>
       </Card>
     </div>

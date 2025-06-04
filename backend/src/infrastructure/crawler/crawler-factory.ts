@@ -1,12 +1,12 @@
-// src/crawler/crawler-factory.service.ts
+// src/crawler/crawler-factory.ts
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { CrawlerStrategy } from '../../domain/ports/crawler.strategy.port.js';
 import { NarouCrawlerStrategy } from './strategies/narou-crawler.strategy.js';
-import { CrawlerFactoryPort } from '@/domain/ports/crawler.factory.port.js';
+import { CrawlerFactoryPort } from '@/domain/ports/factory/crawler.factory.port.js';
 import { KakuyomuCrawlerStrategy } from './strategies/kakuyomu-crawler.strategy.js';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
 @Injectable()
-export class CrawlerFactoryService implements CrawlerFactoryPort {
+export class CrawlerFactory implements CrawlerFactoryPort {
   constructor(
     @Inject(NarouCrawlerStrategy)
     private readonly narouCrawlerStrategy: CrawlerStrategy,

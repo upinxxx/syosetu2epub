@@ -1,9 +1,10 @@
 // src/infrastructure/queue/queue.module.ts
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
 import { RedisModule } from '@/infrastructure/redis/redis.module.js';
+import { RedisClient } from '@/infrastructure/redis/redis.client.js';
 
 // 新的模組化服務
 import { QueueCoreService } from './services/queue-core.service.js';
@@ -12,40 +13,89 @@ import { QueueEventHandler } from './services/queue-event.handler.js';
 import { QueueHealthService } from './services/queue-health.service.js';
 
 // 向後兼容適配器
-import { QueueAdapterCompatibility } from './queue-adapter-compat.js';
+import { QueueAdapter } from './queue.adapter.js';
 
 @Module({
   imports: [
-    ConfigModule,
-    RedisModule, // 引入統一的 Redis 模組
+    RedisModule,
     BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get('UPSTASH_REDIS_HOST'),
-          port: configService.get('UPSTASH_REDIS_PORT'),
-          username: configService.get('UPSTASH_REDIS_USERNAME'),
-          password: configService.get('UPSTASH_REDIS_PASSWORD'),
-          tls: {
-            // 優化 TLS 設定，減少連接問題
-            rejectUnauthorized: false,
+      imports: [RedisModule],
+      inject: [RedisClient, ConfigService],
+      useFactory: async (
+        redisClient: RedisClient,
+        configService: ConfigService,
+      ) => {
+        console.log('QueueModule: 使用 RedisClient 統一連接管理');
+
+        try {
+          // 等待 Redis 客戶端就緒
+          await redisClient.whenReady();
+          const ioredisInstance = redisClient.getClient();
+
+          if (ioredisInstance && redisClient.isReady()) {
+            console.log('QueueModule: 成功使用 RedisClient 統一連接');
+            return {
+              connection: ioredisInstance,
+              defaultJobOptions: {
+                removeOnComplete: 100,
+                removeOnFail: 50,
+                attempts: 3,
+                backoff: {
+                  type: 'exponential',
+                  delay: 2000,
+                },
+              },
+            };
+          }
+        } catch (error) {
+          console.error(
+            `QueueModule: RedisClient 連接失敗，使用後備方案: ${error.message}`,
+          );
+        }
+
+        // 後備方案：直接使用環境變數配置
+        console.warn('QueueModule: 使用配置後備方案');
+        const host = configService.get<string>('REDIS_HOST');
+        const port = configService.get<number>('REDIS_PORT');
+        const username = configService.get<string>('REDIS_USERNAME');
+        const password = configService.get<string>('REDIS_PASSWORD');
+
+        if (!host || !port) {
+          throw new Error('Redis configuration not found');
+        }
+
+        return {
+          connection: {
+            host,
+            port,
+            username,
+            password,
+            tls: host.includes('upstash')
+              ? { rejectUnauthorized: false }
+              : undefined,
+            connectTimeout:
+              configService.get<number>('REDIS_CONNECT_TIMEOUT') || 15000,
+            commandTimeout:
+              configService.get<number>('REDIS_COMMAND_TIMEOUT') || 10000,
+            maxRetriesPerRequest:
+              configService.get<number>('REDIS_MAX_RETRIES_PER_REQUEST') ||
+              null,
+            enableOfflineQueue:
+              configService.get<boolean>('REDIS_ENABLE_OFFLINE_QUEUE') ?? false,
+            keepAlive: configService.get<number>('REDIS_KEEP_ALIVE') || 30000,
+            lazyConnect: false,
           },
-          // 優化 BullMQ 連接設定
-          connectTimeout: 10000,
-          lazyConnect: true,
-          maxRetriesPerRequest: null, // BullMQ 要求必須為 null
-          retryDelayOnFailover: 100,
-          keepAlive: 30000,
-          family: 4,
-          enableOfflineQueue: true, // 啟用離線佇列以提高穩定性
-          reconnectOnError: (err) => {
-            const targetError =
-              /READONLY|ECONNRESET|ETIMEDOUT|ENOTFOUND|ENETUNREACH/;
-            return targetError.test(err.message);
+          defaultJobOptions: {
+            removeOnComplete: 100,
+            removeOnFail: 50,
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 2000,
+            },
           },
-        },
-      }),
+        };
+      },
     }),
     BullModule.registerQueue(
       { name: 'epub' },
@@ -56,31 +106,26 @@ import { QueueAdapterCompatibility } from './queue-adapter-compat.js';
     ),
   ],
   providers: [
-    // 核心服務（Redis 客戶端由 RedisModule 提供）
     QueueCoreService,
     QueueCacheService,
     QueueEventHandler,
     QueueHealthService,
 
-    // 服務依賴注入令牌
     {
       provide: 'QUEUE_CACHE_SERVICE',
       useExisting: QueueCacheService,
     },
 
-    // 向後兼容的適配器
-    QueueAdapterCompatibility,
+    QueueAdapter,
 
-    // 主要 Port Token（向後兼容）
     {
       provide: QUEUE_PORT_TOKEN,
-      useExisting: QueueAdapterCompatibility,
+      useExisting: QueueAdapter,
     },
   ],
   exports: [
     BullModule,
     QUEUE_PORT_TOKEN,
-    // 也匯出新服務供其他模組使用
     QueueCoreService,
     QueueCacheService,
     QueueEventHandler,

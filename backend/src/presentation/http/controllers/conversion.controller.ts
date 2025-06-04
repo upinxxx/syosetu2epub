@@ -12,7 +12,7 @@ import {
   UseGuards,
   Inject,
 } from '@nestjs/common';
-import { ConvertNovelDto } from '../shared/dto/convert-novel.dto.js';
+import { ConvertNovelDto } from '../../../shared/dto/convert-novel.dto.js';
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConvertFacade } from '@/application/convert/convert.facade.js';

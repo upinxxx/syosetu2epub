@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import {
   SystemHealthCheckUseCase,
   SystemHealthResult,
@@ -21,10 +21,10 @@ export interface QuickHealthResult {
 /**
  * 健康檢查門面
  * 統一處理健康檢查相關功能，隱藏內部實現細節
+ * 重構後：僅負責 Use Case 協調，移除橫切關注點
  */
 @Injectable()
 export class HealthFacade {
-  private readonly logger = new Logger(HealthFacade.name);
   private readonly startTime = Date.now();
   private lastHealthCheck: Date | null = null;
 
@@ -41,30 +41,16 @@ export class HealthFacade {
    * 執行完整的系統健康檢查
    */
   async checkSystemHealth(): Promise<SystemHealthResult> {
-    this.logger.debug('執行完整系統健康檢查');
-
-    try {
-      const result = await this.systemHealthCheck.execute();
-      this.lastHealthCheck = new Date();
-      return result;
-    } catch (error) {
-      this.logger.error(`系統健康檢查失敗: ${error.message}`, error.stack);
-      throw error;
-    }
+    const result = await this.systemHealthCheck.execute();
+    this.lastHealthCheck = new Date();
+    return result;
   }
 
   /**
    * 執行數據一致性檢查
    */
   async checkDataConsistency(): Promise<ConsistencyCheckResult> {
-    this.logger.log('執行數據一致性檢查');
-
-    try {
-      return await this.dataConsistencyCheck.execute();
-    } catch (error) {
-      this.logger.error(`數據一致性檢查失敗: ${error.message}`, error.stack);
-      throw error;
-    }
+    return this.dataConsistencyCheck.execute();
   }
 
   /**
@@ -84,17 +70,10 @@ export class HealthFacade {
   async getSystemMetrics(): Promise<
     SystemMetricsResult & { lastHealthCheck: Date | null }
   > {
-    this.logger.debug('獲取系統指標');
-
-    try {
-      const metrics = await this.systemMetrics.execute();
-      return {
-        ...metrics,
-        lastHealthCheck: this.lastHealthCheck,
-      };
-    } catch (error) {
-      this.logger.error(`獲取系統指標失敗: ${error.message}`, error.stack);
-      throw error;
-    }
+    const metrics = await this.systemMetrics.execute();
+    return {
+      ...metrics,
+      lastHealthCheck: this.lastHealthCheck,
+    };
   }
 }

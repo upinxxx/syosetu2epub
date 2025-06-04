@@ -3,7 +3,7 @@ import { QueuePort, QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
 import { EPUB_JOB_REPOSITORY_TOKEN } from '@/domain/ports/repository/index.js';
 import { JobStatus } from '@/domain/enums/job-status.enum.js';
-import { EpubJobRepositoryTypeORM } from '@/infrastructure/repositories/epub-job-repository.adapter.js';
+import { EpubJobRepositoryTypeORM } from '@/infrastructure/repositories/epub-job.repository.js';
 
 /**
  * 任務狀態同步服務
@@ -72,19 +72,29 @@ export class JobStatusSyncService {
 
         // 如果隊列中的狀態與資料庫不同，則更新資料庫
         if (queueStatus && queueStatus.status !== job.status) {
+          // 處理 completed 狀態但缺少 publicUrl 的情況
+          let finalPublicUrl = queueStatus.publicUrl || job.publicUrl;
+
+          if (queueStatus.status === JobStatus.COMPLETED && !finalPublicUrl) {
+            this.logger.warn(
+              `任務 ${job.id} 標記為完成但缺少 publicUrl，跳過同步`,
+            );
+            continue;
+          }
+
           // 建立更新後的任務實體
           const updatedJob = EpubJob.reconstitute({
             id: job.id,
             novelId: job.novelId,
             status: queueStatus.status as JobStatus,
             createdAt: job.createdAt,
-            publicUrl: queueStatus.publicUrl || job.publicUrl,
+            publicUrl: finalPublicUrl,
             errorMessage: queueStatus.errorMessage || job.errorMessage,
             startedAt: job.startedAt,
             completedAt:
               queueStatus.status === JobStatus.COMPLETED ||
               queueStatus.status === JobStatus.FAILED
-                ? new Date()
+                ? queueStatus.completedAt || new Date()
                 : job.completedAt,
             userId:
               queueStatus.userId !== undefined
@@ -94,7 +104,8 @@ export class JobStatusSyncService {
 
           await this.epubJobRepository.save(updatedJob);
           this.logger.log(
-            `已更新 EPUB 任務 ${job.id} 狀態為 ${queueStatus.status}，userId: ${updatedJob.userId}`,
+            `已更新 EPUB 任務 ${job.id} 狀態為 ${queueStatus.status}，userId: ${updatedJob.userId}` +
+              (finalPublicUrl ? `, publicUrl: ${finalPublicUrl}` : ''),
           );
         }
       } catch (error) {
@@ -286,6 +297,17 @@ export class JobStatusSyncService {
         return false;
       }
 
+      // 檢查如果狀態是 completed 但沒有 publicUrl，則無法修復
+      if (
+        cachedStatus.status === JobStatus.COMPLETED &&
+        !cachedStatus.publicUrl
+      ) {
+        this.logger.error(
+          `無法修復任務 ${job.id}，completed 狀態但缺少 publicUrl`,
+        );
+        return false;
+      }
+
       // 構建修復後的任務實體
       const repairedJob = EpubJob.reconstitute({
         id: job.id,
@@ -304,7 +326,10 @@ export class JobStatusSyncService {
       await this.epubJobRepository.save(repairedJob);
 
       this.logger.log(
-        `已修復任務 ${job.id} - 狀態: ${repairedJob.status}, userId: ${repairedJob.userId}`,
+        `已修復任務 ${job.id} - 狀態: ${repairedJob.status}, userId: ${repairedJob.userId}` +
+          (repairedJob.publicUrl
+            ? `, publicUrl: ${repairedJob.publicUrl}`
+            : ''),
       );
 
       return true;

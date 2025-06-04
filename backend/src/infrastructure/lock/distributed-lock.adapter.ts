@@ -1,7 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { LockPort } from '@/domain/ports/lock.port.js';
 import { Redis } from 'ioredis';
-
 /**
  * 基於 Redis 的分佈式鎖適配器
  * 實現分佈式鎖機制，確保並發操作的原子性
@@ -163,15 +162,5 @@ export class DistributedLockAdapter implements LockPort {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
-   * 清理資源
-   */
-  async onModuleDestroy() {
-    if (this.redis) {
-      await this.redis.disconnect();
-      this.logger.log('Redis 分佈式鎖連接已關閉');
-    }
   }
 }

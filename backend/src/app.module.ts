@@ -24,8 +24,6 @@ import { DomainExceptionFilter } from './shared/filters/domain-exception.filter.
 import { ApiMonitoringMiddleware } from './shared/middleware/api-monitoring.middleware.js';
 import cookieParser from 'cookie-parser';
 import { Logger } from '@nestjs/common';
-import supabaseConfig from './config/supabase.config.js';
-import resendConfig from './config/resend.config.js';
 
 /**
  * 應用程式主模組
@@ -36,34 +34,47 @@ import resendConfig from './config/resend.config.js';
     // 基礎配置模塊
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [supabaseConfig, resendConfig],
+      envFilePath: '.env',
     }),
 
     // 定時任務模塊
     ScheduleModule.forRoot(),
 
-    // 全域 Redis 服務模組
-    RedisModule,
-
     // 數據庫配置
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST'),
-        port: configService.get('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_DATABASE'),
-        entities: [
-          NovelOrmEntity,
-          EpubJobOrmEntity,
-          UserOrmEntity,
-          KindleDeliveryOrmEntity,
-        ],
-        synchronize: false,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const host = configService.get<string>('DB_HOST');
+        const port = configService.get<number>('DB_PORT');
+        const username = configService.get<string>('DB_USERNAME');
+        const password = configService.get<string>('DB_PASSWORD');
+        const database = configService.get<string>('DB_DATABASE');
+        const synchronize =
+          configService.get<boolean>('DB_SYNCHRONIZE') || false;
+        const logging = configService.get<boolean>('DB_LOGGING') || false;
+
+        if (!host || !port || !username || !password || !database) {
+          throw new Error('Database configuration not found');
+        }
+
+        return {
+          type: 'postgres',
+          host,
+          port,
+          username,
+          password,
+          database,
+          entities: [
+            NovelOrmEntity,
+            EpubJobOrmEntity,
+            UserOrmEntity,
+            KindleDeliveryOrmEntity,
+          ],
+          synchronize,
+          logging,
+        };
+      },
     }),
 
     // 共用組件模組（全域）
@@ -73,6 +84,7 @@ import resendConfig from './config/resend.config.js';
     InfrastructureModule, // 基礎設施層：適配器實現
     ApplicationModule, // 應用層：用例和服務
     HttpModule, // 表現層：控制器和路由
+    RedisModule,
   ],
   providers: [
     // 註冊全域驗證管道

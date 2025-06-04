@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 
 import { KindleDelivery } from '@/domain/entities/kindle-delivery.entity.js';
-import { KindleEmail } from '@/domain/entities/kindle-email.js';
+import { KindleEmailValueObject } from '@/domain/value-objects/kindle-email.value-object.js';
 import { DeliveryStatus } from '@/domain/enums/delivery-status.enum.js';
 import {
   EpubJobRepository,
@@ -28,7 +28,7 @@ import {
   FILE_DOWNLOADER_PORT,
 } from '@/domain/ports/file-downloader.port.js';
 import { JobStatus } from '@/domain/enums/job-status.enum.js';
-import { GetRecentDeliveryQuery } from './get-recent-delivery.query.js';
+import { GetRecentDeliveryQuery } from '../query/get-recent-delivery.query.js';
 
 @Injectable()
 export class SendToKindleUseCase {
@@ -65,7 +65,7 @@ export class SendToKindleUseCase {
     await this.checkCooldown(userId, epubJobId);
 
     // 2. 驗證Kindle電子郵件地址
-    const kindleEmail = KindleEmail.create(kindleEmailStr);
+    const kindleEmail = KindleEmailValueObject.create(kindleEmailStr);
 
     // 3. 獲取EPUB任務
     const epubJob = await this.epubJobRepository.findById(epubJobId);

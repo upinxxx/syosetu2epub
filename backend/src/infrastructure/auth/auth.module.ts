@@ -29,10 +29,21 @@ export const EXTERNAL_AUTH_PROVIDER_TOKEN = Symbol('ExternalAuthProvider');
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '7d' },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        const expiresIn = configService.get<string>('JWT_EXPIRES_IN') || '1d';
+
+        if (!secret) {
+          throw new Error('JWT configuration not found');
+        }
+
+        return {
+          secret,
+          signOptions: {
+            expiresIn,
+          },
+        };
+      },
     }),
   ],
   providers: [
@@ -70,4 +81,4 @@ export const EXTERNAL_AUTH_PROVIDER_TOKEN = Symbol('ExternalAuthProvider');
     JwtModule,
   ],
 })
-export class AuthInfrastructureModule {}
+export class AuthModule {}

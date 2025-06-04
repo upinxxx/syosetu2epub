@@ -2,7 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
   DataConsistencyValidator,
   ConsistencyReport,
-} from '@/application/jobs/data-consistency-validator.service.js';
+} from '@/application/jobs/service/data-consistency-validator.service.js';
 
 export interface ConsistencyCheckResult {
   status: 'healthy' | 'unhealthy' | 'degraded';

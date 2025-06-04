@@ -9,7 +9,7 @@ import { Novel } from '@/domain/entities/novel.entity.js';
 import {
   PREVIEW_PROVIDER_FACTORY_TOKEN,
   PreviewProviderFactoryPort,
-} from '@/domain/ports/preview-provider.factory.port.js';
+} from '@/domain/ports/factory/preview-provider.factory.port.js';
 
 /**
  * 預覽小說 UseCase

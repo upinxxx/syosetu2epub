@@ -2,7 +2,7 @@
  * KindleEmail Value Object
  * 驗證和表示Kindle電子郵件地址
  */
-export class KindleEmail {
+export class KindleEmailValueObject {
   private readonly _value: string;
 
   private constructor(value: string) {
@@ -13,7 +13,7 @@ export class KindleEmail {
    * 創建新的KindleEmail Value Object
    * @param email Kindle電子郵件地址
    */
-  public static create(email: string): KindleEmail {
+  public static create(email: string): KindleEmailValueObject {
     if (!email || typeof email !== 'string') {
       throw new Error('Kindle電子郵件不能為空');
     }
@@ -26,7 +26,7 @@ export class KindleEmail {
       );
     }
 
-    return new KindleEmail(trimmedEmail);
+    return new KindleEmailValueObject(trimmedEmail);
   }
 
   /**
@@ -56,8 +56,8 @@ export class KindleEmail {
   /**
    * 比較兩個KindleEmail是否相等
    */
-  equals(other: KindleEmail): boolean {
-    if (!(other instanceof KindleEmail)) {
+  equals(other: KindleEmailValueObject): boolean {
+    if (!(other instanceof KindleEmailValueObject)) {
       return false;
     }
 

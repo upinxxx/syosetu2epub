@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { PREVIEW_PROVIDER_FACTORY_TOKEN } from '@/domain/ports/preview-provider.factory.port.js';
-import { PreviewProviderFactoryPort } from '@/domain/ports/preview-provider.factory.port.js';
+import { PREVIEW_PROVIDER_FACTORY_TOKEN } from '@/domain/ports/factory/preview-provider.factory.port.js';
+import { PreviewProviderFactoryPort } from '@/domain/ports/factory/preview-provider.factory.port.js';
 import { QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
 import { QueuePort } from '@/domain/ports/queue.port.js';
 import {

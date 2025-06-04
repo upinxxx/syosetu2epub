@@ -1,6 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { RedisService } from './redis.service.js';
+import { RedisClient } from './redis.client.js';
 
 /**
  * Redis 全域模組
@@ -10,14 +10,14 @@ import { RedisService } from './redis.service.js';
 @Module({
   imports: [ConfigModule],
   providers: [
-    RedisService,
+    RedisClient,
     // 提供 REDIS_CLIENT token 以保持向後兼容
     {
       provide: 'REDIS_CLIENT',
-      useFactory: (redisService: RedisService) => redisService.getClient(),
-      inject: [RedisService],
+      useFactory: (redisClient: RedisClient) => redisClient.getClient(),
+      inject: [RedisClient],
     },
   ],
-  exports: [RedisService, 'REDIS_CLIENT'],
+  exports: [RedisClient, 'REDIS_CLIENT'],
 })
 export class RedisModule {}

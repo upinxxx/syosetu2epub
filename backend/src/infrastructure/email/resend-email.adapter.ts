@@ -17,8 +17,7 @@ export class ResendEmailAdapter implements EmailSenderPort {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
-    const resendConfig = this.configService.get('resend');
-    const apiKey = resendConfig?.apiKey;
+    const apiKey = this.configService.get<string>('RESEND_API_KEY');
 
     if (!apiKey) {
       throw new Error('RESEND_API_KEY is not configured');
@@ -27,7 +26,7 @@ export class ResendEmailAdapter implements EmailSenderPort {
     this.resend = new Resend(apiKey);
 
     // 嚴格要求fromEmail必須在配置中定義
-    const fromEmail = resendConfig?.fromEmail;
+    const fromEmail = this.configService.get<string>('RESEND_FROM_EMAIL');
     if (!fromEmail) {
       throw new Error('RESEND_FROM_EMAIL is not configured');
     }

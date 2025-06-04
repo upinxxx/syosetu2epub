@@ -14,7 +14,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { GoogleProfile } from '../domain/ports/auth.port.js';
+import { GoogleProfile } from '../../../domain/ports/auth.port.js';
 import { AuthFacade } from '@/application/auth/auth.facade.js';
 
 /**

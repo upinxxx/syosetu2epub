@@ -8,7 +8,7 @@ import {
   Logger,
   Inject,
 } from '@nestjs/common';
-import { PreviewNovelDto } from '../shared/dto/preview-novel.dto.js';
+import { PreviewNovelDto } from '../../../shared/dto/preview-novel.dto.js';
 import { PreviewFacade } from '@/application/preview/preview.facade.js';
 
 /**

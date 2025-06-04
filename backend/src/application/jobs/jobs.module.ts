@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { JobStatusSyncService } from './job-status-sync.service.js';
-import { DataConsistencyValidator } from './data-consistency-validator.service.js';
+import { JobStatusSyncService } from './service/job-status-sync.service.js';
+import { DataConsistencyValidator } from './service/data-consistency-validator.service.js';
 import { InfrastructureModule } from '@/infrastructure/infrastructure.module.js';
 
 /**

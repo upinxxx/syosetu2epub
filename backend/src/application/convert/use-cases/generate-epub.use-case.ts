@@ -13,7 +13,7 @@ import { NovelSource } from '@/domain/enums/novel-source.enum.js';
 import {
   CRAWLER_FACTORY_TOKEN,
   CrawlerFactoryPort,
-} from '@/domain/ports/crawler.factory.port.js';
+} from '@/domain/ports/factory/crawler.factory.port.js';
 import { NovelIndex } from '@/domain/ports/crawler.strategy.port.js';
 
 /**

@@ -1,4 +1,4 @@
-import { PreviewProviderPort } from './preview-provider.port.js';
+import { PreviewProviderPort } from '../preview-provider.port.js';
 
 export const PREVIEW_PROVIDER_FACTORY_TOKEN = Symbol(
   'PREVIEW_PROVIDER_FACTORY_PORT',

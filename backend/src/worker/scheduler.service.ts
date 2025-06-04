@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { JobStatusSyncService } from '@/application/jobs/job-status-sync.service.js';
+import { JobStatusSyncService } from '@/application/jobs/service/job-status-sync.service.js';
 import { CleanupOldFilesUseCase } from '@/application/storage/cleanup-old-files.use-case.js';
 
 /**
