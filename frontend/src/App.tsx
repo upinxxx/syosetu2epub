@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import Home from "./pages/Home";
 import Me from "./pages/Me";
-import Orders from "./pages/Orders";
 import HowToUse from "./pages/HowToUse";
 import NotFound from "./pages/NotFound";
 import OAuthSuccess from "./pages/OAuthSuccess";
@@ -29,14 +28,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <Me />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <Orders />
               </ProtectedRoute>
             }
           />

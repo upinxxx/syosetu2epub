@@ -111,7 +111,7 @@ const OAuthSuccess: React.FC = () => {
           <Button
             onClick={handleGoHome}
             disabled={isRedirecting}
-            className="w-full"
+            className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
             variant="default"
           >
             {isRedirecting ? (

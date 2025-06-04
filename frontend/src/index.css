@@ -151,4 +151,34 @@
       opacity: 1;
     }
   }
+
+  /* 閃爍動畫 */
+  .animate-twinkle {
+    animation: twinkle 3s ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: scale(0.8);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+  }
+
+  /* 動畫延遲類 */
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+
+  .animation-delay-1500 {
+    animation-delay: 1.5s;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
 }

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import Portal from "@/components/Portal";
 import { apiClient } from "@/lib/api-client";
 import type {
   PreviewNovelDto,
@@ -53,21 +54,37 @@ const features = [
     title: "快速轉換",
     description: "只需輸入網址，系統自動爬取並轉換為 EPUB 格式",
     icon: "⚡",
+    gradient: "from-blue-500 to-blue-600",
+    color: "text-blue-600",
+    bgLight: "bg-blue-50",
+    border: "border-blue-200",
   },
   {
     title: "Kindle 支援",
     description: "支援直接轉寄至 Kindle 信箱，即時同步閱讀",
     icon: "📱",
+    gradient: "from-green-500 to-green-600",
+    color: "text-green-600",
+    bgLight: "bg-green-50",
+    border: "border-green-200",
   },
   {
-    title: "批量處理",
-    description: "付費會員可享有批量轉換功能，一次處理多部小說",
-    icon: "📚",
+    title: "任務追蹤",
+    description: "即時追蹤轉換進度，支援任務歷史查詢與狀態監控",
+    icon: "📊",
+    gradient: "from-purple-500 to-purple-600",
+    color: "text-purple-600",
+    bgLight: "bg-purple-50",
+    border: "border-purple-200",
   },
   {
     title: "安全可靠",
-    description: "系統穩定，資料安全，支援任務進度查詢",
+    description: "系統穩定，資料安全，支援多平台部署與備份機制",
     icon: "🔒",
+    gradient: "from-orange-500 to-orange-600",
+    color: "text-orange-600",
+    bgLight: "bg-orange-50",
+    border: "border-orange-200",
   },
 ];
 
@@ -147,7 +164,7 @@ interface JobDetails {
 
 // 隨機生成柔和的明亮色彩
 const getRandomSoftColor = () => {
-  // 柔和明亮的顏色組合
+  // 柔和明亮的顏色組合 - 增強版本，添加更多視覺層次和動畫效果
   const colors = [
     {
       border: "border-teal-500",
@@ -155,6 +172,15 @@ const getRandomSoftColor = () => {
       text: "text-teal-600",
       hover: "hover:bg-teal-600",
       light: "bg-teal-50",
+      gradient: "from-teal-500 to-teal-600",
+      shadow: "shadow-teal-500/20",
+      ring: "ring-teal-500/30",
+      textLight: "text-teal-500",
+      bgLight: "bg-teal-100",
+      hoverShadow: "hover:shadow-teal-500/30",
+      focusRing: "focus:ring-teal-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(20,184,166,0.15)]",
+      gradientHover: "hover:from-teal-400 hover:to-teal-500",
     },
     {
       border: "border-sky-500",
@@ -162,6 +188,15 @@ const getRandomSoftColor = () => {
       text: "text-sky-600",
       hover: "hover:bg-sky-600",
       light: "bg-sky-50",
+      gradient: "from-sky-500 to-sky-600",
+      shadow: "shadow-sky-500/20",
+      ring: "ring-sky-500/30",
+      textLight: "text-sky-500",
+      bgLight: "bg-sky-100",
+      hoverShadow: "hover:shadow-sky-500/30",
+      focusRing: "focus:ring-sky-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(14,165,233,0.15)]",
+      gradientHover: "hover:from-sky-400 hover:to-sky-500",
     },
     {
       border: "border-indigo-500",
@@ -169,6 +204,15 @@ const getRandomSoftColor = () => {
       text: "text-indigo-600",
       hover: "hover:bg-indigo-600",
       light: "bg-indigo-50",
+      gradient: "from-indigo-500 to-indigo-600",
+      shadow: "shadow-indigo-500/20",
+      ring: "ring-indigo-500/30",
+      textLight: "text-indigo-500",
+      bgLight: "bg-indigo-100",
+      hoverShadow: "hover:shadow-indigo-500/30",
+      focusRing: "focus:ring-indigo-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(99,102,241,0.15)]",
+      gradientHover: "hover:from-indigo-400 hover:to-indigo-500",
     },
     {
       border: "border-violet-500",
@@ -176,6 +220,15 @@ const getRandomSoftColor = () => {
       text: "text-violet-600",
       hover: "hover:bg-violet-600",
       light: "bg-violet-50",
+      gradient: "from-violet-500 to-violet-600",
+      shadow: "shadow-violet-500/20",
+      ring: "ring-violet-500/30",
+      textLight: "text-violet-500",
+      bgLight: "bg-violet-100",
+      hoverShadow: "hover:shadow-violet-500/30",
+      focusRing: "focus:ring-violet-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(139,92,246,0.15)]",
+      gradientHover: "hover:from-violet-400 hover:to-violet-500",
     },
     {
       border: "border-rose-500",
@@ -183,6 +236,15 @@ const getRandomSoftColor = () => {
       text: "text-rose-600",
       hover: "hover:bg-rose-600",
       light: "bg-rose-50",
+      gradient: "from-rose-500 to-rose-600",
+      shadow: "shadow-rose-500/20",
+      ring: "ring-rose-500/30",
+      textLight: "text-rose-500",
+      bgLight: "bg-rose-100",
+      hoverShadow: "hover:shadow-rose-500/30",
+      focusRing: "focus:ring-rose-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(244,63,94,0.15)]",
+      gradientHover: "hover:from-rose-400 hover:to-rose-500",
     },
     {
       border: "border-emerald-500",
@@ -190,6 +252,15 @@ const getRandomSoftColor = () => {
       text: "text-emerald-600",
       hover: "hover:bg-emerald-600",
       light: "bg-emerald-50",
+      gradient: "from-emerald-500 to-emerald-600",
+      shadow: "shadow-emerald-500/20",
+      ring: "ring-emerald-500/30",
+      textLight: "text-emerald-500",
+      bgLight: "bg-emerald-100",
+      hoverShadow: "hover:shadow-emerald-500/30",
+      focusRing: "focus:ring-emerald-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(16,185,129,0.15)]",
+      gradientHover: "hover:from-emerald-400 hover:to-emerald-500",
     },
     {
       border: "border-cyan-500",
@@ -197,8 +268,50 @@ const getRandomSoftColor = () => {
       text: "text-cyan-600",
       hover: "hover:bg-cyan-600",
       light: "bg-cyan-50",
+      gradient: "from-cyan-500 to-cyan-600",
+      shadow: "shadow-cyan-500/20",
+      ring: "ring-cyan-500/30",
+      textLight: "text-cyan-500",
+      bgLight: "bg-cyan-100",
+      hoverShadow: "hover:shadow-cyan-500/30",
+      focusRing: "focus:ring-cyan-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(6,182,212,0.15)]",
+      gradientHover: "hover:from-cyan-400 hover:to-cyan-500",
+    },
+    {
+      border: "border-amber-500",
+      bg: "bg-amber-500",
+      text: "text-amber-600",
+      hover: "hover:bg-amber-600",
+      light: "bg-amber-50",
+      gradient: "from-amber-500 to-amber-600",
+      shadow: "shadow-amber-500/20",
+      ring: "ring-amber-500/30",
+      textLight: "text-amber-500",
+      bgLight: "bg-amber-100",
+      hoverShadow: "hover:shadow-amber-500/30",
+      focusRing: "focus:ring-amber-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(245,158,11,0.15)]",
+      gradientHover: "hover:from-amber-400 hover:to-amber-500",
+    },
+    {
+      border: "border-pink-500",
+      bg: "bg-pink-500",
+      text: "text-pink-600",
+      hover: "hover:bg-pink-600",
+      light: "bg-pink-50",
+      gradient: "from-pink-500 to-pink-600",
+      shadow: "shadow-pink-500/20",
+      ring: "ring-pink-500/30",
+      textLight: "text-pink-500",
+      bgLight: "bg-pink-100",
+      hoverShadow: "hover:shadow-pink-500/30",
+      focusRing: "focus:ring-pink-500/50",
+      glowEffect: "shadow-[0_0_20px_rgba(236,72,153,0.15)]",
+      gradientHover: "hover:from-pink-400 hover:to-pink-500",
     },
   ];
+
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
@@ -825,7 +938,14 @@ export default function Home() {
                     jobId,
                     title,
                   });
-                  window.open(publicUrl, "_blank");
+                  // 修復：直接下載而不是開啟新分頁
+                  const link = document.createElement("a");
+                  link.href = publicUrl;
+                  link.download = `${title || "novel"}.epub`;
+                  link.rel = "noopener noreferrer";
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
                 }
               },
             },
@@ -1227,176 +1347,373 @@ export default function Home() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-[url('../public/main-bg.png')] py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-6 text-white">
-              將小說轉換為 EPUB 電子書
-            </h1>
-            <p className="text-lg mb-8 text-white">
-              支援成為小説家になろう和カクヨム網站小說，一鍵轉換下載EPUB
-            </p>
+      <section className="relative min-h-[80vh] bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 overflow-hidden">
+        {/* 背景裝飾元素 */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-purple-300/10 rounded-full blur-2xl"></div>
+
+          {/* 新增的浮動幾何裝飾 */}
+          <div className="absolute top-32 right-32 w-16 h-16 bg-white/20 rounded-lg rotate-45 animate-pulse"></div>
+          <div className="absolute bottom-32 left-32 w-12 h-12 bg-yellow-300/30 rounded-full animate-bounce"></div>
+          <div className="absolute top-48 left-1/4 w-8 h-8 bg-pink-300/40 rotate-12 animate-pulse"></div>
+
+          {/* 星星裝飾 */}
+          <div className="absolute top-24 left-1/2 w-3 h-3 bg-white/60 rounded-full animate-twinkle"></div>
+          <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-yellow-300/80 rounded-full animate-twinkle animation-delay-1000"></div>
+          <div className="absolute bottom-1/3 left-1/6 w-2 h-2 bg-white/50 rounded-full animate-twinkle animation-delay-2000"></div>
+
+          {/* 浮動的線條裝飾 */}
+          <div className="absolute top-1/4 right-1/5 w-32 h-0.5 bg-white/30 rotate-12 animate-pulse"></div>
+          <div className="absolute bottom-1/4 left-1/8 w-24 h-0.5 bg-yellow-300/50 -rotate-12 animate-pulse animation-delay-1500"></div>
+        </div>
+
+        <div className="container mx-auto px-4 py-12 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* 主標題區塊 */}
+            <div className="mb-8">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white leading-tight">
+                將小說轉換為
+                <span className="block bg-gradient-to-r from-yellow-300 via-orange-300 to-pink-300 bg-clip-text text-transparent">
+                  EPUB 電子書
+                </span>
+              </h1>
+              <p className="text-xl md:text-2xl mb-6 text-white/90 max-w-3xl mx-auto leading-relaxed">
+                支援小説家になろう和カクヨム網站，一鍵轉換下載 EPUB，支援 Kindle
+                轉寄
+              </p>
+            </div>
 
             {/* URL Input Section */}
-            <div className="bg-gray-50 rounded-lg p-6 shadow-sm border border-gray-200">
-              <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20 max-w-2xl mx-auto">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  開始轉換
+                </h3>
+                <p className="text-gray-600">輸入小說網址或作品 ID</p>
+              </div>
+
+              <div className="flex flex-col gap-4">
                 <Input
-                  placeholder="輸入小說網址或作品 ID..."
+                  placeholder="例如：https://ncode.syosetu.com/n1234ab/ 或 n1234ab"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  className="w-full sm:w-96 bg-white border-2 border-sky-400"
+                  className="w-full h-14 bg-white border-2 border-gray-200 focus:border-sky-400 text-lg px-6 rounded-xl transition-all duration-200 placeholder:text-gray-400"
                 />
+
                 <Button
                   onClick={handleDownload}
                   disabled={isLoading || !source || !sourceId}
-                  className="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-medium"
+                  className="w-full h-14 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  {isLoading ? "處理中..." : "獲取預覽"}
+                  {isLoading ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      處理中...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <Eye className="w-5 h-5" />
+                      獲取預覽
+                    </div>
+                  )}
                 </Button>
               </div>
 
-              {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+              {error && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-red-600 font-medium">{error}</p>
+                </div>
+              )}
 
               {source && (
-                <p className="mt-2 text-sm text-green-600">
-                  已檢測到站點：
-                  {source === NOVEL_SITES.NAROU ? "小說家になろう" : "カクヨム"}
-                </p>
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <p className="text-green-700 font-medium flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    已檢測到站點：
+                    {source === NOVEL_SITES.NAROU
+                      ? "小說家になろう"
+                      : "カクヨム"}
+                  </p>
+                </div>
               )}
 
               {isLoading && (
-                <div className="mt-4 text-sm text-gray-500">
-                  {previewStatus === "processing" ? (
-                    <p className="animate-pulse">正在爬取小說資料，請稍候...</p>
-                  ) : previewStatus === "queued" ? (
-                    <p className="animate-pulse">正在等待處理，請稍候...</p>
-                  ) : (
-                    <p className="animate-pulse">正在處理您的請求，請稍候...</p>
-                  )}
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="flex items-center gap-3 text-blue-700">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="font-medium">
+                      {previewStatus === "processing"
+                        ? "正在爬取小說資料，請稍候..."
+                        : previewStatus === "queued"
+                        ? "正在等待處理，請稍候..."
+                        : "正在處理您的請求，請稍候..."}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* 底部現代化裝飾 */}
+        <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white/20 to-transparent"></div>
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-1 bg-white/30 rounded-full"></div>
+            <div className="w-3 h-3 bg-white/40 rounded-full animate-pulse"></div>
+            <div className="w-8 h-1 bg-white/30 rounded-full"></div>
+            <div
+              className="w-2 h-2 bg-white/50 rounded-full animate-pulse"
+              style={{ animationDelay: "0.5s" }}
+            ></div>
+            <div className="w-16 h-1 bg-white/30 rounded-full"></div>
           </div>
         </div>
       </section>
 
-      {/* 小說預覽彈出元件 */}
+      {/* 小說預覽彈出元件 - 使用 Portal 確保相對於 viewport 定位 */}
       {showPreview && preview && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div
-            className={`bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden border-l-8 ${previewColor.border}`}
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className={`text-2xl font-bold ${previewColor.text}`}>
-                  {preview.title}
-                </h2>
-                <button
-                  onClick={handleClosePreview}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+        <Portal>
+          <div className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-md transition-all duration-300">
+            <div
+              className={`fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl max-w-2xl w-[95vw] max-h-[90vh] overflow-hidden border border-white/20 ${previewColor.glowEffect} transform transition-all duration-300 animate-in slide-in-from-bottom-4 fade-in-0 zoom-in-95 z-50`}
+            >
+              <div className="flex flex-col h-full">
+                {/* 標題欄 */}
+                <div
+                  className={`bg-gradient-to-r ${previewColor.gradient} text-white p-6 relative overflow-hidden`}
                 >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="mb-6 space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={`px-3 py-1 ${previewColor.bg} text-white rounded-full text-sm font-bold`}
-                  >
-                    {preview.author}
-                  </span>
-                  <span
-                    className={`px-3 py-1 ${
-                      preview.source === NOVEL_SITES.NAROU
-                        ? "bg-[#18b7cd]"
-                        : "bg-[#4baae0]"
-                    } text-white rounded-full text-sm font-bold`}
-                  >
-                    {preview.source === NOVEL_SITES.NAROU
-                      ? "小說家になろう"
-                      : "カクヨム"}
-                  </span>
+                  <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                  <div className="relative flex justify-between items-start">
+                    <div className="flex-1 pr-4">
+                      <h2 className="text-2xl font-bold leading-tight mb-2">
+                        {preview.title}
+                      </h2>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
+                          {preview.author}
+                        </span>
+                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
+                          {preview.source === NOVEL_SITES.NAROU
+                            ? "小說家になろう"
+                            : "カクヨム"}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleClosePreview}
+                      className="text-white/80 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-full flex-shrink-0"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="mb-6">
-                <h3
-                  className={`text-lg font-semibold mb-2 pb-1 border-b ${previewColor.border}`}
-                >
-                  簡介
-                </h3>
-                <div className="text-gray-700 whitespace-pre-line bg-gray-100 p-4 rounded-md max-h-64 overflow-y-auto">
-                  {preview.description}
+                {/* 內容區域 */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  <div className="mb-6">
+                    <h3
+                      className={`text-lg font-bold mb-3 ${previewColor.textLight} flex items-center gap-2`}
+                    >
+                      <div
+                        className={`w-1 h-6 ${previewColor.bg} rounded-full`}
+                      ></div>
+                      簡介
+                    </h3>
+                    <div
+                      className={`text-gray-700 whitespace-pre-line ${previewColor.bgLight}/50 p-4 rounded-xl border border-gray-200/60 leading-relaxed`}
+                    >
+                      {preview.description}
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleConfirmConversion}
-                  disabled={conversionLoading}
-                  className={`text-white ${previewColor.bg} ${previewColor.hover} font-semibold`}
-                >
-                  {conversionLoading ? "處理中..." : "確認轉換"}
-                </Button>
+                {/* 底部操作欄 */}
+                <div className="border-t border-gray-200/60 p-6 bg-gray-50/50 backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-500">
+                      點擊「確認轉換」開始處理此小說
+                    </div>
+                    <Button
+                      onClick={handleConfirmConversion}
+                      disabled={conversionLoading}
+                      className={`px-6 py-3 text-white bg-gradient-to-r ${previewColor.gradient} font-semibold rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none`}
+                    >
+                      {conversionLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          處理中...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <DownloadCloud size={18} />
+                          確認轉換
+                        </div>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </Portal>
       )}
 
       {/* Features Section */}
-      <section className="py-12 px-4 bg-gray-50">
-        <div className="container mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-10 text-gray-800">
-            為什麼選擇 Syosetu2EPUB
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="relative py-20 px-4 bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30 overflow-hidden">
+        {/* 背景裝飾 */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-sky-200 to-blue-300 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-10 w-48 h-48 bg-gradient-to-br from-indigo-200 to-purple-300 rounded-full blur-2xl"></div>
+          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-gradient-to-br from-emerald-200 to-teal-300 rounded-full blur-xl transform -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
+
+        {/* 新增的幾何裝飾元素 */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-32 right-1/4 w-16 h-16 bg-sky-300/40 rounded-lg rotate-45 animate-pulse"></div>
+          <div className="absolute bottom-32 left-1/4 w-12 h-12 bg-blue-300/50 rounded-full animate-bounce"></div>
+          <div className="absolute top-1/3 right-1/3 w-8 h-8 bg-indigo-300/60 rotate-12 animate-pulse"></div>
+        </div>
+
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sky-100 text-sky-700 rounded-full text-sm font-medium mb-6">
+              <span className="w-2 h-2 bg-sky-500 rounded-full"></span>
+              為什麼選擇我們
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+              專業的 Syosetu2EPUB 服務
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              專業的小說轉換工具，讓您輕鬆享受數位閱讀體驗，支援多種格式和平台
+            </p>
+            <div className="mt-8 flex justify-center">
+              <div className="h-1 w-32 bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 rounded-full"></div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="border border-gray-200 hover:shadow-md transition-shadow bg-white"
+                className={`group relative overflow-hidden border-2 ${feature.border} hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 bg-white/90 backdrop-blur-sm`}
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                }}
               >
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <span className="text-xl">{feature.icon}</span>
-                    <span>{feature.title}</span>
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-all duration-500`}
+                ></div>
+
+                <CardHeader className="pb-4 relative z-10">
+                  <div
+                    className={`w-20 h-20 rounded-3xl ${feature.bgLight} flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg`}
+                  >
+                    <span className="text-4xl">{feature.icon}</span>
+                  </div>
+                  <CardTitle
+                    className={`text-xl font-bold text-center ${feature.color} group-hover:text-opacity-90 transition-colors duration-300`}
+                  >
+                    {feature.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 text-sm">{feature.description}</p>
+
+                <CardContent className="text-center relative z-10 pb-6">
+                  <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                    {feature.description}
+                  </p>
                 </CardContent>
+
+                {/* 裝飾性元素 */}
+                <div className="absolute top-4 right-4 w-8 h-8 border-2 border-gray-200 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
+                <div className="absolute bottom-4 left-4 w-6 h-6 border-2 border-gray-200 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
+
+                {/* 數字標籤 */}
+                <div
+                  className={`absolute top-6 left-6 w-8 h-8 rounded-full ${feature.bgLight} ${feature.color} flex items-center justify-center text-sm font-bold opacity-60 group-hover:opacity-80 transition-opacity duration-300`}
+                >
+                  {index + 1}
+                </div>
               </Card>
             ))}
+          </div>
+
+          {/* 統計數據區塊 */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200 shadow-xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="space-y-2">
+                <div className="text-4xl font-bold bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent">
+                  1000+
+                </div>
+                <div className="text-gray-600 font-medium">成功轉換的小說</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-4xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+                  500+
+                </div>
+                <div className="text-gray-600 font-medium">滿意的用戶</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-4xl font-bold bg-gradient-to-r from-purple-500 to-violet-600 bg-clip-text text-transparent">
+                  99.9%
+                </div>
+                <div className="text-gray-600 font-medium">系統穩定性</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 底部裝飾線 */}
+          <div className="mt-16 flex justify-center">
+            <div className="h-px w-64 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
       {!isAuthenticated && (
-        <section className="bg-gray-50 py-12 border-t border-gray-200">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">
-              開始使用 Syosetu2EPUB
-            </h2>
-            <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-              註冊會員即可享有更多進階功能，包括批量轉換、Kindle 轉寄等服務
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                asChild
-                variant="default"
-                className="bg-sky-500 hover:bg-sky-600"
-              >
-                <Link to="/how-to-use">使用教學</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="border-sky-500 text-sky-500 hover:bg-sky-50"
-              >
-                <Link to="/me">註冊/登入</Link>
-              </Button>
+        <section className="bg-gradient-to-br from-gray-50 to-white py-16 border-t border-gray-200">
+          <div className="container mx-auto px-4 text-center max-w-4xl">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-gray-200">
+              <h2 className="text-3xl font-bold mb-6 text-gray-800 bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
+                開始使用 Syosetu2EPUB
+              </h2>
+              <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+                註冊會員即可享有完整的轉換服務，包括 Kindle
+                轉寄、任務歷史查詢、優先處理等功能
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  asChild
+                  variant="default"
+                  className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  <Link to="/how-to-use">使用教學</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-2 border-sky-500 text-sky-600 hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-50 px-8 py-3 rounded-xl transition-all duration-200 hover:border-sky-600"
+                >
+                  <Link to="/me">註冊/登入</Link>
+                </Button>
+              </div>
+
+              <div className="mt-8 flex justify-center items-center gap-6 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span>立即註冊</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                  <span>即時轉換</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                  <span>安全可靠</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1404,29 +1721,83 @@ export default function Home() {
 
       {/* Welcome Section for Authenticated Users */}
       {isAuthenticated && (
-        <section className="bg-gradient-to-r from-sky-50 to-blue-50 py-12 border-t border-gray-200">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">
-              歡迎回來，{user?.displayName || "會員"}！
-            </h2>
-            <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-              您已經是我們的會員，可以享受完整的轉換服務。查看您的轉換記錄或管理您的帳戶設定。
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                onClick={() => setIsRecentTasksModalOpen(true)}
-                variant="default"
-                className="bg-sky-500 hover:bg-sky-600"
-              >
-                我的轉換記錄
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="border-sky-500 text-sky-500 hover:bg-sky-50"
-              >
-                <Link to="/me">會員中心</Link>
-              </Button>
+        <section className="relative py-16 bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 border-t border-gray-200 overflow-hidden">
+          {/* 背景裝飾 */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-sky-300 to-blue-400 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-br from-indigo-300 to-purple-400 rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2"></div>
+          </div>
+
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-sky-100 text-sky-700 rounded-full text-sm font-medium mb-6">
+                <span className="w-2 h-2 bg-sky-500 rounded-full animate-pulse"></span>
+                已登入會員
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800">
+                歡迎回來，
+                <span className="bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
+                  {user?.displayName || "會員"}
+                </span>
+                ！
+              </h2>
+
+              <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+                您已經是我們的會員，可以享受完整的轉換服務。查看您的轉換記錄或管理您的帳戶設定。
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                <Button
+                  onClick={() => setIsRecentTasksModalOpen(true)}
+                  variant="default"
+                  className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  aria-label="查看最近的轉換任務"
+                >
+                  <History className="mr-3 h-5 w-5" />
+                  <span className="text-lg font-semibold">最近的任務</span>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-2 border-sky-500 text-sky-600 hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-50 px-8 py-4 rounded-xl transition-all duration-200 hover:border-sky-600 hover:shadow-lg"
+                >
+                  <Link to="/me">
+                    <span className="text-lg font-semibold">會員中心</span>
+                  </Link>
+                </Button>
+              </div>
+
+              {/* 功能快捷入口 */}
+              <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                    <Send className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-2">Kindle 轉寄</h3>
+                  <p className="text-sm text-gray-600">
+                    直接發送到您的 Kindle 設備
+                  </p>
+                </div>
+
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                    <Download className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-2">快速下載</h3>
+                  <p className="text-sm text-gray-600">
+                    一鍵下載 EPUB 格式電子書
+                  </p>
+                </div>
+
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-2">任務追蹤</h3>
+                  <p className="text-sm text-gray-600">即時監控轉換進度</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1463,141 +1834,165 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* 任務狀態欄 */}
+      {/* 任務狀態欄 - 使用 Portal 確保相對於 viewport 定位 */}
       {activeJobs.size > 0 && (
-        <div
-          className={`fixed bottom-4 right-4 w-80 bg-white rounded-lg shadow-lg border border-sky-100 z-40 transition-all duration-300 overflow-hidden ${
-            statusBarCollapsed ? "h-12" : "max-h-96"
-          }`}
-        >
+        <Portal>
           <div
-            className="bg-sky-400 text-white p-2 flex justify-between items-center cursor-pointer"
-            onClick={toggleStatusBar}
-          >
-            <h3 className="text-sm font-medium">
-              轉檔任務 ({activeJobs.size})
-            </h3>
-            <div className="flex items-center gap-2">
-              <span className="text-xs opacity-75">
-                {formatTimeRemaining(
-                  Math.floor(
-                    (new Date().getTime() - lastSyncTime.getTime()) / 1000
-                  )
-                )}{" "}
-                前更新
-              </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleStatusBar();
-                }}
-                className="text-white hover:text-sky-100"
-              >
-                {statusBarCollapsed ? (
-                  <ChevronUp size={16} />
-                ) : (
-                  <ChevronDown size={16} />
-                )}
-              </button>
-            </div>
-          </div>
-          <div
-            className={`overflow-y-auto ${
-              statusBarCollapsed ? "hidden" : "max-h-80"
+            className={`fixed bottom-6 right-6 w-80 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-200/60 z-50 transition-all duration-300 overflow-hidden ${
+              statusBarCollapsed ? "h-16" : "max-h-96"
             }`}
           >
-            {Array.from(activeJobs.entries()).map(([jobId, job]) => (
-              <div
-                key={jobId}
-                className="p-3 border-b border-sky-50 hover:bg-sky-50 transition-colors"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {getStatusIcon(job.status)}
-                    <div
-                      className="truncate font-medium text-sm"
-                      style={{ maxWidth: "180px" }}
-                      title={job.title}
-                    >
-                      {job.title}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => removeJob(jobId)}
-                    className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
-                  >
-                    <X size={16} />
-                  </button>
+            <div
+              className="bg-gradient-to-r from-sky-500 to-blue-600 text-white p-4 flex justify-between items-center cursor-pointer rounded-t-2xl"
+              onClick={toggleStatusBar}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Clock className="w-4 h-4" />
                 </div>
-
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <span
-                      className={`text-xs font-medium ${
-                        job.status === "queued" || job.status === "processing"
-                          ? "text-sky-600"
-                          : job.status === "completed"
-                          ? "text-green-600"
-                          : job.status === "retrying"
-                          ? "text-orange-600"
-                          : job.status === "cancelled"
-                          ? "text-gray-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {getStatusText(job)}
-                    </span>
-                    {job.estimatedTimeRemaining &&
-                      job.status === "processing" && (
-                        <span className="text-xs text-gray-500">
-                          {formatTimeRemaining(job.estimatedTimeRemaining)}
-                        </span>
-                      )}
-                  </div>
-
-                  {/* 進度條 */}
-                  <ProgressBar progress={job.progress} />
-
-                  {/* 錯誤信息 */}
-                  {job.errorMessage &&
-                    (job.status === "failed" || job.status === "retrying") && (
-                      <div className="text-xs text-red-500 bg-red-50 p-1 rounded mt-1">
-                        {job.errorMessage}
-                      </div>
-                    )}
-
-                  {/* 操作按鈕 */}
-                  {job.status === "completed" && job.publicUrl && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <a
-                        href={job.publicUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs bg-sky-500 hover:bg-sky-600 text-white px-2 py-1 rounded-full transition-colors"
-                      >
-                        <Download size={12} /> 下載
-                      </a>
-                      {/* 只對已登入且有 kindleEmail 的用戶顯示 Send to Kindle 按鈕 */}
-                      {isAuthenticated && user?.kindleEmail && (
-                        <SendToKindleButton epubJobId={jobId} />
-                      )}
-                    </div>
-                  )}
-
-                  {/* 任務時間信息 */}
-                  <div className="text-xs text-gray-400 mt-1">
-                    開始時間：{job.startTime.toLocaleTimeString()}
-                    {job.lastUpdated.getTime() !== job.startTime.getTime() && (
-                      <span className="ml-2">
-                        更新：{job.lastUpdated.toLocaleTimeString()}
-                      </span>
-                    )}
-                  </div>
+                <div>
+                  <h3 className="text-sm font-semibold">轉檔任務</h3>
+                  <p className="text-xs text-white/80">
+                    {activeJobs.size} 個進行中
+                  </p>
                 </div>
               </div>
-            ))}
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-white/70">
+                  {formatTimeRemaining(
+                    Math.floor(
+                      (new Date().getTime() - lastSyncTime.getTime()) / 1000
+                    )
+                  )}{" "}
+                  前更新
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleStatusBar();
+                  }}
+                  className="text-white hover:text-white/80 transition-colors duration-200 p-1 rounded-full hover:bg-white/10"
+                >
+                  {statusBarCollapsed ? (
+                    <ChevronUp size={18} />
+                  ) : (
+                    <ChevronDown size={18} />
+                  )}
+                </button>
+              </div>
+            </div>
+            <div
+              className={`overflow-y-auto ${
+                statusBarCollapsed ? "hidden" : "max-h-80"
+              }`}
+            >
+              {Array.from(activeJobs.entries()).map(([jobId, job]) => (
+                <div
+                  key={jobId}
+                  className="p-4 border-b border-gray-100/60 hover:bg-gradient-to-r hover:from-sky-50/50 hover:to-blue-50/50 transition-all duration-200"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 bg-gradient-to-r from-sky-100 to-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        {getStatusIcon(job.status)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="font-medium text-sm text-gray-800 truncate"
+                          title={job.title}
+                        >
+                          {job.title}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          開始：
+                          {job.startTime.toLocaleTimeString("zh-TW", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeJob(jobId)}
+                      className="text-gray-400 hover:text-red-500 flex-shrink-0 ml-3 p-1 rounded-full hover:bg-red-50 transition-all duration-200"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span
+                        className={`text-xs font-medium px-2 py-1 rounded-full ${
+                          job.status === "queued" || job.status === "processing"
+                            ? "bg-sky-100 text-sky-700"
+                            : job.status === "completed"
+                            ? "bg-green-100 text-green-700"
+                            : job.status === "retrying"
+                            ? "bg-orange-100 text-orange-700"
+                            : job.status === "cancelled"
+                            ? "bg-gray-100 text-gray-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {getStatusText(job)}
+                      </span>
+                      {job.estimatedTimeRemaining &&
+                        job.status === "processing" && (
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                            {formatTimeRemaining(job.estimatedTimeRemaining)}
+                          </span>
+                        )}
+                    </div>
+
+                    {/* 進度條 */}
+                    <ProgressBar progress={job.progress} />
+
+                    {/* 錯誤信息 */}
+                    {job.errorMessage &&
+                      (job.status === "failed" ||
+                        job.status === "retrying") && (
+                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded-lg border border-red-200">
+                          <div className="flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                            <span className="break-words">
+                              {job.errorMessage}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                    {/* 操作按鈕 */}
+                    {job.status === "completed" && job.publicUrl && (
+                      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
+                        <button
+                          onClick={() => {
+                            if (job.publicUrl) {
+                              const link = document.createElement("a");
+                              link.href = job.publicUrl;
+                              link.download = `${job.title || "novel"}.epub`;
+                              link.rel = "noopener noreferrer";
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }
+                          }}
+                          className="flex-1 inline-flex items-center justify-center gap-2 text-xs bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white px-3 py-2 rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg font-medium"
+                        >
+                          <Download size={14} /> 下載檔案
+                        </button>
+                        {/* 只對已登入且有 kindleEmail 的用戶顯示 Send to Kindle 按鈕 */}
+                        {isAuthenticated && user?.kindleEmail && (
+                          <SendToKindleButton epubJobId={jobId} />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </Portal>
       )}
 
       {/* 最近任務彈窗 */}
