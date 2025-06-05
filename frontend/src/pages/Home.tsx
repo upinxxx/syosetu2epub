@@ -1128,7 +1128,7 @@ export default function Home() {
 
   // 格式化時間顯示
   const formatTimeRemaining = (seconds?: number): string => {
-    if (!seconds || seconds <= 0) return "";
+    if (!seconds || seconds <= 0) return "剛剛";
 
     if (seconds < 60) {
       return `約 ${Math.ceil(seconds)} 秒`;

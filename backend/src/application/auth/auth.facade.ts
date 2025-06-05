@@ -129,14 +129,15 @@ export class AuthFacade {
     const cookieConfig: CookieConfig = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'lax',
+      sameSite: isProduction ? 'none' : 'lax', // 生產環境跨域需要使用 'none'
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
       path: '/',
     };
 
-    // 只有在生產環境才設置 domain
+    // 生產環境設置正確的 domain
     if (isProduction) {
-      cookieConfig.domain = this.configService.get<string>('COOKIE_DOMAIN');
+      // 設置為根域名，讓子域名都能使用這個 Cookie
+      cookieConfig.domain = '.syosetu2epub.online';
     }
 
     return cookieConfig;

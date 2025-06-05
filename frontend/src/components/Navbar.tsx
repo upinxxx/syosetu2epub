@@ -42,7 +42,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-white/95 backdrop-blur-lg border-b border-gray-200/60 sticky top-0 z-50 shadow-lg">
+    <header className="bg-white/95 backdrop-blur-lg border-b border-gray-200/60 sticky top-0 z-40 shadow-lg">
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -115,7 +115,6 @@ export default function Navbar() {
                   <DropdownMenuContent
                     className="w-72 bg-white/98 backdrop-blur-lg border border-gray-200/80 shadow-2xl rounded-2xl p-2"
                     align="end"
-                    forceMount
                   >
                     {/* 用戶信息頭部 */}
                     <DropdownMenuLabel className="font-normal p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl mb-2">

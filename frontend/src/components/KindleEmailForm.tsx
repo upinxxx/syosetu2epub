@@ -68,15 +68,11 @@ export default function KindleEmailForm({
           description: "設定成功",
         });
 
-        // 更新本地用戶狀態 - 使用強制刷新確保立即更新
-        // 等待 refreshAuth 完成以確保用戶狀態已更新
-        await refreshAuth(true);
-
-        // 短暫延遲確保狀態完全更新
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // 每次儲存設定成功後都顯示設定指南
+        // 立即顯示設定指南，不等待其他異步操作
         setStep("guide");
+
+        // 在背景更新用戶狀態
+        refreshAuth(true).catch(console.error);
       }
     } catch (error: any) {
       console.error("更新Kindle郵箱失敗:", error);

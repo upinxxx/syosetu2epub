@@ -282,10 +282,10 @@ export default function SendToKindleButton({
   const handleEmailSetupSuccess = async () => {
     // 刷新用戶資訊
     await refreshAuth();
-    // 關閉對話框
+    // 關閉對話框 - 讓KindleEmailForm完成整個流程（包括設定指南）
     setIsDialogOpen(false);
     // 顯示成功提示
-    toast.success("Kindle郵箱設定成功！", {
+    toast.success("Kindle設定完成！", {
       description: "現在可以發送EPUB到您的Kindle了",
       duration: 5000,
       style: {
