@@ -476,7 +476,7 @@ export default function Home() {
   // 登入處理函數
   const handleLogin = () => {
     // 獲取後端 API URL
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
     // 重定向到 Google OAuth 登入頁面
     window.location.href = `${apiUrl}/api/v1/auth/google`;
