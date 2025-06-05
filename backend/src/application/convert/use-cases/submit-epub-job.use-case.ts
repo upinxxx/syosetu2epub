@@ -9,6 +9,7 @@ import {
 } from '@/domain/ports/repository/index.js';
 import { EpubJob } from '@/domain/entities/epub-job.entity.js';
 import { QueuePort, QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
+import { SubmitJobResponseDto } from '../dto/submit-epub-job-response.dto.js';
 
 /**
  * 提交 EPUB 轉換任務 UseCase
@@ -37,7 +38,7 @@ export class SubmitEpubJobUseCase {
   async execute(
     novelId: string,
     userId: string | null,
-  ): Promise<{ jobId: string }> {
+  ): Promise<SubmitJobResponseDto> {
     try {
       this.logger.log(
         `開始創建 EPUB 轉換任務 - 小說ID: ${novelId}, 用戶ID: ${userId || 'anonymous'}`,
@@ -69,7 +70,15 @@ export class SubmitEpubJobUseCase {
       });
       this.logger.log(`任務 ${savedJob.id} 已加入處理隊列`);
 
-      return { jobId: savedJob.id };
+      // 6. 返回標準化響應
+      return {
+        success: true,
+        jobId: savedJob.id,
+        novelId: novel.id,
+        status: savedJob.status,
+        createdAt: savedJob.createdAt,
+        message: '轉換任務已成功提交',
+      };
     } catch (error) {
       this.logger.error(
         `創建 EPUB 任務失敗 - 小說ID: ${novelId}, 用戶ID: ${userId || 'anonymous'}, 錯誤: ${error.message}`,

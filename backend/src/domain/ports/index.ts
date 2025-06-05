@@ -1,4 +1,4 @@
-export * from './crawler.factory.port.js';
+export * from './factory/crawler.factory.port.js';
 export * from './crawler.strategy.port.js';
 export * from './epub-generator.port.js';
 export * from './preview-provider.port.js';

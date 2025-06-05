@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/contexts";
-import axios from "@/lib/axios";
+import { apiClient } from "@/lib/api-client";
+import type { UpdateProfileDto } from "@/lib/api-client";
 import AmazonKindleSetupGuide from "./AmazonKindleSetupGuide";
 
 interface KindleEmailFormProps {
@@ -55,30 +56,27 @@ export default function KindleEmailForm({
       setIsSubmitting(true);
 
       // 呼叫API更新用戶的Kindle郵箱
-      const response = await axios.put("/api/user/profile", {
+      const requestData: UpdateProfileDto = {
         kindleEmail: kindleEmail,
-      });
+      };
 
-      if (response.data) {
-        // 更新本地用戶狀態 - 使用強制刷新確保立即更新
-        await refreshAuth(true);
+      const response = await apiClient.users.updateProfile(requestData);
 
+      if (response.success) {
         // 顯示成功提示
         toast.success("您的Kindle郵箱已更新", {
           description: "設定成功",
         });
 
-        // 如果是首次設定，顯示設定指南
-        if (!initialEmail && !user?.kindleEmail) {
-          setStep("guide");
-          // 即使跳轉到指南，也要觸發頁面刷新
-          // 但不關閉對話框，讓用戶完成指南流程
-        } else {
-          // 調用成功回調（修改情況）
-          if (onSuccess) {
-            onSuccess();
-          }
-        }
+        // 更新本地用戶狀態 - 使用強制刷新確保立即更新
+        // 等待 refreshAuth 完成以確保用戶狀態已更新
+        await refreshAuth(true);
+
+        // 短暫延遲確保狀態完全更新
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // 每次儲存設定成功後都顯示設定指南
+        setStep("guide");
       }
     } catch (error: any) {
       console.error("更新Kindle郵箱失敗:", error);
@@ -105,11 +103,14 @@ export default function KindleEmailForm({
     }
   };
 
-  const handleSetupGuideComplete = () => {
+  const handleSetupGuideComplete = async () => {
     setStep("complete");
     toast.success("Amazon Kindle 設定完成！", {
       description: "您現在可以直接將 EPUB 發送到 Kindle 了",
     });
+
+    // 再次確保用戶狀態是最新的
+    await refreshAuth(true);
 
     if (onSuccess) {
       onSuccess();
@@ -171,16 +172,12 @@ export default function KindleEmailForm({
         </p>
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end">
         <Button
-          type="button"
-          variant="outline"
-          onClick={() => setStep("guide")}
+          type="submit"
           disabled={isSubmitting}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
         >
-          查看設定指南
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "儲存中..." : "儲存設定"}
         </Button>
       </div>

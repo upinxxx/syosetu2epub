@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { NarouPreviewProvider } from './providers/narou-preview.provider.js';
 import { KakuyomuPreviewProvider } from './providers/kakuyomu-preview.provider.js';
-import { PreviewProviderFactoryService } from './preview-provider-factory.service.js';
-import { PREVIEW_PROVIDER_FACTORY_TOKEN } from '@/domain/ports/preview-provider.factory.port.js';
+import { PreviewProviderFactory } from './preview-provider-factory.js';
+import { PREVIEW_PROVIDER_FACTORY_TOKEN } from '@/domain/ports/factory/preview-provider.factory.port.js';
 
 /**
  * 預覽提供者模組 - 基礎設施層
@@ -12,10 +12,10 @@ import { PREVIEW_PROVIDER_FACTORY_TOKEN } from '@/domain/ports/preview-provider.
   providers: [
     NarouPreviewProvider,
     KakuyomuPreviewProvider,
-    PreviewProviderFactoryService,
+    PreviewProviderFactory,
     {
       provide: PREVIEW_PROVIDER_FACTORY_TOKEN,
-      useExisting: PreviewProviderFactoryService,
+      useExisting: PreviewProviderFactory,
     },
   ],
   exports: [PREVIEW_PROVIDER_FACTORY_TOKEN],

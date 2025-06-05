@@ -6,9 +6,9 @@ import { EpubJobOrmEntity } from '../entities/epub-job.orm-entity.js';
 import { UserOrmEntity } from '../entities/user.orm-entity.js';
 import { KindleDeliveryOrmEntity } from '../entities/kindle-delivery.orm-entity.js';
 
-import { NovelRepositoryTypeORM } from './novel-repository.adapter.js';
-import { EpubJobRepositoryTypeORM } from './epub-job-repository.adapter.js';
-import { UserRepositoryTypeORM } from './user-repository.adapter.js';
+import { NovelRepositoryTypeORM } from './novel.repository.js';
+import { EpubJobRepositoryTypeORM } from './epub-job.repository.js';
+import { UserRepositoryTypeORM } from './user.repository.js';
 import { KindleDeliveryRepositoryImpl } from './kindle-delivery.repository.js';
 
 // 導入 Domain 層定義的 Token

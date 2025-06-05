@@ -5,11 +5,11 @@ import {
 } from '@/domain/ports/repository/index.js';
 import { Novel } from '@/domain/entities/novel.entity.js';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
-import { PreviewNovelUseCase } from './preview-novel.use-case.js';
 import { PreviewNovelResponseDto } from '../dto/preview-novel-response.dto.js';
 
 /**
  * 根據小說 ID 獲取預覽 UseCase
+ * 🔧 優化：直接返回數據庫中的數據，不重新獲取
  */
 @Injectable()
 export class GetNovelPreviewUseCase {
@@ -18,8 +18,6 @@ export class GetNovelPreviewUseCase {
   constructor(
     @Inject(NOVEL_REPOSITORY_TOKEN)
     private readonly novelRepository: PagedRepository<Novel>,
-    @Inject(PreviewNovelUseCase)
-    private readonly previewNovelUseCase: PreviewNovelUseCase,
   ) {}
 
   /**
@@ -42,11 +40,17 @@ export class GetNovelPreviewUseCase {
         throw new NotFoundException(`找不到 ID 為 ${id} 的小說`);
       }
 
-      // 使用 PreviewNovelUseCase 獲取最新預覽
-      const preview = await this.previewNovelUseCase.execute(
-        novel.source as NovelSource,
-        novel.sourceId,
-      );
+      // 🔧 直接構建預覽回應，不重新獲取數據
+      const preview: PreviewNovelResponseDto = {
+        novelId: novel.id,
+        title: novel.title,
+        author: novel.author || '',
+        description: novel.description || '',
+        source: novel.source as NovelSource,
+        sourceId: novel.sourceId,
+        coverUrl: novel.coverUrl,
+        novelUpdatedAt: novel.novelUpdatedAt,
+      };
 
       return {
         success: true,

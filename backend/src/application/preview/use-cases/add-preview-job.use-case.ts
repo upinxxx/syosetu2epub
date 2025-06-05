@@ -37,19 +37,21 @@ export class AddPreviewJobUseCase {
         sourceId,
       };
 
-      // 添加任務到佇列
-      await this.queueService.addJob('preview', jobData, {
-        jobId,
-        removeOnComplete: true,
-        attempts: 3,
+      // 🔧 優化任務配置，提升處理速度
+      const actualJobId = await this.queueService.addJob('preview', jobData, {
+        removeOnComplete: 10, // 增加保留完成任務數量
+        removeOnFail: 5, // 增加保留失敗任務數量
+        attempts: 2, // 減少重試次數
         backoff: {
           type: 'exponential',
-          delay: 1000,
+          delay: 500, // 減少重試延遲
         },
+        // 🔧 添加任務優先級，預覽任務優先處理
+        priority: 1,
       });
 
-      this.logger.log(`預覽任務已添加到佇列：${jobId}`);
-      return jobId;
+      this.logger.log(`預覽任務已添加到佇列：${actualJobId}`);
+      return actualJobId;
     } catch (error) {
       this.logger.error(`添加預覽任務失敗：${error.message}`, error.stack);
       throw error;

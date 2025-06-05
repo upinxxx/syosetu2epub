@@ -10,7 +10,12 @@ async function bootstrap() {
   logger.log('正在啟動 EPUB 轉換 Worker...');
 
   // 使用 createApplicationContext 而非 create，因為 Worker 不需要 HTTP 伺服器
-  const app = await NestFactory.createApplicationContext(WorkerModule);
+  const app = await NestFactory.createApplicationContext(WorkerModule, {
+    logger:
+      process.env.NODE_ENV === 'production'
+        ? ['error', 'warn']
+        : ['error', 'warn', 'log', 'verbose', 'debug'],
+  });
 
   // 設置全局前綴
   logger.log('EPUB 轉換 Worker 已啟動並開始監聽隊列');

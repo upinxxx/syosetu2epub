@@ -11,6 +11,7 @@ import { Novel } from '@/domain/entities/novel.entity.js';
 import { GenerateEpubUseCase } from './generate-epub.use-case.js';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
 import { QueuePort, QUEUE_PORT_TOKEN } from '@/domain/ports/queue.port.js';
+import { LockPort, LOCK_PORT_TOKEN } from '@/domain/ports/lock.port.js';
 
 export interface ProcessJobData {
   jobId: string;
@@ -35,6 +36,8 @@ export class ProcessEpubJobUseCase {
     private readonly generateEpubUseCase: GenerateEpubUseCase,
     @Inject(QUEUE_PORT_TOKEN)
     private readonly queueAdapter: QueuePort,
+    @Inject(LOCK_PORT_TOKEN)
+    private readonly lockService: LockPort,
   ) {}
 
   /**
@@ -42,15 +45,41 @@ export class ProcessEpubJobUseCase {
    */
   async execute(jobData: ProcessJobData): Promise<void> {
     const { jobId, novelId, userId } = jobData;
+    const lockKey = `epub-job:${jobId}`;
+
     this.logger.log(
       `開始處理 EPUB 轉換任務: ${jobId}, 用戶ID: ${userId || 'anonymous'}`,
     );
+
+    // 🔒 獲取分佈式鎖，防止同一任務的並發處理
+    const releaseLock = await this.lockService.acquireLock(
+      lockKey,
+      30000, // 30 秒 TTL
+      5000, // 5 秒等待時間
+    );
+
+    if (!releaseLock) {
+      const message = `無法獲取任務 ${jobId} 的處理鎖，可能正在被其他 Worker 處理`;
+      this.logger.warn(message);
+      throw new Error(message);
+    }
 
     try {
       // 1. 確認任務和小說是否存在
       const job = await this.epubJobRepository.findById(jobId);
       if (!job) {
         throw new NotFoundException(`找不到 ID 為 ${jobId} 的任務`);
+      }
+
+      // 檢查任務是否已經在處理中或已完成
+      if (job.status === JobStatus.PROCESSING) {
+        this.logger.warn(`任務 ${jobId} 已在處理中，跳過重複處理`);
+        return;
+      }
+
+      if (job.status === JobStatus.COMPLETED) {
+        this.logger.warn(`任務 ${jobId} 已完成，跳過重複處理`);
+        return;
       }
 
       const novel = await this.novelRepository.findById(novelId);
@@ -112,6 +141,16 @@ export class ProcessEpubJobUseCase {
 
       // 重新拋出錯誤，讓呼叫者可以決定是否重試
       throw error;
+    } finally {
+      // 🔓 確保釋放鎖
+      try {
+        await releaseLock();
+        this.logger.debug(`已釋放任務 ${jobId} 的處理鎖`);
+      } catch (lockError) {
+        this.logger.error(
+          `釋放任務 ${jobId} 的處理鎖失敗: ${lockError.message}`,
+        );
+      }
     }
   }
 

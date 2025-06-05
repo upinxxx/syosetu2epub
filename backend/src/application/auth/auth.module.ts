@@ -5,7 +5,7 @@ import { ValidateOrCreateUserUseCase } from './use-cases/validate-or-create-user
 import { GetCurrentUserUseCase } from './use-cases/get-current-user.use-case.js';
 import { GenerateTokenUseCase } from './use-cases/generate-token.use-case.js';
 import { RepositoriesModule } from '@/infrastructure/repositories/repositories.module.js';
-import { AuthInfrastructureModule } from '@/infrastructure/auth/auth.infrastructure.module.js';
+import { AuthModule as AuthInfrastructureModule } from '@/infrastructure/auth/auth.module.js';
 import { AuthFacade } from './auth.facade.js';
 
 /**

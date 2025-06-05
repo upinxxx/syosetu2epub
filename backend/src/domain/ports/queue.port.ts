@@ -153,4 +153,12 @@ export interface QueuePort {
    * @returns 任務數據，如果不存在則返回 null
    */
   getJobData(queueName: string, jobId: string): Promise<JobData | null>;
+
+  /**
+   * 🆕 手動同步任務狀態
+   * 用於修復狀態不一致問題
+   * @param queueName 隊列名稱
+   * @param jobId 任務 ID
+   */
+  manualSyncJob(queueName: string, jobId: string): Promise<void>;
 }

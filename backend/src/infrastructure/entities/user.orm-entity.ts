@@ -5,7 +5,8 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { KindleDeliveryOrmEntity } from './kindle-delivery.orm-entity.js';
+// 移除直接引用來避免循環依賴
+// import { KindleDeliveryOrmEntity } from './kindle-delivery.orm-entity.js';
 
 /**
  * 使用者資料實體 - 領域層
@@ -36,6 +37,7 @@ export class UserOrmEntity {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @OneToMany(() => KindleDeliveryOrmEntity, (delivery) => delivery.user)
-  kindleDeliveries: KindleDeliveryOrmEntity[];
+  // 使用字符串引用避免循環依賴
+  @OneToMany('KindleDeliveryOrmEntity', 'user')
+  kindleDeliveries: any[];
 }

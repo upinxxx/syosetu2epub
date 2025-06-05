@@ -1,4 +1,9 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -18,31 +23,33 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
     const jwtSecret = configService.get<string>('JWT_SECRET');
+
     if (!jwtSecret) {
-      throw new Error('JWT_SECRET is not defined in environment variables');
+      throw new Error('JWT_SECRET not found in environment variables');
     }
 
     super({
+      // 支援多種 JWT 提取方式：
+      // 1. Authorization header (Bearer token)
+      // 2. Cookie (auth_token)
       jwtFromRequest: ExtractJwt.fromExtractors([
-        // 嘗試從 cookie 中提取 token
-        (req: Request) => {
-          this.logger.debug(
-            `Cookies in request: ${JSON.stringify(req.cookies)}`,
-          );
-          const token = req?.cookies?.auth_token;
-          if (!token) {
-            this.logger.debug('No auth_token cookie found in request');
-            return null;
-          }
-          this.logger.debug('Found auth_token cookie in request');
-          return token;
-        },
-        // 備用: 從 Authorization 頭部提取
         ExtractJwt.fromAuthHeaderAsBearerToken(),
+        (request: Request) => {
+          // 從 Cookie 中提取 JWT
+          const token = request?.cookies?.auth_token;
+          if (token) {
+            this.logger.debug('從 Cookie 中提取到 JWT token');
+            return token;
+          }
+          return null;
+        },
       ]),
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
-      passReqToCallback: true, // 將完整的請求對象傳遞給 validate 方法
+      issuer: configService.get<string>('JWT_ISSUER'),
+      audience: configService.get<string>('JWT_AUDIENCE'),
+      // 傳遞完整的請求對象到 validate 方法
+      passReqToCallback: true,
     });
   }
 
@@ -53,7 +60,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * @returns 傳遞給下一個中間件的用戶資訊
    */
   async validate(req: Request, payload: any) {
-    this.logger.debug(`JWT payload: ${JSON.stringify(payload)}`);
+    this.logger.debug(`JWT 驗證成功，payload: ${JSON.stringify(payload)}`);
+    this.logger.debug(`請求路徑: ${req.path}, 方法: ${req.method}`);
+
+    // 驗證 payload 必要欄位
+    if (!payload.sub || !payload.email) {
+      this.logger.warn('JWT payload 缺少必要欄位 (sub 或 email)');
+      throw new UnauthorizedException('Invalid token payload');
+    }
 
     // 直接返回 payload，便於 controllers 使用
     // controllers 將調用應用層服務獲取完整用戶資料

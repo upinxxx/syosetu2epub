@@ -8,8 +8,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { NovelOrmEntity } from '@/infrastructure/entities/novel.orm-entity.js';
-import { UserOrmEntity } from '@/infrastructure/entities/user.orm-entity.js';
-import { KindleDeliveryOrmEntity } from './kindle-delivery.orm-entity.js';
+// 移除直接引用來避免循環依賴
+// import { UserOrmEntity } from '@/infrastructure/entities/user.orm-entity.js';
 import { JobStatus } from '@/domain/enums/job-status.enum.js';
 
 @Entity('epub_job')
@@ -27,9 +27,10 @@ export class EpubJobOrmEntity {
   @Column({ type: 'uuid', nullable: true })
   userId: string | null;
 
-  @ManyToOne(() => UserOrmEntity)
+  // 使用字符串引用避免循環依賴
+  @ManyToOne('UserOrmEntity')
   @JoinColumn({ name: 'userId' })
-  user: UserOrmEntity | null;
+  user: any | null;
 
   @Column({
     type: 'varchar',
@@ -53,6 +54,7 @@ export class EpubJobOrmEntity {
   @Column({ nullable: true, type: 'timestamp' })
   startedAt: Date;
 
-  @OneToMany(() => KindleDeliveryOrmEntity, (delivery) => delivery.epubJob)
-  kindleDeliveries: KindleDeliveryOrmEntity[];
+  // 完全避免類型引用，讓 TypeORM 通過字符串處理關聯
+  @OneToMany('KindleDeliveryOrmEntity', 'epubJob')
+  kindleDeliveries: any[];
 }

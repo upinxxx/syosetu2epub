@@ -1,3 +1,10 @@
+// ===== CRYPTO POLYFILL FOR NODE.JS 18 ESM =====
+// 必須在所有 TypeORM 相關導入之前設置
+import { webcrypto } from 'node:crypto';
+if (typeof globalThis.crypto === 'undefined') {
+  globalThis.crypto = webcrypto as Crypto;
+}
+// ============================================
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,8 +21,8 @@ import { KindleDeliveryOrmEntity } from '../infrastructure/entities/kindle-deliv
 import { JobsModule } from '../application/jobs/jobs.module.js';
 import { SchedulerService } from './scheduler.service.js';
 import { ConvertModule } from '../application/convert/convert.module.js';
-import supabaseConfig from '../config/supabase.config.js';
-import resendConfig from '../config/resend.config.js';
+import { RedisModule } from '../infrastructure/redis/redis.module.js';
+
 /**
  * Worker 模組 - 包含處理 EPUB 轉換和預覽任務所需的模組
  * 與 AppModule 不同，不包含 HTTP 控制器等 API 元件
@@ -26,7 +33,6 @@ import resendConfig from '../config/resend.config.js';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [supabaseConfig, resendConfig],
     }),
 
     // 排程模組 - 用於 Worker 的定時任務
@@ -36,21 +42,24 @@ import resendConfig from '../config/resend.config.js';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST'),
-        port: configService.get('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_DATABASE'),
-        entities: [
-          NovelOrmEntity,
-          EpubJobOrmEntity,
-          UserOrmEntity,
-          KindleDeliveryOrmEntity,
-        ],
-        synchronize: false,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const url = configService.get<string>('SUPABASE_DB_URL');
+        const synchronize = false;
+        if (!url) {
+          throw new Error('Database configuration not found');
+        }
+        return {
+          type: 'postgres',
+          url,
+          entities: [
+            NovelOrmEntity,
+            EpubJobOrmEntity,
+            UserOrmEntity,
+            KindleDeliveryOrmEntity,
+          ],
+          synchronize,
+        };
+      },
     }),
 
     // 優先導入 ConvertModule，確保 ConvertFacade 可用
@@ -64,6 +73,9 @@ import resendConfig from '../config/resend.config.js';
 
     // Job 模組 - 提供任務狀態同步服務
     JobsModule,
+
+    // Redis 模組
+    RedisModule,
   ],
   providers: [
     EpubQueueProcessor,

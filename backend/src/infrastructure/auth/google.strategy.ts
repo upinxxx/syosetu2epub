@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, Profile, StrategyOptions } from 'passport-google-oauth20';
+import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { GoogleProfile } from '../../domain/ports/auth.port.js';
 
@@ -17,21 +17,25 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
-    const clientID = configService.get<string>('GOOGLE_CLIENT_ID')!;
-    const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET')!;
-    const callbackURL = configService.get<string>('GOOGLE_CALLBACK_URL')!;
+    const clientId = configService.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
+    const callbackUrl = configService.get<string>('GOOGLE_CALLBACK_URL');
 
-    const options: StrategyOptions = {
-      clientID,
-      clientSecret,
-      callbackURL,
+    if (!clientId || !clientSecret || !callbackUrl) {
+      throw new Error(
+        'Google OAuth configuration not found in environment variables',
+      );
+    }
+
+    super({
+      clientID: clientId,
+      clientSecret: clientSecret,
+      callbackURL: callbackUrl,
       scope: ['email', 'profile'],
-    };
-
-    super(options);
+    });
 
     this.logger.debug(`初始化 Google OAuth 策略`);
-    this.logger.debug(`回調 URL: ${callbackURL}`);
+    this.logger.debug(`回調 URL: ${callbackUrl}`);
   }
 
   /**

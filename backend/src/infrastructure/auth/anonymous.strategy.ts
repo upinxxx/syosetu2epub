@@ -18,9 +18,9 @@ export class AnonymousStrategy extends PassportStrategy(Strategy, 'anonymous') {
 
   /**
    * 匿名認證邏輯
-   * 返回 null 確保 req.user 為 null，便於 ConvertFacade 統一處理
+   * 返回表示匿名用戶的對象，確保 Passport 認為認證成功
    */
-  async validate(req: any): Promise<null> {
+  async validate(req: any): Promise<{ anonymous: true }> {
     // 記錄匿名認證的詳細信息
     this.logger.debug('匿名認證策略被調用');
     this.logger.debug(`請求路徑: ${req?.path || 'unknown'}`);
@@ -38,9 +38,9 @@ export class AnonymousStrategy extends PassportStrategy(Strategy, 'anonymous') {
       );
     }
 
-    // 對於匿名用戶，明確返回 null
-    // 這樣在 Controller 中 req.user 會是 null，便於統一處理
-    this.logger.debug('匿名認證通過 - 返回 null 用戶信息');
-    return null;
+    // 對於匿名用戶，返回表示匿名用戶的對象
+    // 這樣在 Controller 中 req.user 會是 { anonymous: true }，便於統一處理
+    this.logger.debug('匿名認證通過 - 返回匿名用戶信息');
+    return { anonymous: true };
   }
 }

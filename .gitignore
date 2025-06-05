@@ -8,6 +8,9 @@ pnpm-debug.log*
 # 開發文件
 docs/
 
+# DOCKER
+docker-compose.yml
+
 #  前端 Vite + React
 dist/
 *.local
@@ -26,6 +29,9 @@ dist/
 
 #  prettierrc 檔案
 .prettierrc
+
+#  eslint
+.eslint.*
 
 #  log 檔
 *.log
@@ -79,3 +85,18 @@ tmp_epub/
 
 # Demo 
 demo/
+
+# Deployment files
+.vercel
+.gcloudignore
+
+# Environment files (production)
+.env.production
+.env.production.local
+
+# Build artifacts
+*.tgz
+*.tar.gz
+
+# Temporary deployment files
+deploy-temp/

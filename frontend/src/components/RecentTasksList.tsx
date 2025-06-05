@@ -11,19 +11,23 @@ import {
   RefreshCw,
   FileText,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import axios from "@/lib/axios";
+import { apiClient } from "@/lib/api-client";
 import { AxiosError } from "axios";
 import { useAuth } from "@/lib/contexts";
-import { useCooldown } from "@/lib/hooks/useCooldown";
+import UnifiedSendToKindleButton from "./UnifiedSendToKindleButton";
 
 // 常數定義
 const DEFAULT_DAYS = 7;
+const DEFAULT_LIMIT = 5;
+const DEFAULT_PAGE = 1;
 const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
-  year: "numeric",
   month: "short",
   day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
 };
 
 interface RecentTask {
@@ -39,24 +43,29 @@ interface RecentTask {
 
 interface RecentTasksListProps {
   onSendToKindle?: (jobId: string) => void;
+  showCard?: boolean; // 控制是否顯示Card包裝
 }
 
 export default function RecentTasksList({
   onSendToKindle,
+  showCard = true,
 }: RecentTasksListProps) {
   const { user, isAuthenticated } = useAuth();
   const [tasks, setTasks] = useState<RecentTask[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [refreshCooldown, setRefreshCooldown] = useState(false);
 
   // 檢查用戶是否已設定Kindle郵箱
   const hasKindleEmail = user?.kindleEmail && user.kindleEmail.trim() !== "";
 
-  const fetchRecentTasks = async () => {
+  // 獲取最近任務（固定10筆）
+  const loadRecentTasks = async () => {
     // 檢查認證狀態
     if (!isAuthenticated || !user) {
-      console.log("用戶未登入，跳過獲取最近任務");
       setTasks([]);
       setError(null);
       return;
@@ -66,31 +75,32 @@ export default function RecentTasksList({
     setError(null);
 
     try {
-      console.log(`開始獲取用戶 ${user.id} 的最近任務`);
+      console.log("正在載入最近任務...");
 
-      const response = await axios.get(
-        `/api/user/recent-jobs?days=${DEFAULT_DAYS}`,
-        {
-          timeout: 10000,
-          headers: {
-            Accept: "application/json",
-          },
-        }
-      );
+      // 使用 getRecentJobs API，獲取最近7天內的任務
+      const response = await apiClient.users.getRecentJobs(7);
 
-      console.log("最近任務 API 響應:", response.data);
+      console.log("API 響應:", response);
 
-      if (response.data.success && Array.isArray(response.data.jobs)) {
-        setTasks(response.data.jobs);
-        console.log(`成功載入 ${response.data.jobs.length} 筆最近任務`);
-
-        if (response.data.jobs.length === 0) {
-          console.log("用戶暫無最近任務");
+      if (response.success) {
+        if (response.data?.jobs) {
+          // 包裝格式
+          setTasks(response.data.jobs.slice(0, 10)); // 最多取10筆
+          setLastUpdated(new Date());
+          console.log(`成功載入 ${response.data.jobs.length} 項最近任務`);
+        } else if ((response as any).jobs) {
+          // 直接格式
+          const jobs = (response as any).jobs;
+          setTasks(jobs.slice(0, 10)); // 最多取10筆
+          setLastUpdated(new Date());
+          console.log(`成功載入 ${jobs.length} 項最近任務`);
+        } else {
+          console.warn("API 響應數據格式未知:", response);
+          throw new Error("任務數據格式異常");
         }
       } else {
-        console.warn("API 響應格式異常:", response.data);
-        setTasks([]);
-        setError("響應格式異常");
+        console.warn("API 響應失敗:", response);
+        throw new Error(response.message || "獲取最近任務失敗");
       }
     } catch (error: unknown) {
       console.error("獲取最近任務失敗:", error);
@@ -110,7 +120,7 @@ export default function RecentTasksList({
           userFriendlyMessage = "登入已過期，請重新登入";
           setError("認證已過期");
         } else if (error.response?.status === 403) {
-          userFriendlyMessage = "沒有權限查看最近任務";
+          userFriendlyMessage = "沒有權限查看任務歷史";
           setError("權限不足");
         } else if (error.response?.status === 500) {
           userFriendlyMessage = "服務器錯誤，請稍後再試";
@@ -133,9 +143,17 @@ export default function RecentTasksList({
     }
   };
 
+  // 初始載入
   useEffect(() => {
-    fetchRecentTasks();
-  }, [user, isAuthenticated]);
+    if (isAuthenticated && user) {
+      console.log("初始載入最近任務");
+      loadRecentTasks().catch(console.error);
+    } else {
+      // 如果用戶未登入，清空任務列表
+      setTasks([]);
+      setError(null);
+    }
+  }, [isAuthenticated, user]);
 
   const handleRefresh = async () => {
     if (!isAuthenticated || !user) {
@@ -143,8 +161,45 @@ export default function RecentTasksList({
       return;
     }
 
+    // 防止頻繁點擊的節流處理
+    if (refreshCooldown) {
+      toast.info("請稍後再重新整理", {
+        description: "為避免過度請求，請等待幾秒後再試",
+        duration: 2000,
+      });
+      return;
+    }
+
     setIsRefreshing(true);
-    await fetchRecentTasks();
+    setRefreshCooldown(true);
+    setShowRefreshSuccess(false);
+
+    try {
+      await loadRecentTasks();
+
+      // 顯示成功動畫
+      setShowRefreshSuccess(true);
+      setTimeout(() => setShowRefreshSuccess(false), 1500);
+
+      toast.success("重新整理完成", {
+        description: "任務列表已更新",
+        duration: 2000,
+        style: {
+          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+          color: "white",
+          border: "none",
+          boxShadow: "0 10px 25px rgba(16, 185, 129, 0.3)",
+        },
+        icon: "✅",
+      });
+    } catch (error) {
+      // loadRecentTasks 已經處理了錯誤
+    }
+
+    // 3秒後解除冷卻
+    setTimeout(() => {
+      setRefreshCooldown(false);
+    }, 3000);
   };
 
   const handleDownload = (publicUrl: string, novelTitle?: string) => {
@@ -162,10 +217,10 @@ export default function RecentTasksList({
         return;
       }
 
+      // 修復：移除 target="_blank"，直接下載而不是開啟新分頁
       const link = document.createElement("a");
       link.href = publicUrl;
       link.download = `${novelTitle || "novel"}.epub`;
-      link.target = "_blank";
       link.rel = "noopener noreferrer";
 
       document.body.appendChild(link);
@@ -179,59 +234,6 @@ export default function RecentTasksList({
       console.error("下載失敗:", error);
       toast.error("下載失敗，請稍後再試");
     }
-  };
-
-  const handleSendToKindle = (jobId: string) => {
-    if (!hasKindleEmail) {
-      toast.error("請先設定 Kindle 電子郵件", {
-        description: "請到會員中心設定您的 Kindle 郵箱",
-      });
-      return;
-    }
-
-    if (onSendToKindle) {
-      onSendToKindle(jobId);
-    } else {
-      toast.info("請先設定 Kindle 電子郵件");
-    }
-  };
-
-  // 為每個任務建立冷卻狀態Hook
-  const TaskSendButton = ({
-    taskId,
-    taskTitle,
-  }: {
-    taskId: string;
-    taskTitle?: string;
-  }) => {
-    const { isInCooldown, remainingSeconds } = useCooldown(taskId);
-
-    return (
-      <Button
-        onClick={() => handleSendToKindle(taskId)}
-        size="sm"
-        variant="outline"
-        disabled={!hasKindleEmail || isInCooldown}
-        className={
-          !hasKindleEmail
-            ? "border-gray-300 text-gray-400 cursor-not-allowed"
-            : isInCooldown
-            ? "border-gray-300 text-gray-500 cursor-not-allowed"
-            : "border-green-600 text-green-600 hover:bg-green-50"
-        }
-        title={
-          !hasKindleEmail
-            ? "請先設定 Kindle 電子郵件後啟用"
-            : isInCooldown
-            ? `請等待 ${remainingSeconds} 秒後重新發送`
-            : "發送到 Kindle"
-        }
-      >
-        {isInCooldown && <Clock className="h-4 w-4 mr-1" />}
-        <Send className="h-4 w-4 mr-1" />
-        {isInCooldown ? `發送 (${remainingSeconds}s)` : "發送"}
-      </Button>
-    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -278,10 +280,29 @@ export default function RecentTasksList({
 
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString(
-        "zh-TW",
-        DATE_FORMAT_OPTIONS
-      );
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInHours =
+        Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+      // 如果是今天，只顯示時間
+      if (date.toDateString() === now.toDateString()) {
+        return date.toLocaleTimeString("zh-TW", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      // 如果是一天內，顯示"昨天 HH:MM"
+      if (diffInHours < 24) {
+        return `昨天 ${date.toLocaleTimeString("zh-TW", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`;
+      }
+
+      // 其他情況顯示日期和時間
+      return date.toLocaleDateString("zh-TW", DATE_FORMAT_OPTIONS);
     } catch {
       return "日期格式錯誤";
     }
@@ -289,6 +310,17 @@ export default function RecentTasksList({
 
   // 如果用戶未登入，顯示提示
   if (!isAuthenticated || !user) {
+    const content = (
+      <div className="text-center py-8">
+        <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-500 mb-4">請登入以查看最近的轉換任務</p>
+      </div>
+    );
+
+    if (!showCard) {
+      return content;
+    }
+
     return (
       <Card>
         <CardHeader>
@@ -297,13 +329,172 @@ export default function RecentTasksList({
             最近任務
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">請登入以查看最近的轉換任務</p>
-          </div>
-        </CardContent>
+        <CardContent>{content}</CardContent>
       </Card>
+    );
+  }
+
+  // 主要內容渲染
+  const renderContent = () => {
+    if (isLoading && !isRefreshing) {
+      return (
+        <div className="text-center py-8">
+          <RefreshCw className="h-8 w-8 text-gray-400 mx-auto mb-4 animate-spin" />
+          <p className="text-gray-500">載入任務歷史中...</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="text-center py-8">
+          <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={handleRefresh} size="sm" variant="outline">
+            重試
+          </Button>
+        </div>
+      );
+    }
+
+    if (tasks.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 mb-2">暫無任務記錄</p>
+          <p className="text-sm text-gray-400">您還沒有任何轉換任務</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <div
+          className={`space-y-4 transition-all duration-500 ${
+            isRefreshing
+              ? "opacity-60 scale-[0.98] blur-[1px]"
+              : showRefreshSuccess
+              ? "opacity-100 scale-100 blur-0 animate-pulse"
+              : "opacity-100 scale-100 blur-0"
+          }`}
+        >
+          {tasks.map((task) => (
+            <div
+              key={task.id}
+              className={`border rounded-xl p-4 hover:bg-gray-50 transition-all duration-200 hover:shadow-md relative bg-white ${
+                isRefreshing
+                  ? "animate-pulse"
+                  : showRefreshSuccess
+                  ? "ring-2 ring-green-200 bg-green-50/30"
+                  : ""
+              }`}
+            >
+              {/* 響應式佈局 */}
+              <div className="space-y-3">
+                {/* 標題與狀態 */}
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-medium text-gray-900 leading-snug flex-1 min-w-0">
+                    {task.novelTitle || "未知小說"}
+                  </h3>
+                  <div className="flex-shrink-0">
+                    {getStatusBadge(task.status)}
+                  </div>
+                </div>
+
+                {/* 時間資訊 */}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                    <span className="font-medium">創建</span>
+                    <span className="text-gray-700">
+                      {formatDate(task.createdAt)}
+                    </span>
+                  </div>
+                  {task.completedAt && (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                      <span className="font-medium">完成</span>
+                      <span className="text-gray-700">
+                        {formatDate(task.completedAt)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 錯誤信息 */}
+                {task.errorMessage && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span className="break-words">{task.errorMessage}</span>
+                    </p>
+                  </div>
+                )}
+
+                {/* 操作按鈕（只在完成狀態顯示）*/}
+                {task.status?.toUpperCase() === "COMPLETED" &&
+                  task.publicUrl && (
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-gray-100">
+                      <Button
+                        onClick={() =>
+                          handleDownload(task.publicUrl!, task.novelTitle)
+                        }
+                        size="sm"
+                        variant="download"
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        下載檔案
+                      </Button>
+                      <UnifiedSendToKindleButton
+                        epubJobId={task.id}
+                        taskTitle={task.novelTitle}
+                      />
+                    </div>
+                  )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // 根據showCard決定是否包裝在Card中
+  if (!showCard) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            {lastUpdated && (
+              <p className="text-xs text-gray-500 mt-1">
+                上次更新：{lastUpdated.toLocaleTimeString("zh-TW")}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleRefresh}
+              disabled={isLoading || isRefreshing || refreshCooldown}
+              size="sm"
+              variant="outline"
+              className={`transition-all duration-200 ${
+                isRefreshing
+                  ? "bg-blue-50 border-blue-200 text-blue-600 shadow-md"
+                  : "hover:shadow-lg hover:scale-105"
+              }`}
+            >
+              <RefreshCw
+                className={`h-4 w-4 mr-1 transition-transform duration-200 ${
+                  isRefreshing ? "animate-spin" : "hover:rotate-90"
+                }`}
+              />
+              {isRefreshing ? "更新中..." : "重新整理"}
+            </Button>
+          </div>
+        </div>
+        {renderContent()}
+      </div>
     );
   }
 
@@ -311,101 +502,36 @@ export default function RecentTasksList({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            最近任務
-          </CardTitle>
-          <Button
-            onClick={handleRefresh}
-            disabled={isLoading || isRefreshing}
-            size="sm"
-            variant="outline"
-          >
-            <RefreshCw
-              className={`h-4 w-4 mr-1 ${isRefreshing ? "animate-spin" : ""}`}
-            />
-            重新整理
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {isLoading && !isRefreshing ? (
-          <div className="text-center py-8">
-            <RefreshCw className="h-8 w-8 text-gray-400 mx-auto mb-4 animate-spin" />
-            <p className="text-gray-500">載入最近任務中...</p>
+          <div>
+            {lastUpdated && (
+              <p className="text-xs text-gray-500 mt-1">
+                上次更新：{lastUpdated.toLocaleTimeString("zh-TW")}
+              </p>
+            )}
           </div>
-        ) : error ? (
-          <div className="text-center py-8">
-            <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={handleRefresh} size="sm" variant="outline">
-              重試
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleRefresh}
+              disabled={isLoading || isRefreshing || refreshCooldown}
+              size="sm"
+              variant="outline"
+              className={`transition-all duration-200 ${
+                isRefreshing
+                  ? "bg-blue-50 border-blue-200 text-blue-600 shadow-md"
+                  : "hover:shadow-lg hover:scale-105"
+              }`}
+            >
+              <RefreshCw
+                className={`h-4 w-4 mr-1 transition-transform duration-200 ${
+                  isRefreshing ? "animate-spin" : "hover:rotate-90"
+                }`}
+              />
+              {isRefreshing ? "更新中..." : "重新整理"}
             </Button>
           </div>
-        ) : tasks.length === 0 ? (
-          <div className="text-center py-8">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">暫無最近任務</p>
-            <p className="text-sm text-gray-400">
-              您在過去 {DEFAULT_DAYS} 天內沒有轉換任務
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-medium text-gray-900">
-                        {task.novelTitle || "未知小說"}
-                      </h3>
-                      {getStatusBadge(task.status)}
-                    </div>
-                    <p className="text-sm text-gray-500 mb-2">
-                      創建時間：{formatDate(task.createdAt)}
-                    </p>
-                    {task.completedAt && (
-                      <p className="text-sm text-gray-500 mb-2">
-                        完成時間：{formatDate(task.completedAt)}
-                      </p>
-                    )}
-                    {task.errorMessage && (
-                      <p className="text-sm text-red-600 mb-2">
-                        錯誤：{task.errorMessage}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    {task.status?.toUpperCase() === "COMPLETED" &&
-                      task.publicUrl && (
-                        <>
-                          <Button
-                            onClick={() =>
-                              handleDownload(task.publicUrl!, task.novelTitle)
-                            }
-                            size="sm"
-                            variant="outline"
-                          >
-                            <Download className="h-4 w-4 mr-1" />
-                            下載
-                          </Button>
-                          <TaskSendButton
-                            taskId={task.id}
-                            taskTitle={task.novelTitle}
-                          />
-                        </>
-                      )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
+        </div>
+      </CardHeader>
+      <CardContent>{renderContent()}</CardContent>
     </Card>
   );
 }
