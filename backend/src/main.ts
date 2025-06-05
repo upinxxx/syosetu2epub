@@ -42,11 +42,7 @@ async function bootstrap() {
   const isProduction = configService.get<string>('NODE_ENV') === 'production';
 
   // 允許多個來源
-  const corsOrigins = [
-    'http://localhost:5173', // Vite 開發伺服器
-    'http://127.0.0.1:5173', // 備用 IP
-    'http://localhost:4173', // Vite 預覽伺服器
-  ];
+  const corsOrigins = [frontendUrl];
 
   logger.log(`配置 CORS，允許來源: ${corsOrigins.join(', ')}`);
 
