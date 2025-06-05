@@ -18,6 +18,7 @@ export function SimpleDropdown({
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isPositioned, setIsPositioned] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -51,17 +52,17 @@ export function SimpleDropdown({
     }
 
     setPosition({ top, left });
+    setIsPositioned(true);
   };
 
   useEffect(() => {
     if (isOpen) {
+      // 重置狀態
+      setIsPositioned(false);
+      setIsVisible(false);
+
       // 先計算位置，再顯示
       updatePosition();
-
-      // 使用 requestAnimationFrame 確保位置設定後再顯示動畫
-      requestAnimationFrame(() => {
-        setIsVisible(true);
-      });
 
       window.addEventListener("resize", updatePosition);
       window.addEventListener("scroll", updatePosition);
@@ -97,8 +98,19 @@ export function SimpleDropdown({
       };
     } else {
       setIsVisible(false);
+      setIsPositioned(false);
     }
   }, [isOpen]);
+
+  // 監聽位置計算完成，然後顯示動畫
+  useEffect(() => {
+    if (isOpen && isPositioned) {
+      // 使用 requestAnimationFrame 確保位置設定後再顯示動畫
+      requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
+    }
+  }, [isOpen, isPositioned]);
 
   const toggleDropdown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -119,6 +131,7 @@ export function SimpleDropdown({
       </div>
 
       {isOpen &&
+        isPositioned &&
         createPortal(
           <div
             ref={dropdownRef}
@@ -171,7 +184,7 @@ export function DropdownItem({
 }) {
   return (
     <div
-      className={`px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 rounded-lg group cursor-pointer ${className}`}
+      className={`flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 rounded-lg group cursor-pointer ${className}`}
       onClick={onClick}
     >
       {children}

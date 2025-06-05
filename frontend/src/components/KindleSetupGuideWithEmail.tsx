@@ -62,6 +62,8 @@ export default function KindleSetupGuideWithEmail({
         setSenderEmail("noreply@kindle.syosetu2epub.online");
       } finally {
         setIsLoading(false);
+        // 載入完成後立即開始倒數
+        setIsCountdownActive(true);
       }
     };
 
@@ -111,9 +113,8 @@ export default function KindleSetupGuideWithEmail({
           description: "請完成Amazon認可寄件者設定",
         });
 
-        // 設定郵箱已保存，開始倒數
+        // 設定郵箱已保存
         setEmailSaved(true);
-        setIsCountdownActive(true);
 
         // 在背景更新用戶狀態
         refreshAuth(true).catch(console.error);
@@ -123,7 +124,6 @@ export default function KindleSetupGuideWithEmail({
           description: "請按照指南完成設定",
         });
         setEmailSaved(true);
-        setIsCountdownActive(true);
       }
     } catch (error: any) {
       console.error("更新Kindle郵箱失敗:", error);
@@ -137,7 +137,6 @@ export default function KindleSetupGuideWithEmail({
         description: "請按照指南完成設定",
       });
       setEmailSaved(true);
-      setIsCountdownActive(true);
 
       // 同時顯示錯誤信息供用戶參考
       setError(errorMessage);
@@ -245,30 +244,46 @@ export default function KindleSetupGuideWithEmail({
               步驟 3：輸入信箱並確認設定完成
             </h3>
 
+            <p className="text-orange-800 text-sm mb-4">
+              請在完成上述步驟後，輸入您的 Kindle 郵箱。系統會給您 30
+              秒時間仔細檢查和完成設定。
+            </p>
+
+            {/* 倒數顯示 */}
+            {countdown > 0 && (
+              <div className="flex items-center space-x-2 mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <Clock className="h-5 w-5 text-blue-600" />
+                <span className="text-blue-800 font-medium">
+                  請仔細檢查設定，還有 {countdown} 秒可以確認完成
+                </span>
+              </div>
+            )}
+
             {/* 郵箱輸入區域 */}
-            {!emailSaved ? (
-              <div className="space-y-3 mb-4">
-                <Label htmlFor="kindleEmail" className="text-orange-800">
-                  Kindle 電子郵件
-                </Label>
-                <Input
-                  id="kindleEmail"
-                  type="email"
-                  placeholder="your-kindle@kindle.com"
-                  value={kindleEmail}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  className="bg-white"
-                />
-                {error && (
-                  <Alert variant="destructive" className="py-2">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                <p className="text-sm text-orange-700">
-                  請輸入您的Kindle專屬郵箱，格式為 xxx@kindle.com 或
-                  xxx@kindle.amazon.com
-                </p>
+            <div className="space-y-3 mb-4">
+              <Label htmlFor="kindleEmail" className="text-orange-800">
+                Kindle 電子郵件
+              </Label>
+              <Input
+                id="kindleEmail"
+                type="email"
+                placeholder="your-kindle@kindle.com"
+                value={kindleEmail}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className="bg-white"
+              />
+              {error && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <p className="text-sm text-orange-700">
+                請輸入您的Kindle專屬郵箱，格式為 xxx@kindle.com 或
+                xxx@kindle.amazon.com
+              </p>
+
+              {!emailSaved ? (
                 <Button
                   onClick={handleEmailSave}
                   disabled={isSubmitting}
@@ -276,48 +291,34 @@ export default function KindleSetupGuideWithEmail({
                 >
                   {isSubmitting ? "儲存中..." : "儲存郵箱設定"}
                 </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="bg-white p-3 rounded border border-orange-300">
+              ) : (
+                <div className="bg-white p-3 rounded border border-green-300">
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
                     <span className="text-sm font-medium text-green-800">
-                      郵箱已設定：
+                      郵箱已成功儲存
                     </span>
-                    <code className="text-orange-700 font-mono text-sm break-all">
-                      {kindleEmail}
-                    </code>
                   </div>
                 </div>
+              )}
+            </div>
 
-                <p className="text-orange-800 text-sm mb-3">
-                  完成 Amazon 設定後，等待倒數結束即可確認設定
-                </p>
-
-                {countdown > 0 && (
-                  <div className="flex items-center space-x-2 mb-3">
-                    <Clock className="h-5 w-5 text-orange-600" />
-                    <span className="text-orange-800">
-                      請等待 {countdown} 秒後確認...
-                    </span>
-                  </div>
-                )}
-
-                <Button
-                  onClick={handleConfirmSetup}
-                  disabled={countdown > 0}
-                  className={
-                    countdown > 0
-                      ? "bg-gray-400 hover:bg-gray-400 text-gray-600 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700 text-white"
-                  }
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  我已完成設定
-                </Button>
-              </div>
-            )}
+            <Button
+              onClick={handleConfirmSetup}
+              disabled={countdown > 0 || !emailSaved}
+              className={
+                countdown > 0 || !emailSaved
+                  ? "bg-gray-400 hover:bg-gray-400 text-gray-600 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+              }
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              {!emailSaved
+                ? "請先儲存郵箱設定"
+                : countdown > 0
+                ? `請等待 ${countdown} 秒`
+                : "我已完成設定"}
+            </Button>
           </div>
         </div>
 
