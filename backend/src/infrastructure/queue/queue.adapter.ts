@@ -252,13 +252,6 @@ export class QueueAdapter implements QueuePort {
   }
 
   /**
-   * 健康檢查
-   */
-  async healthCheck(): Promise<any> {
-    return this.healthService.performHealthCheck();
-  }
-
-  /**
    * 恢復失敗任務
    */
   async recoverFailedJobs(queueName?: string): Promise<number> {

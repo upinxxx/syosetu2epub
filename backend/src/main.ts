@@ -28,9 +28,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // 設置全域 API 前綴
-  app.setGlobalPrefix('api/v1', {
-    exclude: ['health', 'health/quick', 'health/metrics'],
-  });
+  app.setGlobalPrefix('api/v1', {});
   logger.log('已設置全域 API 前綴: /api/v1/');
 
   // 全局啟用 cookie 解析

@@ -72,9 +72,7 @@ export class AuthController {
       this.logger.debug('JWT token 生成成功');
 
       // 重定向到前端的 OAuth 成功頁面
-      const frontendUrl =
-        this.configService.get<string>('FRONTEND_URL') ||
-        'http://localhost:5173';
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
       const redirectUrl = `${frontendUrl}/oauth/success`;
 
       this.logger.log(`重定向到: ${redirectUrl}`);
