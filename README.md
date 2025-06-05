@@ -1,8 +1,7 @@
 # Syosetu2EPUB
 
-## 📖 專案簡介
-
-Syosetu2EPUB 是一個全棧應用程式，允許使用者輸入小說網站的 URL（初始支援日本小說網站如「小説家になろう」和「カクヨム」等），自動抓取內容並轉換為 EPUB 電子書格式，最後提供下載連結。系統支援非同步處理，會將轉換任務加入佇列並在背景處理，完成後提供下載連結。
+[Syosetu2EPUB](https://app.syosetu2epub.online/) 是一個全棧應用程式，允許使用者輸入小說網站的 URL（初始支援日本小說網站如「小説家になろう」和「カクヨム」等），
+自動抓取內容並轉換為 EPUB 電子書格式，最後提供下載連結。系統支援非同步處理，會將轉換任務加入佇列並在背景處理，完成後提供下載連結。
 
 ### 🌟 主要功能
 
@@ -11,7 +10,7 @@ Syosetu2EPUB 是一個全棧應用程式，允許使用者輸入小說網站的 
 - 👀 提供小說預覽功能
 - ⚡ 使用佇列系統處理耗時任務
 - 📥 任務完成後提供下載連結
-- 📱 支援直接轉寄 EPUB 到 Kindle 閱讀器（僅會員功能）
+- 📱 支援直接轉寄 EPUB 到 Kindle 閱讀器（登入免費會員使用）
 - 🔐 使用 Google 帳號登入
 - 🏗️ 遵循六角架構設計原則
 - 🔄 統一的 API v1 規範
@@ -22,10 +21,9 @@ Syosetu2EPUB 是一個全棧應用程式，允許使用者輸入小說網站的 
 
 ### 🔄 API v1 統一規範
 
-- **API 前綴**: `/api/v1/` (除健康檢查端點外)
+- **API 前綴**: `/api/v1/` 
 - **統一回應格式**: 所有 API 都遵循 `{ success: boolean, data: T, timestamp: string }` 格式
 - **錯誤處理**: 統一的錯誤代碼和訊息格式
-- **監控**: 內建 API 請求監控和統計
 - **認證**: JWT Token 通過 HTTP-Only Cookie 傳遞
 
 ### 📁 後端架構
@@ -120,7 +118,7 @@ Infrastructure → Domain (僅 Port 介面)
 
 - **框架**: NestJS + TypeScript
 - **數據庫**: PostgreSQL(Supabase) + TypeORM
-- **佇列系統**: BullMQ + Upstash Redis
+- **佇列系統**: BullMQ + Redis
 - **存儲服務**: Supabase Storage
 - **電子書生成**: 自定義 EPUB 生成器
 - **認證**: Google OAuth + JWT
@@ -209,80 +207,4 @@ Infrastructure → Domain (僅 Port 介面)
 - PostgreSQL 14+
 - Redis 6+
 
-### 🚀 快速開始
 
-1. **克隆專案**
-
-```bash
-git clone https://github.com/your-username/syosetu2epub.git
-cd syosetu2epub
-```
-
-2. **安裝依賴**
-
-```bash
-# 後端
-cd backend
-pnpm install
-```
-
-```bash
-# 前端
-cd frontend
-pnpm install
-```
-
-3. **設定環境變數**
-
-後端環境變數 (`backend/.env`):
-
-```env
-# 資料庫設定
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=your_password
-DB_DATABASE=syosetu2epub
-
-# Redis 設定
-REDIS_URL=redis://localhost:6379
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# JWT 設定
-JWT_SECRET=your_jwt_secret
-
-# Supabase 設定
-SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_KEY=your_supabase_SERVICE_key
-
-# Resend 設定
-RESEND_API_KEY=your_resend_api_key
-```
-
-前端環境變數 (`frontend/.env`):
-
-```env
-VITE_API_BASE_URL=http://localhost:3000
-```
-
-4. **啟動服務**
-
-```bash
-# 啟動後端 (在 backend 目錄)
-pnpm run dev
-
-# 啟動前端 (在 frontend 目錄)
-pnpm run vite
-```
-
-5. **訪問應用**
-
-- 前端: http://localhost:5173
-- 後端 API: http://localhost:3000
-
-**版本**: v1.0.0  
-**最後更新**: 2025-6-5  
-**維護者**: Syosetu2EPUB 開發團隊
