@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/contexts";
 import { useCooldown } from "@/lib/hooks/useCooldown";
-import KindleEmailForm from "./KindleEmailForm";
+import KindleSetupGuideWithEmail from "./KindleSetupGuideWithEmail";
 import { Clock, Send, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 
@@ -353,9 +353,10 @@ export default function SendToKindleButton({
                   請先設定您的 Kindle 電子郵件地址，以便接收 EPUB 檔案。
                 </DialogDescription>
               </DialogHeader>
-              <KindleEmailForm
+              <KindleSetupGuideWithEmail
                 initialEmail={user?.kindleEmail}
-                onSuccess={handleEmailSetupSuccess}
+                onComplete={handleEmailSetupSuccess}
+                onCancel={() => setIsDialogOpen(false)}
               />
             </>
           )}

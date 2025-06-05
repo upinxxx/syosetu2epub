@@ -17,6 +17,7 @@ export function SimpleDropdown({
   className = "",
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -54,7 +55,14 @@ export function SimpleDropdown({
 
   useEffect(() => {
     if (isOpen) {
+      // 先計算位置，再顯示
       updatePosition();
+
+      // 使用 requestAnimationFrame 確保位置設定後再顯示動畫
+      requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
+
       window.addEventListener("resize", updatePosition);
       window.addEventListener("scroll", updatePosition);
 
@@ -65,24 +73,43 @@ export function SimpleDropdown({
           triggerRef.current &&
           !triggerRef.current.contains(event.target as Node)
         ) {
-          setIsOpen(false);
+          setIsVisible(false);
+          // 延遲關閉以播放動畫
+          setTimeout(() => setIsOpen(false), 150);
+        }
+      };
+
+      const handleEscape = (event: KeyboardEvent) => {
+        if (event.key === "Escape") {
+          setIsVisible(false);
+          setTimeout(() => setIsOpen(false), 150);
         }
       };
 
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
 
       return () => {
         window.removeEventListener("resize", updatePosition);
         window.removeEventListener("scroll", updatePosition);
         document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleEscape);
       };
+    } else {
+      setIsVisible(false);
     }
   }, [isOpen]);
 
   const toggleDropdown = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsOpen(!isOpen);
+
+    if (isOpen) {
+      setIsVisible(false);
+      setTimeout(() => setIsOpen(false), 150);
+    } else {
+      setIsOpen(true);
+    }
   };
 
   return (
@@ -95,10 +122,16 @@ export function SimpleDropdown({
         createPortal(
           <div
             ref={dropdownRef}
-            className={`fixed z-[100] w-72 bg-white/98 backdrop-blur-lg border border-gray-200/80 shadow-2xl rounded-2xl p-2 transition-all duration-200 ${className}`}
+            className={`fixed z-[100] w-72 bg-white/98 backdrop-blur-lg border border-gray-200/80 shadow-2xl rounded-2xl p-2 ${className}`}
             style={{
               top: `${position.top}px`,
               left: `${position.left}px`,
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible
+                ? "translateY(0) scale(1)"
+                : "translateY(-8px) scale(0.95)",
+              transition: "all 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
+              transformOrigin: align === "end" ? "top right" : "top left",
             }}
             onClick={(e) => e.stopPropagation()}
           >

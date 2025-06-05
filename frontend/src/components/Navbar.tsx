@@ -149,11 +149,8 @@ export default function Navbar() {
                   <DropdownSeparator />
 
                   {/* 菜單項目 */}
-                  <DropdownItem>
-                    <Link
-                      to="/me"
-                      className="flex w-full cursor-pointer items-center"
-                    >
+                  <Link to="/me" className="block w-full">
+                    <DropdownItem>
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors duration-200">
                         <User className="h-4 w-4 text-blue-600" />
                       </div>
@@ -161,8 +158,8 @@ export default function Navbar() {
                         <span className="font-medium">會員中心</span>
                         <p className="text-xs text-gray-500">管理帳戶和設定</p>
                       </div>
-                    </Link>
-                  </DropdownItem>
+                    </DropdownItem>
+                  </Link>
 
                   <DropdownSeparator />
 
