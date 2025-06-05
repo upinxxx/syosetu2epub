@@ -25,18 +25,20 @@ export class QueueCoreService implements QueueCorePort {
     private readonly previewQueue: Queue,
     @InjectQueue('kindle-delivery')
     private readonly kindleDeliveryQueue: Queue,
-    @InjectQueue('conversion')
-    private readonly conversionQueue: Queue,
-    @InjectQueue('health')
-    private readonly healthQueue: Queue,
+    // TODO: 暫時註解掉未使用的 queue
+    // @InjectQueue('conversion')
+    // private readonly conversionQueue: Queue,
+    // @InjectQueue('health')
+    // private readonly healthQueue: Queue,
   ) {
     // 初始化佇列映射
     this.queues = new Map<string, Queue>();
     this.queues.set('epub', epubQueue);
     this.queues.set('preview', previewQueue);
     this.queues.set('kindle-delivery', kindleDeliveryQueue);
-    this.queues.set('conversion', conversionQueue);
-    this.queues.set('health', healthQueue);
+    // TODO: 暫時註解掉未使用的 queue
+    // this.queues.set('conversion', conversionQueue);
+    // this.queues.set('health', healthQueue);
 
     this.logger.log('核心佇列服務已初始化');
   }

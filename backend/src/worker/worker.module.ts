@@ -1,3 +1,10 @@
+// ===== CRYPTO POLYFILL FOR NODE.JS 18 ESM =====
+// 必須在所有 TypeORM 相關導入之前設置
+import { webcrypto } from 'node:crypto';
+if (typeof globalThis.crypto === 'undefined') {
+  globalThis.crypto = webcrypto as Crypto;
+}
+// ============================================
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';

@@ -55,8 +55,7 @@ import { QueueAdapter } from './queue.adapter.js';
           connection: {
             host: configService.get('UPSTASH_REDIS_HOST'),
             port: configService.get('UPSTASH_REDIS_PORT'),
-            username: configService.get('UPSTASH_REDIS_USERNAME'),
-            password: configService.get('UPSTASH_REDIS_PASSWORD'),
+            tsl: {},
           },
           defaultJobOptions: {
             removeOnComplete: 100,
@@ -74,8 +73,9 @@ import { QueueAdapter } from './queue.adapter.js';
       { name: 'epub' },
       { name: 'preview' },
       { name: 'kindle-delivery' },
-      { name: 'health' },
-      { name: 'conversion' },
+      // TODO: 暫時註解掉未使用的 queue，未來需要時再啟用
+      // { name: 'health' },
+      // { name: 'conversion' },
     ),
   ],
   providers: [

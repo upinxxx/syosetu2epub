@@ -14,7 +14,7 @@ async function bootstrap() {
     logger:
       process.env.NODE_ENV === 'production'
         ? ['error', 'warn']
-        : ['error', 'warn'],
+        : ['error', 'warn', 'log', 'verbose', 'debug'],
   });
 
   // 設置全局前綴

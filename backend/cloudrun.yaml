@@ -1,0 +1,74 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: syosetu2epub-api
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: '1'
+        autoscaling.knative.dev/maxScale: '5'
+        run.googleapis.com/cpu-throttling: 'false'
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      containerConcurrency: 20
+      timeoutSeconds: 300
+      containers:
+        - image: asia-east1-docker.pkg.dev/syosetu2epub/syosetu2epub-repo/app:v2
+          resources:
+            limits:
+              cpu: '2'
+              memory: '2Gi'
+          env:
+            - name: NODE_ENV
+              value: 'production'
+            - name: APP_MODE
+              value: 'api'
+            - name: PORT
+              value: '8080'
+            # === 資料庫配置 ===
+            - name: SUPABASE_DB_URL
+              value: 'postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT.supabase.co:5432/postgres'
+            # === Redis 配置 ===
+            - name: REDIS_HOST
+              value: 'YOUR_UPSTASH_HOST.upstash.io'
+            - name: REDIS_PORT
+              value: '6380'
+            - name: REDIS_USERNAME
+              value: 'default'
+            - name: REDIS_PASSWORD
+              value: 'YOUR_REDIS_PASSWORD'
+            # === JWT 配置 ===
+            - name: JWT_SECRET
+              value: 'YOUR_JWT_SECRET_32_CHARACTERS_MINIMUM'
+            - name: JWT_EXPIRES_IN
+              value: '7d'
+            # === Google OAuth 配置 ===
+            - name: GOOGLE_CLIENT_ID
+              value: 'YOUR_GOOGLE_CLIENT_ID'
+            - name: GOOGLE_CLIENT_SECRET
+              value: 'YOUR_GOOGLE_CLIENT_SECRET'
+            - name: GOOGLE_CALLBACK_URL
+              value: 'https://syosetu2epub-api-HASH-asia-east1.a.run.app/api/v1/auth/google/callback'
+            # === Supabase 配置 ===
+            - name: SUPABASE_URL
+              value: 'https://YOUR_PROJECT.supabase.co'
+            - name: SUPABASE_SERVICE_KEY
+              value: 'YOUR_SUPABASE_SERVICE_KEY'
+            - name: SUPABASE_STORAGE_BUCKET
+              value: 'epub-files'
+            # === 前端配置 ===
+            - name: FRONTEND_URL
+              value: 'https://YOUR_FRONTEND.vercel.app'
+            # === 郵件配置 ===
+            - name: RESEND_API_KEY
+              value: 'YOUR_RESEND_API_KEY'
+            - name: FROM_EMAIL
+              value: 'noreply@yourdomain.com'
+          ports:
+            - containerPort: 8080
+  traffic:
+    - percent: 100
+      latestRevision: true

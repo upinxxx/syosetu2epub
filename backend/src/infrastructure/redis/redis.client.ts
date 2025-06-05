@@ -38,8 +38,6 @@ export class RedisClient implements OnModuleDestroy {
   private createRedisConnection(): Redis {
     const host = this.configService.get<string>('REDIS_HOST');
     const port = this.configService.get<number>('REDIS_PORT');
-    const username = this.configService.get<string>('REDIS_USERNAME');
-    const password = this.configService.get<string>('REDIS_PASSWORD');
 
     if (!host || !port) {
       this.logger.error(
@@ -62,15 +60,7 @@ export class RedisClient implements OnModuleDestroy {
     const connectionConfig: any = {
       host,
       port,
-      username,
-      password,
-      tls: host.includes('upstash')
-        ? {
-            rejectUnauthorized: false,
-            servername: host,
-            checkServerIdentity: () => undefined,
-          }
-        : undefined,
+      tsl: {},
       connectTimeout: 30000,
       commandTimeout: 25000,
       lazyConnect: false,
@@ -88,10 +78,8 @@ export class RedisClient implements OnModuleDestroy {
         return shouldReconnect;
       },
       retryDelayOnClusterDown: 300,
-      ...(host.includes('upstash') && {
-        showFriendlyErrorStack: true,
-        maxLoadingTimeout: 30000,
-      }),
+      showFriendlyErrorStack: true,
+      maxLoadingTimeout: 30000,
     };
 
     return new Redis(connectionConfig);

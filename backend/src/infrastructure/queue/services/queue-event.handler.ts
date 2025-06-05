@@ -37,10 +37,11 @@ export class QueueEventHandler implements QueueEventPort {
     private readonly previewQueue: Queue,
     @InjectQueue('kindle-delivery')
     private readonly kindleDeliveryQueue: Queue,
-    @InjectQueue('conversion')
-    private readonly conversionQueue: Queue,
-    @InjectQueue('health')
-    private readonly healthQueue: Queue,
+    // TODO: 暫時註解掉未使用的 queue
+    // @InjectQueue('conversion')
+    // private readonly conversionQueue: Queue,
+    // @InjectQueue('health')
+    // private readonly healthQueue: Queue,
   ) {
     this.initializeEventStats();
     this.setupEventListeners();
@@ -54,8 +55,9 @@ export class QueueEventHandler implements QueueEventPort {
       { name: 'epub', queue: this.epubQueue },
       { name: 'preview', queue: this.previewQueue },
       { name: 'kindle-delivery', queue: this.kindleDeliveryQueue },
-      { name: 'conversion', queue: this.conversionQueue },
-      { name: 'health', queue: this.healthQueue },
+      // TODO: 暫時註解掉未使用的 queue
+      // { name: 'conversion', queue: this.conversionQueue },
+      // { name: 'health', queue: this.healthQueue },
     ];
 
     for (const { name, queue } of queueConfigs) {
@@ -188,8 +190,9 @@ export class QueueEventHandler implements QueueEventPort {
       ['epub', this.epubQueue],
       ['preview', this.previewQueue],
       ['kindle-delivery', this.kindleDeliveryQueue],
-      ['conversion', this.conversionQueue],
-      ['health', this.healthQueue],
+      // TODO: 暫時註解掉未使用的 queue
+      // ['conversion', this.conversionQueue],
+      // ['health', this.healthQueue],
     ]);
 
     const queue = queueMap.get(queueName);
@@ -232,8 +235,9 @@ export class QueueEventHandler implements QueueEventPort {
       'epub',
       'preview',
       'kindle-delivery',
-      'conversion',
-      'health',
+      // TODO: 暫時註解掉未使用的 queue
+      // 'conversion',
+      // 'health',
     ];
     for (const queueName of queueNames) {
       this.eventStats.set(queueName, {

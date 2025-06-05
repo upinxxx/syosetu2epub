@@ -37,8 +37,9 @@ COPY package.json pnpm-lock.yaml ./
 # 安裝生產依賴
 RUN pnpm install --frozen-lockfile --prod
 
-# 從構建階段複製構建結果
+# 從構建階段複製構建結果和腳本
 COPY --from=base /app/dist ./dist
+COPY --from=base /app/scripts ./scripts
 COPY --from=base /app/node_modules ./node_modules
 
 # 設定環境變數

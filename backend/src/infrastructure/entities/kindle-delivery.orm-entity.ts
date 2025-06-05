@@ -7,8 +7,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { EpubJobOrmEntity } from './epub-job.orm-entity.js';
-import { UserOrmEntity } from './user.orm-entity.js';
 import { DeliveryStatus } from '@/domain/enums/delivery-status.enum.js';
 
 /**
@@ -22,16 +20,18 @@ export class KindleDeliveryOrmEntity {
   @Column({ type: 'uuid' })
   epubJobId: string;
 
-  @ManyToOne(() => EpubJobOrmEntity, { onDelete: 'CASCADE' })
+  // 完全避免類型引用，讓 TypeORM 通過字符串處理關聯
+  @ManyToOne('EpubJobOrmEntity', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'epubJobId' })
-  epubJob: EpubJobOrmEntity;
+  epubJob: any;
 
   @Column({ type: 'uuid' })
   userId: string;
 
-  @ManyToOne(() => UserOrmEntity, { onDelete: 'CASCADE' })
+  // 使用字符串引用避免循環依賴
+  @ManyToOne('UserOrmEntity', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user: UserOrmEntity;
+  user: any;
 
   @Column({ type: 'varchar', length: 320 })
   toEmail: string;
