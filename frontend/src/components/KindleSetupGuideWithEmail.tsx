@@ -47,7 +47,6 @@ export default function KindleSetupGuideWithEmail({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [emailSaved, setEmailSaved] = useState<boolean>(false);
 
   // 獲取寄件人郵箱
   useEffect(() => {
@@ -86,8 +85,13 @@ export default function KindleSetupGuideWithEmail({
     };
   }, [isCountdownActive, countdown]);
 
-  // 處理郵箱保存
-  const handleEmailSave = async () => {
+  // 處理確認設定（倒數完成後點擊按鈕）
+  const handleConfirmSetup = async () => {
+    // 只有倒數完成後才能執行
+    if (countdown > 0) {
+      return;
+    }
+
     // 驗證輸入
     const validationError = validateKindleEmail(kindleEmail);
     if (validationError) {
@@ -109,21 +113,23 @@ export default function KindleSetupGuideWithEmail({
 
       if (response.success) {
         // 顯示成功提示
-        toast.success("您的Kindle郵箱已更新", {
-          description: "請完成Amazon認可寄件者設定",
+        toast.success("Amazon Kindle 設定完成！", {
+          description: "您現在可以直接將 EPUB 發送到 Kindle 了",
         });
-
-        // 設定郵箱已保存
-        setEmailSaved(true);
 
         // 在背景更新用戶狀態
-        refreshAuth(true).catch(console.error);
+        await refreshAuth(true);
+
+        // 完成設定，關閉元件
+        onComplete();
       } else {
-        // 即使API響應不成功，也繼續流程（確保一致性）
-        toast.warning("設定可能未完全成功，請完成Amazon認可寄件者設定", {
-          description: "請按照指南完成設定",
+        // 即使API響應不成功，也繼續完成流程
+        toast.warning("設定可能未完全成功，但已完成流程", {
+          description: "如有問題請重新設定",
         });
-        setEmailSaved(true);
+
+        await refreshAuth(true);
+        onComplete();
       }
     } catch (error: any) {
       console.error("更新Kindle郵箱失敗:", error);
@@ -132,35 +138,18 @@ export default function KindleSetupGuideWithEmail({
         error.message ||
         "更新Kindle郵箱時發生錯誤";
 
-      // 統一邏輯：即使發生錯誤，也繼續流程（確保用戶體驗一致性）
-      toast.warning("郵箱設定遇到問題，但仍需完成Amazon認可寄件者設定", {
-        description: "請按照指南完成設定",
+      // 顯示錯誤但仍完成流程
+      toast.error("設定時發生錯誤", {
+        description: errorMessage,
       });
-      setEmailSaved(true);
-
-      // 同時顯示錯誤信息供用戶參考
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 處理完成設定
-  const handleConfirmSetup = async () => {
-    if (countdown === 0) {
-      toast.success("Amazon Kindle 設定完成！", {
-        description: "您現在可以直接將 EPUB 發送到 Kindle 了",
-      });
-
-      // 再次確保用戶狀態是最新的
-      await refreshAuth(true);
-
-      onComplete();
-    }
-  };
-
   // 處理輸入變化
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setKindleEmail(value);
 
@@ -269,7 +258,7 @@ export default function KindleSetupGuideWithEmail({
                 type="email"
                 placeholder="your-kindle@kindle.com"
                 value={kindleEmail}
-                onChange={handleInputChange}
+                onChange={handleEmailChange}
                 disabled={isSubmitting}
                 className="bg-white"
               />
@@ -282,42 +271,24 @@ export default function KindleSetupGuideWithEmail({
                 請輸入您的Kindle專屬郵箱，格式為 xxx@kindle.com 或
                 xxx@kindle.amazon.com
               </p>
-
-              {!emailSaved ? (
-                <Button
-                  onClick={handleEmailSave}
-                  disabled={isSubmitting}
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                >
-                  {isSubmitting ? "儲存中..." : "儲存郵箱設定"}
-                </Button>
-              ) : (
-                <div className="bg-white p-3 rounded border border-green-300">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="text-sm font-medium text-green-800">
-                      郵箱已成功儲存
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
 
+            {/* 唯一的確認按鈕 */}
             <Button
               onClick={handleConfirmSetup}
-              disabled={countdown > 0 || !emailSaved}
+              disabled={countdown > 0 || isSubmitting || !kindleEmail.trim()}
               className={
-                countdown > 0 || !emailSaved
+                countdown > 0 || isSubmitting || !kindleEmail.trim()
                   ? "bg-gray-400 hover:bg-gray-400 text-gray-600 cursor-not-allowed"
                   : "bg-green-600 hover:bg-green-700 text-white"
               }
             >
               <CheckCircle className="mr-2 h-4 w-4" />
-              {!emailSaved
-                ? "請先儲存郵箱設定"
+              {isSubmitting
+                ? "設定中..."
                 : countdown > 0
                 ? `請等待 ${countdown} 秒`
-                : "我已完成設定"}
+                : "完成設定"}
             </Button>
           </div>
         </div>
