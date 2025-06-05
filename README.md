@@ -265,7 +265,7 @@ RESEND_API_KEY=your_resend_api_key
 前端環境變數 (`frontend/.env`):
 
 ```env
-VITE_API_BASE=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:3000
 ```
 
 4. **啟動服務**
