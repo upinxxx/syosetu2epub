@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { AxiosInstance, AxiosRequestConfig } from "axios";
 import { debug, type ApiCallDetails } from "./debug.js";
+import { ENV } from "./env.js";
 
 // 🆕 請求去重管理器
 class RequestDeduplicator {
@@ -746,7 +747,7 @@ class ApiClient {
     const networkConfig = this.networkMonitor.getOptimalRequestConfig();
 
     return axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000",
+      baseURL: ENV.API_BASE_URL,
       timeout: networkConfig.timeout,
       withCredentials: true,
       headers: {

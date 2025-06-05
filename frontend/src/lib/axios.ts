@@ -1,7 +1,8 @@
 import axios from "axios";
+import { ENV } from "./env.js";
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || "http://localhost:3000",
+  baseURL: ENV.API_BASE_URL,
   timeout: 10000,
   withCredentials: true,
 });
@@ -9,7 +10,6 @@ const instance = axios.create({
 // 添加請求攔截器，便於調試
 instance.interceptors.request.use(
   (config) => {
-    console.log("發送請求:", config.method?.toUpperCase(), config.url);
     return config;
   },
   (error) => {

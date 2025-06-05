@@ -205,6 +205,11 @@ export function Pagination({
           </Button>
         </div>
       )}
+
+      {/* 右側：總項目數顯示 */}
+      {showTotalItems && (
+        <div className="text-sm text-gray-600">共 {totalItems} 項</div>
+      )}
     </div>
   );
 }

@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:vercel": "pnpm run build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
+    "serve": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit",
     "tw": "tailwindcss-cli",
     "addui": "pnpm dlx shadcn@latest add"
   },
@@ -21,6 +25,7 @@
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.16.0",
     "lucide-react": "^0.507.0",
     "next-themes": "^0.4.6",
     "react": "^19.1.0",

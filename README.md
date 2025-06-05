@@ -119,7 +119,7 @@ Infrastructure → Domain (僅 Port 介面)
 ### 後端技術
 
 - **框架**: NestJS + TypeScript
-- **數據庫**: PostgreSQL + TypeORM
+- **數據庫**: PostgreSQL(Supabase) + TypeORM
 - **佇列系統**: BullMQ + Upstash Redis
 - **存儲服務**: Supabase Storage
 - **電子書生成**: 自定義 EPUB 生成器
@@ -167,12 +167,6 @@ Infrastructure → Domain (僅 Port 介面)
 - 🔄 性能優化和快取策略
 
 ## 🚀 API v1 端點總覽
-
-### 🏥 健康檢查 (無前綴)
-
-- `GET /health` - 基本健康檢查 + API 統計
-- `GET /health/quick` - 快速健康檢查
-- `GET /api/v1/health/metrics` - 詳細系統指標 (需認證)
 
 ### 🔐 認證相關
 
@@ -230,9 +224,11 @@ cd syosetu2epub
 # 後端
 cd backend
 pnpm install
+```
 
+```bash
 # 前端
-cd ../frontend
+cd frontend
 pnpm install
 ```
 
@@ -260,7 +256,7 @@ JWT_SECRET=your_jwt_secret
 
 # Supabase 設定
 SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_KEY=your_supabase_SERVICE_key
 
 # Resend 設定
 RESEND_API_KEY=your_resend_api_key
@@ -276,43 +272,17 @@ VITE_API_BASE=http://localhost:3000
 
 ```bash
 # 啟動後端 (在 backend 目錄)
-pnpm run start:dev
+pnpm run dev
 
 # 啟動前端 (在 frontend 目錄)
-pnpm run dev
+pnpm run vite
 ```
 
 5. **訪問應用**
 
 - 前端: http://localhost:5173
 - 後端 API: http://localhost:3000
-- 健康檢查: http://localhost:3000/health
-
-## 📚 文檔
-
-- [API 文檔](./API.md) - 完整的 API v1 規範
-- [任務計畫](./docs/task.md) - 開發任務追蹤
-- [架構說明](./docs/architecture.md) - 詳細的架構設計
-
-## 🤝 貢獻指南
-
-1. Fork 專案
-2. 創建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交變更 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 開啟 Pull Request
-
-## 📄 授權
-
-本專案採用 MIT 授權 - 詳見 [LICENSE](LICENSE) 文件
-
-## 📞 聯絡方式
-
-- 專案連結: [https://github.com/your-username/syosetu2epub](https://github.com/your-username/syosetu2epub)
-- 問題回報: [Issues](https://github.com/your-username/syosetu2epub/issues)
-
----
 
 **版本**: v1.0.0  
-**最後更新**: 2024-12-21  
+**最後更新**: 2025-6-5  
 **維護者**: Syosetu2EPUB 開發團隊

@@ -198,93 +198,111 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
             >
-              {isMobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              <div className="relative">
+                <Menu
+                  className={`h-6 w-6 transition-all duration-300 ${
+                    isMobileMenuOpen
+                      ? "scale-0 rotate-90 opacity-0"
+                      : "scale-100 rotate-0 opacity-100"
+                  }`}
+                />
+                <X
+                  className={`h-6 w-6 absolute inset-0 transition-all duration-300 ${
+                    isMobileMenuOpen
+                      ? "scale-100 rotate-0 opacity-100"
+                      : "scale-0 -rotate-90 opacity-0"
+                  }`}
+                />
+              </div>
             </Button>
           </div>
         </div>
 
         {/* 行動裝置菜單 */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200/60 bg-white/95 backdrop-blur-lg">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {/* 移除導航連結中的使用說明 */}
+        <div
+          className={`md:hidden border-t border-gray-200/60 bg-white/95 backdrop-blur-lg overflow-hidden transition-all duration-300 ease-in-out ${
+            isMobileMenuOpen
+              ? "max-h-96 opacity-100 translate-y-0"
+              : "max-h-0 opacity-0 -translate-y-2"
+          }`}
+        >
+          <div
+            className={`px-2 pt-2 pb-3 space-y-1 transition-all duration-300 ease-in-out delay-75 ${
+              isMobileMenuOpen
+                ? "transform translate-y-0 opacity-100"
+                : "transform -translate-y-4 opacity-0"
+            }`}
+          >
+            {/* 移除導航連結中的使用說明 */}
 
-              {/* 登入/用戶資訊 */}
-              {!isAuthenticated ? (
-                <div className="px-3 py-3">
-                  <LoginButton className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg font-medium" />
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {/* 用戶資訊卡片 */}
-                  <div className="mx-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200/60">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10 shadow-md">
-                        {user?.avatar && (
-                          <AvatarImage
-                            src={user.avatar}
-                            alt={user.displayName}
-                          />
-                        )}
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm">
-                          {user?.displayName
-                            ? getInitials(user.displayName)
-                            : "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">
-                          {user?.displayName || "會員"}
-                        </p>
-                        <div className="flex items-center space-x-1 mt-0.5">
-                          <Sparkles className="h-3 w-3 text-green-600" />
-                          <span className="text-xs text-green-600 font-medium">
-                            正式會員
-                          </span>
-                        </div>
+            {/* 登入/用戶資訊 */}
+            {!isAuthenticated ? (
+              <div className="px-3 py-3">
+                <LoginButton className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-lg font-medium" />
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {/* 用戶資訊卡片 */}
+                <div className="mx-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200/60">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-10 w-10 shadow-md">
+                      {user?.avatar && (
+                        <AvatarImage src={user.avatar} alt={user.displayName} />
+                      )}
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm">
+                        {user?.displayName
+                          ? getInitials(user.displayName)
+                          : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">
+                        {user?.displayName || "會員"}
+                      </p>
+                      <div className="flex items-center space-x-1 mt-0.5">
+                        <Sparkles className="h-3 w-3 text-green-600" />
+                        <span className="text-xs text-green-600 font-medium">
+                          正式會員
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  {/* 菜單項目 */}
-                  <Link
-                    to="/me"
-                    onClick={closeMobileMenu}
-                    className="flex items-center px-3 py-3 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 mx-3"
-                  >
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <User className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <span className="font-medium text-sm">會員中心</span>
-                      <p className="text-xs text-gray-500">管理帳戶和設定</p>
-                    </div>
-                  </Link>
-
-                  <button
-                    onClick={() => {
-                      logout();
-                      closeMobileMenu();
-                    }}
-                    className="flex items-center w-full px-3 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mx-3"
-                  >
-                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
-                      <LogOut className="h-4 w-4 text-red-600" />
-                    </div>
-                    <div className="text-left">
-                      <span className="font-medium text-sm">登出</span>
-                      <p className="text-xs text-gray-500">安全退出帳戶</p>
-                    </div>
-                  </button>
                 </div>
-              )}
-            </div>
+
+                {/* 菜單項目 */}
+                <Link
+                  to="/me"
+                  onClick={closeMobileMenu}
+                  className="flex items-center px-3 py-3 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 mx-3"
+                >
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <User className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <span className="font-medium text-sm">會員中心</span>
+                    <p className="text-xs text-gray-500">管理帳戶和設定</p>
+                  </div>
+                </Link>
+
+                <button
+                  onClick={() => {
+                    logout();
+                    closeMobileMenu();
+                  }}
+                  className="flex items-center w-full px-3 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 mx-3"
+                >
+                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                    <LogOut className="h-4 w-4 text-red-600" />
+                  </div>
+                  <div className="text-left">
+                    <span className="font-medium text-sm">登出</span>
+                    <p className="text-xs text-gray-500">安全退出帳戶</p>
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </header>
   );

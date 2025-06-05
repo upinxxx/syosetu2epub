@@ -15,22 +15,20 @@ import { AlertTriangle, Home, RefreshCw } from "lucide-react";
  */
 const OAuthError: React.FC = () => {
   const handleGoHome = () => {
-    console.log("用戶選擇返回首頁");
     window.location.replace("/");
   };
 
   const handleRetryLogin = () => {
-    console.log("用戶選擇重新登入");
     // 重新導向到登入頁面
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
     window.location.href = `${apiUrl}/api/v1/auth/google`;
   };
 
-  useEffect(() => {
-    console.log("OAuth 錯誤頁面已載入");
-    console.log("當前 URL:", window.location.href);
-    console.log("錯誤詳情可查看瀏覽器控制台");
-  }, []);
+  // useEffect(() => {
+  //   console.log("OAuth 錯誤頁面已載入");
+  //   console.log("當前 URL:", window.location.href);
+  //   console.log("錯誤詳情可查看瀏覽器控制台");
+  // }, []);
 
   return (
     <div className="container flex items-center justify-center min-h-[80vh]">

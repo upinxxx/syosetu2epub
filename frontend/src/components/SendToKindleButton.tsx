@@ -158,6 +158,9 @@ export default function SendToKindleButton({
 
         // 開始輪詢狀態
         startStatusPolling(deliveryId);
+      } else {
+        // 如果沒有獲得 deliveryId，仍然關閉對話框
+        setIsDialogOpen(false);
       }
 
       // 顯示成功提示

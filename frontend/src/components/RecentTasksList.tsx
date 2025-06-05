@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Pagination from "@/components/ui/pagination";
 import {
   Download,
   Send,
@@ -18,7 +17,7 @@ import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 import { AxiosError } from "axios";
 import { useAuth } from "@/lib/contexts";
-import { useCooldown } from "@/lib/hooks/useCooldown";
+import UnifiedSendToKindleButton from "./UnifiedSendToKindleButton";
 
 // 常數定義
 const DEFAULT_DAYS = 7;
@@ -42,13 +41,6 @@ interface RecentTask {
   errorMessage?: string;
 }
 
-interface PaginationInfo {
-  page: number;
-  limit: number;
-  total: number;
-  hasMore: boolean;
-}
-
 interface RecentTasksListProps {
   onSendToKindle?: (jobId: string) => void;
   showCard?: boolean; // 控制是否顯示Card包裝
@@ -67,26 +59,13 @@ export default function RecentTasksList({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [refreshCooldown, setRefreshCooldown] = useState(false);
 
-  // 分頁狀態
-  const [currentPage, setCurrentPage] = useState(DEFAULT_PAGE);
-  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_LIMIT);
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    page: DEFAULT_PAGE,
-    limit: DEFAULT_LIMIT,
-    total: 0,
-    hasMore: false,
-  });
-
   // 檢查用戶是否已設定Kindle郵箱
   const hasKindleEmail = user?.kindleEmail && user.kindleEmail.trim() !== "";
 
-  const fetchRecentTasks = async (
-    page: number = currentPage,
-    limit: number = itemsPerPage
-  ) => {
+  // 獲取最近任務（固定10筆）
+  const loadRecentTasks = async () => {
     // 檢查認證狀態
     if (!isAuthenticated || !user) {
-      console.log("用戶未登入，跳過獲取最近任務");
       setTasks([]);
       setError(null);
       return;
@@ -96,63 +75,36 @@ export default function RecentTasksList({
     setError(null);
 
     try {
-      console.log(
-        `開始獲取用戶 ${user.id} 的任務歷史 - 頁數: ${page}, 每頁: ${limit}`
-      );
+      console.log("正在載入最近任務...");
 
-      // 使用支援分頁的 getJobHistory API
-      const response = await apiClient.users.getJobHistory({ page, limit });
+      // 使用 getRecentJobs API，獲取最近7天內的任務
+      const response = await apiClient.users.getRecentJobs(7);
 
-      console.log("任務歷史 API 響應:", response);
+      console.log("API 響應:", response);
 
-      // 根據 API 客戶端的標準化邏輯處理響應
-      // API 客戶端會將後端的 { success, jobs, pagination } 包裝為 { success, data: { jobs, pagination } }
-      if (response.success && response.data) {
-        const historyData = response.data;
-
-        // 檢查數據格式
-        if (Array.isArray(historyData.jobs) && historyData.pagination) {
-          setTasks(historyData.jobs);
-          setPagination(historyData.pagination);
+      if (response.success) {
+        if (response.data?.jobs) {
+          // 包裝格式
+          setTasks(response.data.jobs.slice(0, 10)); // 最多取10筆
           setLastUpdated(new Date());
-          console.log(
-            `成功載入 ${historyData.jobs.length} 筆任務，總計 ${historyData.pagination.total} 筆`
-          );
-
-          if (historyData.jobs.length === 0 && page === 1) {
-            console.log("用戶暫無任務歷史");
-          }
+          console.log(`成功載入 ${response.data.jobs.length} 項最近任務`);
+        } else if ((response as any).jobs) {
+          // 直接格式
+          const jobs = (response as any).jobs;
+          setTasks(jobs.slice(0, 10)); // 最多取10筆
+          setLastUpdated(new Date());
+          console.log(`成功載入 ${jobs.length} 項最近任務`);
         } else {
-          console.warn("API 響應數據格式異常:", historyData);
+          console.warn("API 響應數據格式未知:", response);
           throw new Error("任務數據格式異常");
-        }
-      } else if (response.success) {
-        // 處理後端直接返回格式的情況（沒有被 API 客戶端包裝）
-        const directData = response as any;
-        if (Array.isArray(directData.jobs) && directData.pagination) {
-          setTasks(directData.jobs);
-          setPagination(directData.pagination);
-          setLastUpdated(new Date());
-          console.log(
-            `成功載入 ${directData.jobs.length} 筆任務，總計 ${directData.pagination.total} 筆`
-          );
-        } else {
-          console.warn("直接響應格式異常:", directData);
-          throw new Error("響應格式異常");
         }
       } else {
         console.warn("API 響應失敗:", response);
-        throw new Error(response.message || "獲取任務歷史失敗");
+        throw new Error(response.message || "獲取最近任務失敗");
       }
     } catch (error: unknown) {
-      console.error("獲取任務歷史失敗:", error);
+      console.error("獲取最近任務失敗:", error);
       setTasks([]);
-      setPagination({
-        page: DEFAULT_PAGE,
-        limit: DEFAULT_LIMIT,
-        total: 0,
-        hasMore: false,
-      });
 
       if (error instanceof AxiosError) {
         const errorMessage = error.response?.data?.message || error.message;
@@ -162,7 +114,7 @@ export default function RecentTasksList({
           message: errorMessage,
         });
 
-        let userFriendlyMessage = "無法載入任務歷史";
+        let userFriendlyMessage = "無法載入最近任務";
 
         if (error.response?.status === 401) {
           userFriendlyMessage = "登入已過期，請重新登入";
@@ -183,7 +135,7 @@ export default function RecentTasksList({
         toast.error(userFriendlyMessage);
       } else {
         setError("未知錯誤");
-        toast.error("無法載入任務歷史");
+        toast.error("無法載入最近任務");
       }
     } finally {
       setIsLoading(false);
@@ -191,9 +143,17 @@ export default function RecentTasksList({
     }
   };
 
+  // 初始載入
   useEffect(() => {
-    fetchRecentTasks();
-  }, [user, isAuthenticated, currentPage, itemsPerPage]);
+    if (isAuthenticated && user) {
+      console.log("初始載入最近任務");
+      loadRecentTasks().catch(console.error);
+    } else {
+      // 如果用戶未登入，清空任務列表
+      setTasks([]);
+      setError(null);
+    }
+  }, [isAuthenticated, user]);
 
   const handleRefresh = async () => {
     if (!isAuthenticated || !user) {
@@ -215,7 +175,7 @@ export default function RecentTasksList({
     setShowRefreshSuccess(false);
 
     try {
-      await fetchRecentTasks(currentPage, itemsPerPage);
+      await loadRecentTasks();
 
       // 顯示成功動畫
       setShowRefreshSuccess(true);
@@ -233,19 +193,13 @@ export default function RecentTasksList({
         icon: "✅",
       });
     } catch (error) {
-      // fetchRecentTasks 已經處理了錯誤
+      // loadRecentTasks 已經處理了錯誤
     }
 
     // 3秒後解除冷卻
     setTimeout(() => {
       setRefreshCooldown(false);
     }, 3000);
-  };
-
-  // 處理分頁變更
-  const handlePageChange = (page: number) => {
-    console.log(`分頁變更：從第 ${currentPage} 頁到第 ${page} 頁`);
-    setCurrentPage(page);
   };
 
   const handleDownload = (publicUrl: string, novelTitle?: string) => {
@@ -263,10 +217,10 @@ export default function RecentTasksList({
         return;
       }
 
+      // 修復：移除 target="_blank"，直接下載而不是開啟新分頁
       const link = document.createElement("a");
       link.href = publicUrl;
       link.download = `${novelTitle || "novel"}.epub`;
-      link.target = "_blank";
       link.rel = "noopener noreferrer";
 
       document.body.appendChild(link);
@@ -280,128 +234,6 @@ export default function RecentTasksList({
       console.error("下載失敗:", error);
       toast.error("下載失敗，請稍後再試");
     }
-  };
-
-  const handleSendToKindle = async (jobId: string) => {
-    if (!hasKindleEmail) {
-      toast.error("請先設定 Kindle 電子郵件", {
-        description: "請到會員中心設定您的 Kindle 郵箱",
-        duration: 5000,
-        style: {
-          background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-          color: "white",
-          border: "none",
-          boxShadow: "0 10px 25px rgba(245, 158, 11, 0.3)",
-        },
-        icon: "⚙️",
-      });
-      return;
-    }
-
-    if (onSendToKindle) {
-      try {
-        await onSendToKindle(jobId);
-        toast.success("發送請求已提交", {
-          description: "請稍後查看您的 Kindle 設備",
-          duration: 4000,
-          style: {
-            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-            color: "white",
-            border: "none",
-            boxShadow: "0 10px 25px rgba(16, 185, 129, 0.3)",
-          },
-          icon: "📚",
-        });
-      } catch (error) {
-        toast.error("發送失敗", {
-          description: "請稍後重試或聯繫客服支援",
-          duration: 6000,
-          style: {
-            background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
-            color: "white",
-            border: "none",
-            boxShadow: "0 10px 25px rgba(239, 68, 68, 0.3)",
-          },
-          icon: "❌",
-        });
-        throw error; // 重新拋出錯誤以便上層處理
-      }
-    } else {
-      toast.info("請先設定 Kindle 電子郵件", {
-        description: "功能尚未完全配置",
-        duration: 3000,
-        style: {
-          background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-          color: "white",
-          border: "none",
-          boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)",
-        },
-        icon: "ℹ️",
-      });
-    }
-  };
-
-  // 為每個任務建立冷卻狀態Hook
-  const TaskSendButton = ({
-    taskId,
-    taskTitle,
-  }: {
-    taskId: string;
-    taskTitle?: string;
-  }) => {
-    const { isInCooldown, remainingSeconds } = useCooldown(taskId);
-    const [isSending, setIsSending] = useState(false);
-
-    const handleSend = async () => {
-      if (!hasKindleEmail || isInCooldown || isSending) return;
-
-      setIsSending(true);
-      try {
-        await handleSendToKindle(taskId);
-      } finally {
-        setIsSending(false);
-      }
-    };
-
-    return (
-      <Button
-        onClick={handleSend}
-        size="sm"
-        variant={!hasKindleEmail || isInCooldown ? "outline" : "kindle"}
-        disabled={!hasKindleEmail || isInCooldown || isSending}
-        className={
-          !hasKindleEmail
-            ? "border-gray-300 text-gray-400 cursor-not-allowed hover:scale-100"
-            : isInCooldown
-            ? "border-gray-300 text-gray-500 cursor-not-allowed hover:scale-100"
-            : isSending
-            ? "animate-pulse"
-            : ""
-        }
-        title={
-          !hasKindleEmail
-            ? "請先設定 Kindle 電子郵件後啟用"
-            : isInCooldown
-            ? `請等待 ${remainingSeconds} 秒後重新發送`
-            : isSending
-            ? "正在發送中..."
-            : "發送到 Kindle"
-        }
-      >
-        {isSending ? (
-          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-        ) : isInCooldown ? (
-          <Clock className="h-4 w-4 mr-1" />
-        ) : (
-          <Send className="h-4 w-4 mr-1" />
-        )}
-        {isSending
-          ? "發送中..."
-          : isInCooldown
-          ? `發送 (${remainingSeconds}s)`
-          : "發送"}
-      </Button>
-    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -614,8 +446,8 @@ export default function RecentTasksList({
                         <Download className="h-4 w-4 mr-2" />
                         下載檔案
                       </Button>
-                      <TaskSendButton
-                        taskId={task.id}
+                      <UnifiedSendToKindleButton
+                        epubJobId={task.id}
                         taskTitle={task.novelTitle}
                       />
                     </div>
@@ -624,22 +456,6 @@ export default function RecentTasksList({
             </div>
           ))}
         </div>
-
-        {/* 分頁元件 */}
-        {pagination.total > 0 && (
-          <div className="mt-6">
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={Math.ceil(pagination.total / pagination.limit)}
-              totalItems={pagination.total}
-              itemsPerPage={pagination.limit}
-              onPageChange={handlePageChange}
-              showItemsPerPage={true}
-              showTotalItems={true}
-              disabled={isLoading || isRefreshing}
-            />
-          </div>
-        )}
       </div>
     );
   };

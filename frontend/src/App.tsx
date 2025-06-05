@@ -1,51 +1,100 @@
-import React from "react";
+import React, { Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
-import Home from "./pages/Home";
-import Me from "./pages/Me";
-import HowToUse from "./pages/HowToUse";
-import NotFound from "./pages/NotFound";
-import OAuthSuccess from "./pages/OAuthSuccess";
-import OAuthError from "./pages/OAuthError";
 import { AuthProvider } from "@/lib/contexts";
 import { ProtectedRoute } from "./lib/components/ProtectedRoute";
+import PageTransition from "./components/PageTransition";
+
+// 動態載入頁面元件
+const Home = React.lazy(() => import("./pages/Home"));
+const Me = React.lazy(() => import("./pages/Me"));
+const HowToUse = React.lazy(() => import("./pages/HowToUse"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const OAuthSuccess = React.lazy(() => import("./pages/OAuthSuccess"));
+const OAuthError = React.lazy(() => import("./pages/OAuthError"));
+
+// 載入中元件
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+  </div>
+);
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          {/* 主頁 */}
-          <Route path="/" element={<Home />} />
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            {/* 主頁 */}
+            <Route
+              path="/"
+              element={
+                <PageTransition>
+                  <Home />
+                </PageTransition>
+              }
+            />
 
-          {/* 需要認證的路由 */}
-          <Route
-            path="/me"
-            element={
-              <ProtectedRoute>
-                <Me />
-              </ProtectedRoute>
-            }
-          />
+            {/* 需要認證的路由 */}
+            <Route
+              path="/me"
+              element={
+                <ProtectedRoute>
+                  <PageTransition>
+                    <Me />
+                  </PageTransition>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* 公開路由 */}
-          <Route path="/how-to-use" element={<HowToUse />} />
+            {/* 公開路由 */}
+            <Route
+              path="/how-to-use"
+              element={
+                <PageTransition>
+                  <HowToUse />
+                </PageTransition>
+              }
+            />
 
-          {/* OAuth 相關路由 - 使用獨立路由，避免與其他路由互相影響 */}
-          <Route path="/oauth">
-            <Route path="success" element={<OAuthSuccess />} />
-            <Route path="error" element={<OAuthError />} />
-            {/* 重定向任何其他 OAuth 路徑回主頁 */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
+            {/* OAuth 相關路由 - 使用獨立路由，避免與其他路由互相影響 */}
+            <Route path="/oauth">
+              <Route
+                path="success"
+                element={
+                  <PageTransition>
+                    <OAuthSuccess />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="error"
+                element={
+                  <PageTransition>
+                    <OAuthError />
+                  </PageTransition>
+                }
+              />
+              {/* 重定向任何其他 OAuth 路徑回主頁 */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
 
-          {/* 處理未匹配路由 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* 處理未匹配路由 */}
+            <Route
+              path="*"
+              element={
+                <PageTransition>
+                  <NotFound />
+                </PageTransition>
+              }
+            />
+          </Routes>
+        </Suspense>
       </Router>
     </AuthProvider>
   );

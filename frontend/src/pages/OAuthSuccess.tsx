@@ -20,7 +20,6 @@ const OAuthSuccess: React.FC = () => {
   const { refreshAuth } = useAuth();
 
   const handleGoHome = () => {
-    console.log("用戶點擊立即跳轉按鈕");
     setIsRedirecting(true);
     // 清除計時器，避免重複跳轉
     setCountdown(0);
@@ -31,16 +30,11 @@ const OAuthSuccess: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("OAuth 成功頁面已載入，準備刷新認證狀態...");
-    console.log("當前 URL:", window.location.href);
-    console.log("Cookie 狀態:", document.cookie);
-
     // 先刷新認證狀態，確保登入狀態被正確檢測
     const refreshAndRedirect = async () => {
       try {
         // 強制刷新認證狀態
         await refreshAuth(true);
-        console.log("認證狀態已刷新");
       } catch (error) {
         console.error("刷新認證狀態失敗:", error);
       }
@@ -52,8 +46,6 @@ const OAuthSuccess: React.FC = () => {
     // 設置倒數計時，然後跳轉
     const timer = setInterval(() => {
       setCountdown((prev) => {
-        console.log("倒數計時:", prev);
-
         // 當倒數到 1 時，執行跳轉
         if (prev <= 1) {
           clearInterval(timer);
@@ -61,7 +53,6 @@ const OAuthSuccess: React.FC = () => {
 
           // 使用 window.location.replace 而非 React Router 的 navigate
           // 這確保瀏覽歷史被替換，避免返回按鈕造成循環
-          console.log("倒數結束，執行跳轉到首頁");
           setTimeout(() => {
             window.location.replace("/");
           }, 500); // 稍微延遲，讓用戶看到狀態改變
@@ -73,7 +64,6 @@ const OAuthSuccess: React.FC = () => {
 
     // 清理函數，確保組件卸載時清除計時器
     return () => {
-      console.log("OAuth 成功頁面清理，取消計時器");
       clearInterval(timer);
     };
   }, [refreshAuth]);

@@ -328,9 +328,6 @@ export async function withRetry<T>(
 
       // 等待重試延遲
       if (standardError.retryDelay) {
-        console.log(
-          `操作失敗，將在 ${standardError.retryDelay}ms 後重試 (第 ${attempt}/${maxRetries} 次)`
-        );
         await new Promise((resolve) =>
           setTimeout(resolve, standardError.retryDelay)
         );

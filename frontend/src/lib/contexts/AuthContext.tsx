@@ -51,10 +51,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshAuth = useCallback(
     async (force: boolean = false) => {
-      // 如果已經在進行認證檢查，則跳過
-      if (isRefreshing.current) {
-        console.log("已有認證檢查進行中，跳過重複請求");
+      // 如果已經在進行認證檢查，對於非強制刷新則跳過
+      if (isRefreshing.current && !force) {
+        // console.log("已有認證檢查進行中，跳過重複請求");
         return;
+      }
+
+      // 對於強制刷新，等待當前檢查完成
+      if (isRefreshing.current && force) {
+        while (isRefreshing.current) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        // 如果是強制刷新，繼續執行
       }
 
       setIsLoading(true);
@@ -68,21 +76,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         timeSinceLastCheck < AUTH_CACHE_TTL &&
         lastAuthCheck.current > 0
       ) {
-        console.log("使用快取的認證狀態，跳過 API 請求");
+        // console.log("使用快取的認證狀態，跳過 API 請求");
         setIsLoading(false);
         return;
       }
 
       try {
         isRefreshing.current = true;
-        console.log(`開始檢查認證狀態...${force ? " (強制刷新)" : ""}`);
+        // console.log(`開始檢查認證狀態...${force ? " (強制刷新)" : ""}`);
 
         // 首先檢查可見 cookie
         const hasVisibleCookie = checkVisibleCookie();
-        console.log("可見 Cookie 檢查結果:", hasVisibleCookie);
+        // console.log("可見 Cookie 檢查結果:", hasVisibleCookie);
 
         if (!hasVisibleCookie) {
-          console.log("未檢測到登入 cookie，無需發送 API 請求");
+          // console.log("未檢測到登入 cookie，無需發送 API 請求");
           setUser(null);
           setIsAuthenticated(false);
           lastAuthCheck.current = now;
@@ -93,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const response = await apiClient.auth.me();
 
-        console.log("認證狀態響應:", response.data);
+        // console.log("認證狀態響應:", response.data);
         if (response.success && response.data?.isAuthenticated) {
           setUser(response.data.user);
           setIsAuthenticated(true);
