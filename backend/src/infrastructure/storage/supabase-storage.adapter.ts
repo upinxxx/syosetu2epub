@@ -19,8 +19,9 @@ export class SupabaseStorageAdapter implements StoragePort {
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
-    const supabaseKey = this.configService.get<string>('SUPABASE_KEY');
-    this.bucket = this.configService.get<string>('SUPABASE_BUCKET') ?? 'epubs';
+    const supabaseKey = this.configService.get<string>('SUPABASE_SERVICE_KEY');
+    this.bucket =
+      this.configService.get<string>('SUPABASE_STORAGE_BUCKET') ?? 'epubs';
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Supabase 配置缺失，請檢查環境變數');

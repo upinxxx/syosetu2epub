@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import './config/env-validation.js'; // 引入環境變數驗證
 
 // 載入 API 專用環境變數
 
@@ -12,7 +13,10 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   // 指定使用 Express 應用程式
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'], // 啟用所有日誌級別
+    logger:
+      process.env.NODE_ENV === 'production'
+        ? ['error', 'warn']
+        : ['error', 'warn'],
   });
   const configService = app.get(ConfigService);
 

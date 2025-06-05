@@ -108,8 +108,9 @@ export class ProcessPreviewUseCase {
 
     this.logger.debug(`預覽回應數據: ${JSON.stringify(previewResponse)}`);
 
-    // 🆕 處理完成後設置 15 分鐘緩存
+    // 🔧 同時設置預覽緩存和更新任務狀態，減少 Redis 操作
     try {
+      // 設置預覽緩存 (15分鐘)
       await this.previewCacheService.setCachedPreview(source, sourceId, {
         novelId: novel.id,
         title: novel.title,
@@ -118,42 +119,20 @@ export class ProcessPreviewUseCase {
         source,
         sourceId,
       });
+
+      // 更新任務狀態為完成，並緩存預覽數據
+      await this.queueService.cacheJobStatus('preview', jobId, {
+        jobId,
+        status: JobStatus.COMPLETED,
+        completedAt: new Date(),
+        previewData: previewResponse,
+        updatedAt: new Date(),
+      });
+
       this.logger.debug(`已設置預覽緩存: ${source}:${sourceId}`);
     } catch (cacheError) {
       // 緩存錯誤不應影響主流程
-      this.logger.warn(`設置預覽緩存失敗: ${cacheError.message}`);
-    }
-
-    // 更新任務狀態為完成，並緩存預覽數據
-    await this.queueService.cacheJobStatus('preview', jobId, {
-      jobId,
-      status: JobStatus.COMPLETED,
-      completedAt: new Date(),
-      previewData: previewResponse, // 將預覽數據一併緩存
-      updatedAt: new Date(), // 確保更新時間
-    });
-
-    this.logger.log(
-      `✅ 預覽任務完成 - jobId: ${jobId}, 狀態已更新為 COMPLETED`,
-    );
-
-    // 🆕 額外確認：再次檢查緩存狀態是否正確設置
-    try {
-      const cachedStatus = await this.queueService.getCachedJobStatus(
-        'preview',
-        jobId,
-      );
-      if (cachedStatus && cachedStatus.status === JobStatus.COMPLETED) {
-        this.logger.debug(
-          `✅ 緩存狀態確認成功 - jobId: ${jobId}, status: ${cachedStatus.status}`,
-        );
-      } else {
-        this.logger.warn(
-          `⚠️ 緩存狀態可能異常 - jobId: ${jobId}, cached: ${cachedStatus?.status || 'null'}`,
-        );
-      }
-    } catch (cacheCheckError) {
-      this.logger.warn(`緩存狀態檢查失敗: ${cacheCheckError.message}`);
+      this.logger.warn(`設置緩存失敗: ${cacheError.message}`);
     }
 
     return previewResponse;
@@ -161,37 +140,52 @@ export class ProcessPreviewUseCase {
 
   /**
    * 保存小說信息到資料庫
+   * 🔧 優化為單次數據庫操作
    */
   private async saveNovel(
     source: NovelSource,
     sourceId: string,
     novelInfo: any,
   ): Promise<Novel> {
-    // 檢查是否已存在相同來源和來源 ID 的小說
-    const existingNovel = await (
-      this.novelRepository as any
-    ).findBySourceAndSourceId(source, sourceId);
-
-    if (existingNovel) {
-      // 更新現有小說
-      existingNovel.update(
-        novelInfo.novelTitle,
-        novelInfo.novelAuthor,
-        novelInfo.novelDescription || '',
-        novelInfo.novelCoverUrl,
-      );
-      return await this.novelRepository.save(existingNovel);
-    } else {
-      // 創建新小說
-      const novel = Novel.create(
+    try {
+      // 🔧 先嘗試創建新小說，如果已存在則更新
+      let novel = Novel.create(
         source,
         sourceId,
         novelInfo.novelTitle,
-        novelInfo.novelAuthor,
+        novelInfo.novelAuthor || '未知作者',
         novelInfo.novelDescription || '',
         novelInfo.novelCoverUrl,
       );
-      return await this.novelRepository.save(novel);
+
+      // 🔧 使用 upsert 邏輯：先保存，如果衝突則查詢並更新
+      try {
+        return await this.novelRepository.save(novel);
+      } catch (saveError) {
+        // 如果是唯一性約束衝突，則查詢現有記錄並更新
+        if (
+          saveError.code === '23505' ||
+          saveError.message?.includes('duplicate')
+        ) {
+          const existingNovel = await (
+            this.novelRepository as any
+          ).findBySourceAndSourceId(source, sourceId);
+
+          if (existingNovel) {
+            existingNovel.update(
+              novelInfo.novelTitle,
+              novelInfo.novelAuthor || '未知作者',
+              novelInfo.novelDescription || '',
+              novelInfo.novelCoverUrl,
+            );
+            return await this.novelRepository.save(existingNovel);
+          }
+        }
+        throw saveError;
+      }
+    } catch (error) {
+      this.logger.error(`保存小說失敗: ${error.message}`, error.stack);
+      throw error;
     }
   }
 }

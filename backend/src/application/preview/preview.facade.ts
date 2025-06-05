@@ -2,7 +2,6 @@ import { Injectable, Inject } from '@nestjs/common';
 import { AddPreviewJobUseCase } from './use-cases/add-preview-job.use-case.js';
 import { GetNovelPreviewUseCase } from './use-cases/get-novel-preview.use-case.js';
 import { GetPreviewJobStatusUseCase } from './use-cases/get-preview-job-status.use-case.js';
-import { PreviewNovelUseCase } from './use-cases/preview-novel.use-case.js';
 import { ProcessPreviewUseCase } from './use-cases/process-preview-job.use-case.js';
 import { PreviewCacheService } from './services/preview-cache.service.js';
 import { NovelSource } from '@/domain/enums/novel-source.enum.js';
@@ -29,7 +28,7 @@ export interface PreviewWithCacheResponse {
 
 /**
  * 預覽功能門面
- * 重構後：僅負責 Use Case 協調，移除橫切關注點
+ * 🔧 優化：移除冗餘依賴和方法
  */
 @Injectable()
 export class PreviewFacade {
@@ -40,8 +39,6 @@ export class PreviewFacade {
     private readonly getNovelPreview: GetNovelPreviewUseCase,
     @Inject(GetPreviewJobStatusUseCase)
     private readonly getPreviewJobStatus: GetPreviewJobStatusUseCase,
-    @Inject(PreviewNovelUseCase)
-    private readonly previewNovel: PreviewNovelUseCase,
     @Inject(ProcessPreviewUseCase)
     private readonly processPreviewJob: ProcessPreviewUseCase,
     @Inject(PreviewCacheService)
@@ -57,27 +54,30 @@ export class PreviewFacade {
     sourceId: string,
     userId?: string,
   ): Promise<PreviewWithCacheResponse> {
-    // 1. 先檢查緩存
-    const cachedPreview = await this.checkCache(source, sourceId);
+    // 🔧 直接檢查緩存，簡化邏輯
+    const cachedPreview = await this.previewCacheService.getCachedPreview(
+      source,
+      sourceId,
+    );
 
     if (cachedPreview) {
       return {
         success: true,
         cached: true,
         preview: {
-          novelId: cachedPreview.data.novelId,
-          title: cachedPreview.data.title,
-          author: cachedPreview.data.author,
-          description: cachedPreview.data.description,
-          source: cachedPreview.data.source,
-          sourceId: cachedPreview.data.sourceId,
+          novelId: cachedPreview.novelId,
+          title: cachedPreview.title,
+          author: cachedPreview.author,
+          description: cachedPreview.description,
+          source: cachedPreview.source,
+          sourceId: cachedPreview.sourceId,
         },
-        message: `從${cachedPreview.cacheLevel}獲取預覽資料`,
+        message: '從緩存獲取預覽資料',
         timestamp: new Date().toISOString(),
       };
     }
 
-    // 2. 緩存未命中，創建非同步任務
+    // 緩存未命中，創建非同步任務
     const jobId = await this.addPreviewJob.execute(source, sourceId);
 
     return {
@@ -115,31 +115,9 @@ export class PreviewFacade {
   }
 
   /**
-   * 根據來源獲取預覽
-   */
-  async getPreviewBySource(source: NovelSource, sourceId: string) {
-    return this.previewNovel.execute(source, sourceId);
-  }
-
-  /**
    * 處理預覽任務
    */
   async processJob(jobData: PreviewNovelJobData) {
     return this.processPreviewJob.execute(jobData);
-  }
-
-  /**
-   * 檢查緩存
-   * 簡化版本，移除日誌記錄
-   */
-  private async checkCache(source: NovelSource, sourceId: string) {
-    const cachedData = await this.previewCacheService.getCachedPreview(
-      source,
-      sourceId,
-    );
-    if (cachedData) {
-      return { data: cachedData, cacheLevel: 'Redis緩存' };
-    }
-    return null;
   }
 }

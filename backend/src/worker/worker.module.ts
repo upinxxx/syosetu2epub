@@ -35,21 +35,24 @@ import { RedisModule } from '../infrastructure/redis/redis.module.js';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST'),
-        port: configService.get('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_DATABASE'),
-        entities: [
-          NovelOrmEntity,
-          EpubJobOrmEntity,
-          UserOrmEntity,
-          KindleDeliveryOrmEntity,
-        ],
-        synchronize: false,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const url = configService.get<string>('SUPABASE_DB_URL');
+        const synchronize = false;
+        if (!url) {
+          throw new Error('Database configuration not found');
+        }
+        return {
+          type: 'postgres',
+          url,
+          entities: [
+            NovelOrmEntity,
+            EpubJobOrmEntity,
+            UserOrmEntity,
+            KindleDeliveryOrmEntity,
+          ],
+          synchronize,
+        };
+      },
     }),
 
     // 優先導入 ConvertModule，確保 ConvertFacade 可用

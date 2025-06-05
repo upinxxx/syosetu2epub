@@ -25,15 +25,12 @@ import { QueueAdapter } from './queue.adapter.js';
         redisClient: RedisClient,
         configService: ConfigService,
       ) => {
-        console.log('QueueModule: 使用 RedisClient 統一連接管理');
-
         try {
           // 等待 Redis 客戶端就緒
           await redisClient.whenReady();
           const ioredisInstance = redisClient.getClient();
 
           if (ioredisInstance && redisClient.isReady()) {
-            console.log('QueueModule: 成功使用 RedisClient 統一連接');
             return {
               connection: ioredisInstance,
               defaultJobOptions: {
@@ -54,36 +51,12 @@ import { QueueAdapter } from './queue.adapter.js';
         }
 
         // 後備方案：直接使用環境變數配置
-        console.warn('QueueModule: 使用配置後備方案');
-        const host = configService.get<string>('REDIS_HOST');
-        const port = configService.get<number>('REDIS_PORT');
-        const username = configService.get<string>('REDIS_USERNAME');
-        const password = configService.get<string>('REDIS_PASSWORD');
-
-        if (!host || !port) {
-          throw new Error('Redis configuration not found');
-        }
-
         return {
           connection: {
-            host,
-            port,
-            username,
-            password,
-            tls: host.includes('upstash')
-              ? { rejectUnauthorized: false }
-              : undefined,
-            connectTimeout:
-              configService.get<number>('REDIS_CONNECT_TIMEOUT') || 15000,
-            commandTimeout:
-              configService.get<number>('REDIS_COMMAND_TIMEOUT') || 10000,
-            maxRetriesPerRequest:
-              configService.get<number>('REDIS_MAX_RETRIES_PER_REQUEST') ||
-              null,
-            enableOfflineQueue:
-              configService.get<boolean>('REDIS_ENABLE_OFFLINE_QUEUE') ?? false,
-            keepAlive: configService.get<number>('REDIS_KEEP_ALIVE') || 30000,
-            lazyConnect: false,
+            host: configService.get('UPSTASH_REDIS_HOST'),
+            port: configService.get('UPSTASH_REDIS_PORT'),
+            username: configService.get('UPSTASH_REDIS_USERNAME'),
+            password: configService.get('UPSTASH_REDIS_PASSWORD'),
           },
           defaultJobOptions: {
             removeOnComplete: 100,

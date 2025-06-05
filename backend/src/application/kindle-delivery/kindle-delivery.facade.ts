@@ -127,4 +127,86 @@ export class KindleDeliveryFacade {
   ): Promise<KindleDelivery> {
     return this.getDeliveryStatusQuery.execute(deliveryId, userId);
   }
+
+  /**
+   * 格式化發送響應
+   * @param delivery Kindle交付實體
+   * @returns 格式化的響應
+   */
+  formatSendResponse(delivery: KindleDelivery) {
+    return {
+      success: true,
+      data: {
+        id: delivery.id,
+        status: delivery.status,
+        epubJobId: delivery.epubJobId,
+        toEmail: delivery.toEmail,
+        createdAt: delivery.createdAt.toISOString(),
+      },
+      message: 'EPUB 已加入 Kindle 發送隊列',
+    };
+  }
+
+  /**
+   * 格式化狀態響應
+   * @param delivery Kindle交付實體
+   * @returns 格式化的響應
+   */
+  formatStatusResponse(delivery: KindleDelivery) {
+    return {
+      success: true,
+      data: {
+        id: delivery.id,
+        status: delivery.status,
+        epubJobId: delivery.epubJobId,
+        toEmail: delivery.toEmail,
+        errorMessage: delivery.errorMessage,
+        sentAt: delivery.sentAt?.toISOString(),
+        createdAt: delivery.createdAt.toISOString(),
+      },
+    };
+  }
+
+  /**
+   * 獲取格式化的交付歷史
+   * @param userId 用戶ID
+   * @param page 頁碼
+   * @param limit 每頁數量
+   * @returns 格式化的交付歷史響應
+   */
+  async getFormattedDeliveryHistory(
+    userId: string,
+    page: number,
+    limit: number,
+  ) {
+    const result = await this.getDeliveryHistory(userId, page, limit);
+
+    return {
+      success: true,
+      data: {
+        items: result.items.map((delivery) => ({
+          id: delivery.id,
+          epubJob: {
+            id: delivery.epubJobId,
+            novel: delivery.epubJob?.novel
+              ? {
+                  title: delivery.epubJob.novel.title,
+                  author: delivery.epubJob.novel.author,
+                }
+              : undefined,
+          },
+          toEmail: delivery.toEmail,
+          status: delivery.status,
+          errorMessage: delivery.errorMessage,
+          sentAt: delivery.sentAt?.toISOString(),
+        })),
+        meta: {
+          page: result.currentPage,
+          limit: result.limit,
+          totalItems: result.totalItems,
+          totalPages: result.totalPages,
+        },
+      },
+    };
+  }
 }

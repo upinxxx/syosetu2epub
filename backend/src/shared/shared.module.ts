@@ -1,5 +1,4 @@
 import { Module, Global } from '@nestjs/common';
-import { ApiMonitoringMiddleware } from './middleware/api-monitoring.middleware.js';
 import { UserContextService } from './services/user-context.service.js';
 import { LoggingInterceptor } from './interceptors/logging.interceptor.js';
 import { DomainExceptionFilter } from './filters/domain-exception.filter.js';
@@ -12,9 +11,6 @@ import { DomainExceptionFilter } from './filters/domain-exception.filter.js';
 @Global()
 @Module({
   providers: [
-    // API 監控中介軟體
-    ApiMonitoringMiddleware,
-
     // 用戶上下文服務（REQUEST scoped）
     UserContextService,
 
@@ -26,7 +22,6 @@ import { DomainExceptionFilter } from './filters/domain-exception.filter.js';
   ],
   exports: [
     // 導出供其他模組使用
-    ApiMonitoringMiddleware,
     UserContextService,
     LoggingInterceptor,
     DomainExceptionFilter,

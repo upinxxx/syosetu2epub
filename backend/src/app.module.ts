@@ -19,11 +19,8 @@ import { SharedModule } from './shared/shared.module.js';
 import { RedisModule } from './infrastructure/redis/redis.module.js';
 import { ResponseFormatInterceptor } from './shared/interceptors/response-format.interceptor.js';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor.js';
-import { PerformanceMonitoringInterceptor } from './shared/interceptors/performance-monitoring.interceptor.js';
 import { DomainExceptionFilter } from './shared/filters/domain-exception.filter.js';
-import { ApiMonitoringMiddleware } from './shared/middleware/api-monitoring.middleware.js';
 import cookieParser from 'cookie-parser';
-import { Logger } from '@nestjs/common';
 
 /**
  * 應用程式主模組
@@ -45,26 +42,14 @@ import { Logger } from '@nestjs/common';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const host = configService.get<string>('DB_HOST');
-        const port = configService.get<number>('DB_PORT');
-        const username = configService.get<string>('DB_USERNAME');
-        const password = configService.get<string>('DB_PASSWORD');
-        const database = configService.get<string>('DB_DATABASE');
-        const synchronize =
-          configService.get<boolean>('DB_SYNCHRONIZE') || false;
-        const logging = configService.get<boolean>('DB_LOGGING') || false;
-
-        if (!host || !port || !username || !password || !database) {
+        const url = configService.get<string>('SUPABASE_DB_URL');
+        const synchronize = false;
+        if (!url) {
           throw new Error('Database configuration not found');
         }
-
         return {
           type: 'postgres',
-          host,
-          port,
-          username,
-          password,
-          database,
+          url,
           entities: [
             NovelOrmEntity,
             EpubJobOrmEntity,
@@ -72,7 +57,6 @@ import { Logger } from '@nestjs/common';
             KindleDeliveryOrmEntity,
           ],
           synchronize,
-          logging,
         };
       },
     }),
@@ -91,12 +75,6 @@ import { Logger } from '@nestjs/common';
     {
       provide: APP_PIPE,
       useClass: ValidationPipe,
-    },
-
-    // 🆕 註冊全域性能監控攔截器（第一個執行）
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: PerformanceMonitoringInterceptor,
     },
 
     // 註冊全域日誌攔截器
@@ -120,28 +98,7 @@ import { Logger } from '@nestjs/common';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // 註冊 API 監控中介軟體（應用於所有路由）
-    consumer.apply(ApiMonitoringMiddleware).forRoutes('*');
-
     // 增加詳細的 cookie 解析選項
     consumer.apply(cookieParser()).forRoutes('*');
-
-    // 添加調試中間件（僅在開發環境）
-    if (process.env.NODE_ENV !== 'production') {
-      consumer
-        .apply((req: any, res: any, next: () => void) => {
-          const logger = new Logger('HttpDebug');
-          logger.debug(`Incoming request: ${req.method} ${req.url}`);
-          if (Object.keys(req.cookies).length > 0) {
-            logger.debug(`Cookies: ${JSON.stringify(req.cookies)}`);
-          }
-          // 增加響應完成事件的監聽
-          res.on('finish', () => {
-            logger.debug(`Response status: ${res.statusCode}`);
-          });
-          next();
-        })
-        .forRoutes('*');
-    }
   }
 }

@@ -14,7 +14,7 @@ export class SupabaseFileDownloaderAdapter implements FileDownloaderPort {
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
     const url = this.configService.get<string>('SUPABASE_URL');
-    const serviceKey = this.configService.get<string>('SUPABASE_KEY');
+    const serviceKey = this.configService.get<string>('SUPABASE_SERVICE_KEY');
 
     if (!url || !serviceKey) {
       throw new Error('Supabase configuration is missing');

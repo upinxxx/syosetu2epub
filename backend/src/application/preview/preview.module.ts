@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AddPreviewJobUseCase } from './use-cases/add-preview-job.use-case.js';
 import { GetNovelPreviewUseCase } from './use-cases/get-novel-preview.use-case.js';
 import { GetPreviewJobStatusUseCase } from './use-cases/get-preview-job-status.use-case.js';
-import { PreviewNovelUseCase } from './use-cases/preview-novel.use-case.js';
 import { ProcessPreviewUseCase } from './use-cases/process-preview-job.use-case.js';
 import { PreviewFacade } from './preview.facade.js';
 import { PreviewCacheService } from './services/preview-cache.service.js';
@@ -14,6 +13,7 @@ import { RedisModule } from '@/infrastructure/redis/redis.module.js';
 
 /**
  * 預覽相關模組
+ * 🔧 優化：移除冗餘的PreviewNovelUseCase
  */
 @Module({
   imports: [
@@ -47,10 +47,6 @@ import { RedisModule } from '@/infrastructure/redis/redis.module.js';
     {
       provide: GetPreviewJobStatusUseCase,
       useClass: GetPreviewJobStatusUseCase,
-    },
-    {
-      provide: PreviewNovelUseCase,
-      useClass: PreviewNovelUseCase,
     },
     {
       provide: ProcessPreviewUseCase,

@@ -37,15 +37,17 @@ export class AddPreviewJobUseCase {
         sourceId,
       };
 
-      // 添加任務到佇列（不在 options 中指定 jobId）
+      // 🔧 優化任務配置，提升處理速度
       const actualJobId = await this.queueService.addJob('preview', jobData, {
-        removeOnComplete: 5,
-        removeOnFail: 3,
-        attempts: 3,
+        removeOnComplete: 10, // 增加保留完成任務數量
+        removeOnFail: 5, // 增加保留失敗任務數量
+        attempts: 2, // 減少重試次數
         backoff: {
           type: 'exponential',
-          delay: 1000,
+          delay: 500, // 減少重試延遲
         },
+        // 🔧 添加任務優先級，預覽任務優先處理
+        priority: 1,
       });
 
       this.logger.log(`預覽任務已添加到佇列：${actualJobId}`);
