@@ -208,18 +208,29 @@ export class SendToKindleUseCase {
         );
       }
 
-      // 取得檔名 - 使用小說標題或預設名稱
-      let filename = this.fileDownloader.getFilename(epubJob.publicUrl);
+      // // 取得檔名 - 使用小說標題或預設名稱
+      // let filename = this.fileDownloader.getFilename(epubJob.publicUrl);
 
-      // 如果無法從 URL 取得檔名，嘗試使用小說標題
-      if (!filename) {
-        // 確認小說對象存在並有標題
-        if (epubJob.novel && epubJob.novel.title) {
-          filename = `${epubJob.novel.title}.epub`;
-        } else {
-          // 沒有小說標題時使用任務 ID 作為備用
-          filename = `epub-${epubJob.id}.epub`;
-        }
+      // // 如果無法從 URL 取得檔名，嘗試使用小說標題
+      // if (!filename) {
+      //   // 確認小說對象存在並有標題
+      //   if (epubJob.novel && epubJob.novel.title) {
+      //     filename = `${epubJob.novel.title}.epub`;
+      //   } else {
+      //     // 沒有小說標題時使用任務 ID 作為備用
+      //     filename = `epub-${epubJob.id}.epub`;
+      //   }
+      // }
+
+      // 取得檔名 - 使用小說標題或預設名稱
+      let filename = '';
+
+      // 確認小說對象存在並有標題
+      if (epubJob.novel && epubJob.novel.title) {
+        filename = `${epubJob.novel.title}.epub`;
+      } else {
+        // 沒有小說標題時使用任務 ID 作為備用
+        filename = `epub-${epubJob.id}.epub`;
       }
 
       this.logger.log(`Delivery ${deliveryId}: Using filename: ${filename}`);

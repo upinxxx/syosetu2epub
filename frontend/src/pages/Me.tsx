@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import KindleEmailForm from "@/components/KindleEmailForm";
+import KindleSetupGuideWithEmail from "@/components/KindleSetupGuideWithEmail";
 
 // 動態載入大型元件
 const Layout = React.lazy(() => import("@/components/Layout"));
@@ -472,11 +472,14 @@ export default function Me() {
                 <span>設定 Kindle 電子郵件</span>
               </DialogTitle>
             </DialogHeader>
-            <KindleEmailForm
+            <KindleSetupGuideWithEmail
               initialEmail={user?.kindleEmail}
-              onSuccess={async () => {
+              onComplete={async () => {
                 // 關閉對話框前先確保用戶狀態是最新的
                 await refreshAuth(true);
+                setIsKindleEmailDialogOpen(false);
+              }}
+              onCancel={() => {
                 setIsKindleEmailDialogOpen(false);
               }}
             />

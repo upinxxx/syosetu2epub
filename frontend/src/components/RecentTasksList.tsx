@@ -381,7 +381,7 @@ export default function RecentTasksList({
           {tasks.map((task) => (
             <div
               key={task.id}
-              className={`border rounded-xl p-4 hover:bg-gray-50 transition-all duration-200 hover:shadow-md relative bg-white ${
+              className={`border rounded-xl p-4 hover:bg-sky-50 transition-all duration-200 hover:shadow-md relative bg-white ${
                 isRefreshing
                   ? "animate-pulse"
                   : showRefreshSuccess
@@ -464,14 +464,7 @@ export default function RecentTasksList({
   if (!showCard) {
     return (
       <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            {lastUpdated && (
-              <p className="text-xs text-gray-500 mt-1">
-                上次更新：{lastUpdated.toLocaleTimeString("zh-TW")}
-              </p>
-            )}
-          </div>
+        <div className="flex items-center justify-end mb-4">
           <div className="flex items-center gap-2">
             <Button
               onClick={handleRefresh}
@@ -501,14 +494,7 @@ export default function RecentTasksList({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            {lastUpdated && (
-              <p className="text-xs text-gray-500 mt-1">
-                上次更新：{lastUpdated.toLocaleTimeString("zh-TW")}
-              </p>
-            )}
-          </div>
+        <div className="flex items-center justify-end">
           <div className="flex items-center gap-2">
             <Button
               onClick={handleRefresh}

@@ -8,6 +8,7 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
+import { ENV } from "@/lib/env";
 
 /**
  * OAuth 登入錯誤頁面
@@ -20,8 +21,7 @@ const OAuthError: React.FC = () => {
 
   const handleRetryLogin = () => {
     // 重新導向到登入頁面
-    const apiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-    window.location.href = `${apiUrl}/api/v1/auth/google`;
+    window.location.href = `${ENV.API_BASE_URL}/api/v1/auth/google`;
   };
 
   // useEffect(() => {

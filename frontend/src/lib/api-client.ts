@@ -443,7 +443,7 @@ class NetworkMonitor {
   private startPingMonitoring(): void {
     this.pingInterval = setInterval(async () => {
       await this.checkConnectionQuality();
-    }, 30000); // 每30秒檢查一次
+    }, 300000); // 每5分鐘檢查一次 (300秒)
   }
 
   private async checkConnectionQuality(): Promise<void> {

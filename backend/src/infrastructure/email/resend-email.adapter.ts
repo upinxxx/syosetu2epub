@@ -44,7 +44,6 @@ export class ResendEmailAdapter implements EmailSenderPort {
         from: options.from || this.fromEmail,
         to: [options.to],
         subject: options.subject || 'Your EPUB from Syosetu2EPUB',
-        html: '<p>Your converted EPUB is attached. Enjoy reading!</p>',
         attachments: [
           {
             filename: options.filename,

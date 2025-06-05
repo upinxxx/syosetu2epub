@@ -5,13 +5,11 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { LoginButton } from "./LoginButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  SimpleDropdown,
+  DropdownLabel,
+  DropdownItem,
+  DropdownSeparator,
+} from "@/components/SimpleDropdown";
 import {
   LogOut,
   User,
@@ -42,7 +40,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-white/95 backdrop-blur-lg border-b border-gray-200/60 sticky top-0 z-50 shadow-lg">
+    <header className="bg-white/95 backdrop-blur-lg border-b border-gray-200/60 sticky top-0 z-40 shadow-lg">
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -89,8 +87,10 @@ export default function Navbar() {
                 </div>
 
                 {/* 用戶頭像下拉菜單 */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                <SimpleDropdown
+                  align="end"
+                  sideOffset={5}
+                  trigger={
                     <Button
                       variant="ghost"
                       className="relative h-10 w-10 rounded-full hover:bg-blue-50 transition-all duration-300 ring-2 ring-transparent hover:ring-blue-200"
@@ -111,81 +111,71 @@ export default function Navbar() {
                       {/* 在線狀態指示器 */}
                       <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-72 bg-white/98 backdrop-blur-lg border border-gray-200/80 shadow-2xl rounded-2xl p-2"
-                    align="end"
-                    forceMount
-                  >
-                    {/* 用戶信息頭部 */}
-                    <DropdownMenuLabel className="font-normal p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl mb-2">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-12 w-12 shadow-lg">
-                          {user?.avatar && (
-                            <AvatarImage
-                              src={user.avatar}
-                              alt={user.displayName}
-                            />
-                          )}
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold">
-                            {user?.displayName
-                              ? getInitials(user.displayName)
-                              : "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-gray-900 truncate">
-                            {user?.displayName || "會員"}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {user?.email}
-                          </p>
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Zap className="h-3 w-3 text-green-500" />
-                            <span className="text-xs text-green-600 font-medium">
-                              正式會員
-                            </span>
-                          </div>
+                  }
+                >
+                  {/* 用戶信息頭部 */}
+                  <DropdownLabel>
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-12 w-12 shadow-lg">
+                        {user?.avatar && (
+                          <AvatarImage
+                            src={user.avatar}
+                            alt={user.displayName}
+                          />
+                        )}
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold">
+                          {user?.displayName
+                            ? getInitials(user.displayName)
+                            : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                          {user?.displayName || "會員"}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {user?.email}
+                        </p>
+                        <div className="flex items-center space-x-1 mt-1">
+                          <Zap className="h-3 w-3 text-green-500" />
+                          <span className="text-xs text-green-600 font-medium">
+                            正式會員
+                          </span>
                         </div>
                       </div>
-                    </DropdownMenuLabel>
+                    </div>
+                  </DropdownLabel>
 
-                    <DropdownMenuSeparator className="bg-gray-200/60 my-2" />
+                  <DropdownSeparator />
 
-                    {/* 菜單項目 */}
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/me"
-                        className="flex w-full cursor-pointer items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 rounded-lg group"
-                      >
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors duration-200">
-                          <User className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <span className="font-medium">會員中心</span>
-                          <p className="text-xs text-gray-500">
-                            管理帳戶和設定
-                          </p>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator className="bg-gray-200/60 my-2" />
-
-                    <DropdownMenuItem
-                      onClick={logout}
-                      className="px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 rounded-lg group cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-red-200 transition-colors duration-200">
-                        <LogOut className="h-4 w-4 text-red-600" />
+                  {/* 菜單項目 */}
+                  <Link to="/me" className="block w-full">
+                    <DropdownItem>
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors duration-200">
+                        <User className="h-4 w-4 text-blue-600" />
                       </div>
                       <div>
-                        <span className="font-medium">登出</span>
-                        <p className="text-xs text-gray-500">安全退出帳戶</p>
+                        <span className="font-medium">會員中心</span>
+                        <p className="text-xs text-gray-500">管理帳戶和設定</p>
                       </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    </DropdownItem>
+                  </Link>
+
+                  <DropdownSeparator />
+
+                  <DropdownItem
+                    onClick={logout}
+                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-red-200 transition-colors duration-200">
+                      <LogOut className="h-4 w-4 text-red-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium">登出</span>
+                      <p className="text-xs text-gray-500">安全退出帳戶</p>
+                    </div>
+                  </DropdownItem>
+                </SimpleDropdown>
               </div>
             )}
           </div>

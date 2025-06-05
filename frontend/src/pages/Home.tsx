@@ -1128,7 +1128,7 @@ export default function Home() {
 
   // 格式化時間顯示
   const formatTimeRemaining = (seconds?: number): string => {
-    if (!seconds || seconds <= 0) return "";
+    if (!seconds || seconds <= 0) return "稍早";
 
     if (seconds < 60) {
       return `約 ${Math.ceil(seconds)} 秒`;
@@ -1487,7 +1487,7 @@ export default function Home() {
                   {/* 底部操作欄 */}
                   <div className="border-t border-gray-200/60 p-6 bg-gray-50/50 backdrop-blur-sm">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-500">
+                      <div className="text- text-gray-500">
                         點擊「確認轉換」開始處理此小說
                       </div>
                       <Button
@@ -1811,33 +1811,23 @@ export default function Home() {
                   <div>
                     <h3 className="text-sm font-semibold">轉檔任務</h3>
                     <p className="text-xs text-white/80">
-                      {activeJobs.size} 個進行中
+                      {activeJobs.size} 個任務
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-white/70">
-                    {formatTimeRemaining(
-                      Math.floor(
-                        (new Date().getTime() - lastSyncTime.getTime()) / 1000
-                      )
-                    )}{" "}
-                    前更新
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleStatusBar();
-                    }}
-                    className="text-white hover:text-white/80 transition-colors duration-200 p-1 rounded-full hover:bg-white/10"
-                  >
-                    {statusBarCollapsed ? (
-                      <ChevronUp size={18} />
-                    ) : (
-                      <ChevronDown size={18} />
-                    )}
-                  </button>
-                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleStatusBar();
+                  }}
+                  className="text-white hover:text-white/80 transition-colors duration-200 p-1 rounded-full hover:bg-white/10"
+                >
+                  {statusBarCollapsed ? (
+                    <ChevronUp size={18} />
+                  ) : (
+                    <ChevronDown size={18} />
+                  )}
+                </button>
               </div>
               <div
                 className={`overflow-y-auto ${
@@ -1847,7 +1837,7 @@ export default function Home() {
                 {Array.from(activeJobs.entries()).map(([jobId, job]) => (
                   <div
                     key={jobId}
-                    className="p-4 border-b border-gray-100/60 hover:bg-gradient-to-r hover:from-sky-50/50 hover:to-blue-50/50 transition-all duration-200"
+                    className="p-4 border-b border-gray-100/60 hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 transition-all duration-200"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">

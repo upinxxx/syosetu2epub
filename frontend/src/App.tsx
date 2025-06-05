@@ -63,26 +63,22 @@ function App() {
             />
 
             {/* OAuth 相關路由 - 使用獨立路由，避免與其他路由互相影響 */}
-            <Route path="/oauth">
-              <Route
-                path="success"
-                element={
-                  <PageTransition>
-                    <OAuthSuccess />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="error"
-                element={
-                  <PageTransition>
-                    <OAuthError />
-                  </PageTransition>
-                }
-              />
-              {/* 重定向任何其他 OAuth 路徑回主頁 */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
+            <Route
+              path="/oauth/success"
+              element={
+                <PageTransition>
+                  <OAuthSuccess />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/oauth/error"
+              element={
+                <PageTransition>
+                  <OAuthError />
+                </PageTransition>
+              }
+            />
 
             {/* 處理未匹配路由 */}
             <Route

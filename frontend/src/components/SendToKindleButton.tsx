@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/contexts";
 import { useCooldown } from "@/lib/hooks/useCooldown";
-import KindleEmailForm from "./KindleEmailForm";
+import KindleSetupGuideWithEmail from "./KindleSetupGuideWithEmail";
 import { Clock, Send, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 
@@ -282,10 +282,10 @@ export default function SendToKindleButton({
   const handleEmailSetupSuccess = async () => {
     // 刷新用戶資訊
     await refreshAuth();
-    // 關閉對話框
+    // 關閉對話框 - 讓KindleEmailForm完成整個流程（包括設定指南）
     setIsDialogOpen(false);
     // 顯示成功提示
-    toast.success("Kindle郵箱設定成功！", {
+    toast.success("Kindle設定完成！", {
       description: "現在可以發送EPUB到您的Kindle了",
       duration: 5000,
       style: {
@@ -353,9 +353,10 @@ export default function SendToKindleButton({
                   請先設定您的 Kindle 電子郵件地址，以便接收 EPUB 檔案。
                 </DialogDescription>
               </DialogHeader>
-              <KindleEmailForm
+              <KindleSetupGuideWithEmail
                 initialEmail={user?.kindleEmail}
-                onSuccess={handleEmailSetupSuccess}
+                onComplete={handleEmailSetupSuccess}
+                onCancel={() => setIsDialogOpen(false)}
               />
             </>
           )}

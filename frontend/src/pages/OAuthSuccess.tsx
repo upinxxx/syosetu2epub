@@ -8,7 +8,7 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Loader2, Home, CheckCircle } from "lucide-react";
-import { useAuth } from "../lib/auth";
+import { useAuth } from "@/lib/contexts";
 
 /**
  * OAuth 登入成功頁面
@@ -36,7 +36,7 @@ const OAuthSuccess: React.FC = () => {
         // 強制刷新認證狀態
         await refreshAuth(true);
       } catch (error) {
-        console.error("刷新認證狀態失敗:", error);
+        console.error("❌ 刷新認證狀態失敗:", error);
       }
     };
 
