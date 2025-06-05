@@ -8,7 +8,7 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Loader2, Home, CheckCircle } from "lucide-react";
-import { useAuth } from "../lib/auth";
+import { useAuth } from "@/lib/contexts";
 
 /**
  * OAuth 登入成功頁面
