@@ -381,7 +381,7 @@ export default function RecentTasksList({
           {tasks.map((task) => (
             <div
               key={task.id}
-              className={`border rounded-xl p-4 hover:bg-gray-50 transition-all duration-200 hover:shadow-md relative bg-white ${
+              className={`border rounded-xl p-4 hover:bg-sky-50 transition-all duration-200 hover:shadow-md relative bg-white ${
                 isRefreshing
                   ? "animate-pulse"
                   : showRefreshSuccess

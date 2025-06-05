@@ -1811,7 +1811,7 @@ export default function Home() {
                   <div>
                     <h3 className="text-sm font-semibold">轉檔任務</h3>
                     <p className="text-xs text-white/80">
-                      {activeJobs.size} 個進行中
+                      {activeJobs.size} 個任務
                     </p>
                   </div>
                 </div>
@@ -1837,7 +1837,7 @@ export default function Home() {
                 {Array.from(activeJobs.entries()).map(([jobId, job]) => (
                   <div
                     key={jobId}
-                    className="p-4 border-b border-gray-100/60 hover:bg-gradient-to-r hover:from-sky-50/50 hover:to-blue-50/50 transition-all duration-200"
+                    className="p-4 border-b border-gray-100/60 hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 transition-all duration-200"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
