@@ -68,11 +68,17 @@ export default function KindleEmailForm({
           description: "設定成功",
         });
 
-        // 立即顯示設定指南，不等待其他異步操作
+        // 統一邏輯：每次儲存設定都要跳出Amazon Kindle設定指南
         setStep("guide");
 
         // 在背景更新用戶狀態
         refreshAuth(true).catch(console.error);
+      } else {
+        // 即使API響應不成功，也要顯示設定指南（確保一致性）
+        toast.warning("設定可能未完全成功，請完成Amazon認可寄件者設定", {
+          description: "請按照指南完成設定",
+        });
+        setStep("guide");
       }
     } catch (error: any) {
       console.error("更新Kindle郵箱失敗:", error);
@@ -80,10 +86,15 @@ export default function KindleEmailForm({
         error.response?.data?.message ||
         error.message ||
         "更新Kindle郵箱時發生錯誤";
-      setError(errorMessage);
-      toast.error(errorMessage, {
-        description: "設定失敗",
+
+      // 統一邏輯：即使發生錯誤，也要顯示設定指南（確保用戶體驗一致性）
+      toast.warning("郵箱設定遇到問題，但仍需完成Amazon認可寄件者設定", {
+        description: "請按照指南完成設定",
       });
+      setStep("guide");
+
+      // 同時顯示錯誤信息供用戶參考
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
