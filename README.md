@@ -5,6 +5,11 @@
 
 公開訪問網址: https://app.syosetu2epub.online/
 
+### Demo
+![image](https://github.com/upinxxx/syosetu2epub/blob/main/demo/convert.gif)
+
+![image](https://github.com/upinxxx/syosetu2epub/blob/main/demo/login%26memberPage.gif)
+
 ### 🌟 主要功能
 
 - 📚 從網路小說網站抓取內容
